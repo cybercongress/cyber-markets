@@ -1,0 +1,57 @@
+/* Gradle plugins part */
+buildscript {
+
+    ext.spring_version = '1.5.4.RELEASE'
+    ext.kotlin_version = '1.1.3-2'
+    ext.xchange_version = '4.2.0'
+    ext.jackson_version = '2.8.9'
+    ext.rethinkdb_driver_version = '2.3.3'
+    ext.commons_pool2_version = '2.4.2'
+
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${spring_version}")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    }
+}
+
+/* Gradle plugins settings part */
+apply plugin: 'kotlin'
+apply plugin: 'org.springframework.boot'
+
+jar {
+    baseName = 'cyber.markets'
+    version = '0.0.1'
+}
+
+bootRun {
+    systemProperties = System.properties
+}
+
+/* Java dependencies part */
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-websocket")
+    compile("org.springframework.boot:spring-boot-starter-jetty")
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version")
+    compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
+    compile("com.rethinkdb:rethinkdb-driver:$rethinkdb_driver_version")
+    compile("org.apache.commons:commons-pool2:$commons_pool2_version")
+
+    compile("org.knowm.xchange:xchange-core:$xchange_version")
+    compile("org.knowm.xchange:xchange-poloniex:$xchange_version")
+    compile("org.knowm.xchange:xchange-bitfinex:$xchange_version")
+}
+
+configurations {
+    compile.exclude module: 'spring-boot-starter-tomcat'
+    compile.exclude group: 'org.apache.tomcat'
+}
