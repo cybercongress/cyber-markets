@@ -27,7 +27,7 @@ open class BitfinexSubscriptionStarter(
     fun startSubscription() {
 
         val bitfinex = ExchangeFactory.INSTANCE.createExchange(BitfinexExchange::class.java.name) as BitfinexExchange
-        bitfinexMetaInformation.channelSymbolForCurrencyPair = bitfinex.getChannelSymbolForCurrencyPair()
+        bitfinexMetaInformation.channelSymbolForTokensPair = bitfinex.getChannelSymbolForTokensPair()
 
         val webSocketConnectionManager = WebSocketConnectionManager(webSocketClient, websocketHandler, WS_ADDRESS)
         webSocketConnectionManager.start()

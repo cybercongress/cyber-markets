@@ -1,6 +1,6 @@
 package fund.cyber.markets.bitfinex
 
-import fund.cyber.markets.model.CurrencyPair
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.ExchangeMessage
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
@@ -21,5 +21,5 @@ fun WebSocketSession.subscribeOrderChannel(channelSymbol: String) {
 
 class TradeChannelSubscribed(
         val channelId: Int,
-        val currencyPair: CurrencyPair
+        val tokensPair: TokensPair
 ) : ExchangeMessage()

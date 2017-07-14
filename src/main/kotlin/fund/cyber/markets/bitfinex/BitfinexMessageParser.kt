@@ -80,9 +80,9 @@ open class BitfinexMessageParser(
     private fun parseTradesChannelSubscribed(jsonNode: JsonNode): ExchangeMessage? {
         val channelId = jsonNode[channel_id].asInt()
         val channelSymbol = jsonNode[channel_symbol].asText()
-        val currencyPair = bitfinexMetaInformation.channelSymbolForCurrencyPair[channelSymbol]
-        if (currencyPair != null) {
-            return TradeChannelSubscribed(channelId, currencyPair)
+        val tokensPair = bitfinexMetaInformation.channelSymbolForTokensPair[channelSymbol]
+        if (tokensPair != null) {
+            return TradeChannelSubscribed(channelId, tokensPair)
         }
         return null
     }
@@ -92,7 +92,7 @@ open class BitfinexMessageParser(
     // sign of base amount determines trade type ( - sell | + buy)
     private fun parseNewTrade(jsonRoot: JsonNode): ExchangeMessage? {
 
-        val currencyPair = bitfinexMetaInformation.tradesChannelIdForCurrencyPair[jsonRoot[0].asInt()] ?: return null
+        val tokensPair = bitfinexMetaInformation.tradesChannelIdForTokensPair[jsonRoot[0].asInt()] ?: return null
 
         val tradeNode = jsonRoot[2]
         val rate = BigDecimal(tradeNode[3].asText())
@@ -101,10 +101,10 @@ open class BitfinexMessageParser(
         baseAmount = baseAmount.abs()
 
         val trade = Trade(
-                id = tradeNode[0].asText(), exchange = bitfinex,
-                currencyPair = currencyPair, type = tradeType,
-                baseAmount = baseAmount, counterAmount = rate * baseAmount,
-                rate = rate, timestamp = tradeNode[1].asLong().div(1000)
+                tradeId = tradeNode[0].asText(), exchange = bitfinex,
+                tokensPair = tokensPair, type = tradeType,
+                baseAmount = baseAmount, quoteAmount = rate * baseAmount,
+                spotPrice = rate, timestamp = tradeNode[1].asLong().div(1000)
         )
 
         val newItems = ExchangeItemsReceivedMessage()
