@@ -3,12 +3,12 @@ package fund.cyber.markets.poloniex
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.model.CurrencyPair
-import fund.cyber.markets.model.ExchangeItems
+import fund.cyber.markets.model.ExchangeItemsReceivedMessage
 import fund.cyber.markets.model.Trade
-import fund.cyber.markets.model.TradeType
+import fund.cyber.markets.model.TradeType.BUY
+import fund.cyber.markets.model.TradeType.SELL
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
-import java.time.Instant
 
 /**
  *   Parses poloniex ws message.
@@ -31,9 +31,9 @@ open class PoloniexMessageParser(
 
     private val mapper = ObjectMapper()
 
-    fun parseMessage(message: String): ExchangeItems {
+    fun parseMessage(message: String): ExchangeItemsReceivedMessage {
 
-        val newItems = ExchangeItems()
+        val newItems = ExchangeItemsReceivedMessage()
 
         val jsonNode = mapper.readTree(message)
         val channelId = jsonNode.get(0).asInt()
@@ -55,16 +55,12 @@ open class PoloniexMessageParser(
     //["t", id, sell/buy,  rate,      quantity,        time(s) ]
     private fun parseTrade(node: JsonNode, currencyPair: CurrencyPair): Trade {
         val rate = BigDecimal(node[3].asText())
-        val quantity = BigDecimal(node[4].asText())
+        val baseAmount = BigDecimal(node[4].asText())
         return Trade(
-                id = node[1].asText(),
-                exchange = "Poloniex",
-                currencyPair = currencyPair,
-                type = if (node[2].asInt() == 0) TradeType.SELL else TradeType.BUY,
-                rate = rate,
-                quantity = quantity,
-                total = rate * quantity,
-                timestamp = Instant.ofEpochSecond(node[5].asLong(), 0)
+                id = node[1].asText(), exchange = "Poloniex",
+                currencyPair = currencyPair, type = if (node[2].asInt() == 0) SELL else BUY,
+                baseAmount = baseAmount, counterAmount = rate * baseAmount,
+                rate = rate, timestamp = node[5].asLong()
         )
     }
 }

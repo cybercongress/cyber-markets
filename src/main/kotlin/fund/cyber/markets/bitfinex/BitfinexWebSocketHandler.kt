@@ -1,5 +1,6 @@
 package fund.cyber.markets.bitfinex
 
+import fund.cyber.markets.model.ExchangeItemsReceivedMessage
 import fund.cyber.markets.storage.RethinkDbService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -11,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession
 
 @Component
 open class BitfinexWebSocketHandler(
+        val bitfinexMetaInformation: BitfinexMetaInformation,
         val bitfinexMessageParser: BitfinexMessageParser,
         val rethinkDbService: RethinkDbService
 ) : WebSocketHandler {
@@ -21,13 +23,22 @@ open class BitfinexWebSocketHandler(
     override fun afterConnectionEstablished(session: WebSocketSession) {
         LOG.info("Bitfinex websocket session is started")
         session.textMessageSizeLimit = Integer.MAX_VALUE
+        bitfinexMetaInformation.channelSymbolForCurrencyPair.keys.forEach { channelSymbol ->
+            session.subscribeTradeChannel(channelSymbol)
+        }
     }
 
     @Throws(Exception::class)
-    override fun handleMessage(session: WebSocketSession, message: WebSocketMessage<*>) {
-        val jsonMessage = message.payload.toString()
-        val newExchangeItems = bitfinexMessageParser.parseMessage(jsonMessage)
-        rethinkDbService.saveTrades(newExchangeItems.trades)
+    override fun handleMessage(session: WebSocketSession, wsMessage: WebSocketMessage<*>) {
+        val jsonMessage = wsMessage.payload.toString()
+        val message = bitfinexMessageParser.parseMessage(jsonMessage)
+        when (message) {
+            is ExchangeItemsReceivedMessage -> rethinkDbService.saveTrades(message.trades)
+            is TradeChannelSubscribed -> {
+                LOG.info("Bitfinex channel ${message.currencyPair.label()} subscribed")
+                bitfinexMetaInformation.tradesChannelIdForCurrencyPair.put(message.channelId, message.currencyPair)
+            }
+        }
     }
 
     @Throws(Exception::class)

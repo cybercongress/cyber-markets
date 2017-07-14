@@ -32,7 +32,6 @@ open class RethinkDbService(
         connectionPool.returnObject(connection)
     }
 
-
     open fun saveTrades(trades: List<Trade>) {
 
         val connection = connectionPool.borrowObject()
@@ -41,17 +40,16 @@ open class RethinkDbService(
             val tradeObject = MapObject()
             tradeObject.with("tradeId", id)
             tradeObject.with("exchange", exchange)
-            tradeObject.with("type", type.label)
+            tradeObject.with("type", type.name)
             tradeObject.with("baseCurrency", currencyPair.baseCurrency)
             tradeObject.with("counterCurrency", currencyPair.counterCurrency)
-            tradeObject.with("quantity", quantity.toPlainString())
+            tradeObject.with("baseAmount", quantity.toPlainString())
+            tradeObject.with("counterAmount", total.toPlainString())
             tradeObject.with("rate", rate.toPlainString())
-            tradeObject.with("total", total.toPlainString())
-            tradeObject.with("timestamp", timestamp.epochSecond)
+            tradeObject.with("timestamp", timestamp)
         }.toList()
 
         r.db(dbName).table(tradesTable).insert(tradesObjects).run<Any>(connection)
         connectionPool.returnObject(connection)
     }
-
 }

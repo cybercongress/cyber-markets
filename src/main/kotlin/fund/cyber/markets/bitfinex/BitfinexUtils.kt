@@ -10,12 +10,7 @@ import java.util.*
 
 val WS_ADDRESS = "wss://api.bitfinex.com/ws/2"
 
-/**
- * Warning! Sends messages on session.
- */
-fun WebSocketSession.subscribeChannel(channelSymbol: String) {
-    sendMessage(TextMessage("{\"event\":\"subscribe\",\"channel\":\"trades\",\"symbol\":\"$channelSymbol\"}"))
-}
+
 
 /**
  * Warning! Invokes http request to obtain data.
@@ -27,8 +22,8 @@ fun BitfinexExchange.getChannelSymbolForCurrencyPair(): Map<String, CurrencyPair
 
     val channelSymbolForCurrencyPair: MutableMap<String, CurrencyPair> = HashMap()
     exchangeSymbols.forEach { pair ->
-        val bitfinexSymbol = "t" + (pair.base.symbol + pair.counter.symbol).toUpperCase()
-        channelSymbolForCurrencyPair.put(bitfinexSymbol, CurrencyPair(pair.base.symbol, pair.counter.symbol))
+        val bitfinexSymbol = "t" + (pair.base.currencyCode + pair.counter.currencyCode).toUpperCase()
+        channelSymbolForCurrencyPair.put(bitfinexSymbol, CurrencyPair(pair.base.currencyCode, pair.counter.currencyCode))
     }
     return channelSymbolForCurrencyPair
 }
