@@ -8,6 +8,12 @@ buildscript {
     ext.rethinkdb_driver_version = '2.3.3'
     ext.commons_pool2_version = '2.4.2'
 
+    //tests
+    ext.junit_version = '5.0.0-M5'
+    ext.junit_platform_version = '1.0.0-M5'
+    ext.mockito_version = '2.1.0'
+    ext.mockito_kotlin_version = '0.7.0'
+
     repositories {
         jcenter()
         mavenCentral()
@@ -15,12 +21,14 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${spring_version}")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+        classpath "org.junit.platform:junit-platform-gradle-plugin:${junit_platform_version}"
     }
 }
 
 /* Gradle plugins settings part */
 apply plugin: 'kotlin'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'org.junit.platform.gradle.plugin'
 
 jar {
     baseName = 'cyber.markets'
@@ -49,6 +57,11 @@ dependencies {
     compile("org.knowm.xchange:xchange-core:$xchange_version")
     compile("org.knowm.xchange:xchange-poloniex:$xchange_version")
     compile("org.knowm.xchange:xchange-bitfinex:$xchange_version")
+
+    testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
+    testCompile("org.mockito:mockito-core:${mockito_version}")
+    testCompile "com.nhaarman:mockito-kotlin:${mockito_kotlin_version}"
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
 }
 
 configurations {

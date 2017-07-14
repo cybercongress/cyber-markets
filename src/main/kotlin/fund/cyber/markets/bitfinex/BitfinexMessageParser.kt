@@ -7,6 +7,8 @@ import fund.cyber.markets.model.ExchangeMessage
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
+import fund.cyber.markets.model.bitfinex
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
@@ -32,27 +34,32 @@ open class BitfinexMessageParser(
         val bitfinexMetaInformation: BitfinexMetaInformation
 ) {
 
+    private val LOG = LoggerFactory.getLogger(BitfinexMessageParser::class.java)
     private val jsonReader = ObjectMapper()
 
     fun parseMessage(message: String): ExchangeMessage? {
+        try {
+            val jsonRoot = jsonReader.readTree(message)
+            val eventType = jsonRoot[event_property]?.asText()
 
-        val jsonRoot = jsonReader.readTree(message)
-        val eventType = jsonRoot[event_property]?.asText()
+            //ex - {"event":"subscribed","channel":"trades","chanId":53,"symbol":"tBTCUSD","pair":"BTCUSD"}
+            if (eventType != null) {
+                return when (eventType) {
+                    event_type_info -> parseInfoEvent(jsonRoot)
+                    event_type_subscribed -> parseSubscribedMessage(jsonRoot)
+                    else -> null
+                }
+            }
 
-        //ex - {"event":"subscribed","channel":"trades","chanId":53,"symbol":"tBTCUSD","pair":"BTCUSD"}
-        if (eventType != null) {
-            return when (eventType) {
-                event_type_info -> parseInfoEvent(jsonRoot)
-                event_type_subscribed -> parseSubscribedMessage(jsonRoot)
+            // ex - [53,"te",[43334639,1499972199000,0.01293103,2320]]
+            val updateType = jsonRoot[1]?.asText()
+            return when (updateType) {
+                trade_executed -> parseNewTrade(jsonRoot)
                 else -> null
             }
-        }
-
-        // ex - [53,"te",[43334639,1499972199000,0.01293103,2320]]
-        val updateType = jsonRoot[1]?.asText()
-        return when (updateType) {
-            trade_executed -> parseNewTrade(jsonRoot)
-            else -> null
+        } catch (exception: Exception) {
+            LOG.error("Unexpected exception for Bitfinex message: '$message'", exception)
+            return null
         }
     }
 
@@ -94,7 +101,7 @@ open class BitfinexMessageParser(
         baseAmount = baseAmount.abs()
 
         val trade = Trade(
-                id = tradeNode[0].asText(), exchange = "Bitfinex",
+                id = tradeNode[0].asText(), exchange = bitfinex,
                 currencyPair = currencyPair, type = tradeType,
                 baseAmount = baseAmount, counterAmount = rate * baseAmount,
                 rate = rate, timestamp = tradeNode[1].asLong().div(1000)
