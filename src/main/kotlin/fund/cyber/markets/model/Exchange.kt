@@ -6,13 +6,16 @@ package fund.cyber.markets.model
  * @author hleb.albau@gmail.com
  */
 
+val bitfinex = "Bitfinex"
+val poloniex = "Poloniex"
 
-data class CurrencyPair(
-        val baseCurrency: String,
-        val counterCurrency: String
+
+data class TokensPair(
+        val base: String,
+        val quote: String
 ) {
     fun label(): String {
-        return baseCurrency + "/" + counterCurrency
+        return base + "/" + quote
     }
 }
 

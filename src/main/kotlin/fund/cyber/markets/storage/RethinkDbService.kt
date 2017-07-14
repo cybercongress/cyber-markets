@@ -36,16 +36,17 @@ open class RethinkDbService(
 
         val connection = connectionPool.borrowObject()
 
-        val tradesObjects = trades.map { (id, exchange, timestamp, type, currencyPair, quantity, rate, total) ->
+        val tradesObjects = trades.map { (tradeId, exchange, timestamp, type, tokensPair,
+                                                 baseAmount, spotPrice, quoteAmount) ->
             val tradeObject = MapObject()
-            tradeObject.with("tradeId", id)
+            tradeObject.with("tradeId", tradeId)
             tradeObject.with("exchange", exchange)
             tradeObject.with("type", type.name)
-            tradeObject.with("baseCurrency", currencyPair.baseCurrency)
-            tradeObject.with("counterCurrency", currencyPair.counterCurrency)
-            tradeObject.with("baseAmount", quantity.toPlainString())
-            tradeObject.with("counterAmount", total.toPlainString())
-            tradeObject.with("rate", rate.toPlainString())
+            tradeObject.with("baseToken", tokensPair.base)
+            tradeObject.with("quoteToken", tokensPair.quote)
+            tradeObject.with("baseAmount", baseAmount.toPlainString())
+            tradeObject.with("quoteAmount", quoteAmount.toPlainString())
+            tradeObject.with("spotPrice", spotPrice.toPlainString())
             tradeObject.with("timestamp", timestamp)
         }.toList()
 

@@ -23,7 +23,7 @@ open class BitfinexWebSocketHandler(
     override fun afterConnectionEstablished(session: WebSocketSession) {
         LOG.info("Bitfinex websocket session is started")
         session.textMessageSizeLimit = Integer.MAX_VALUE
-        bitfinexMetaInformation.channelSymbolForCurrencyPair.keys.forEach { channelSymbol ->
+        bitfinexMetaInformation.channelSymbolForTokensPair.keys.forEach { channelSymbol ->
             session.subscribeTradeChannel(channelSymbol)
         }
     }
@@ -35,8 +35,8 @@ open class BitfinexWebSocketHandler(
         when (message) {
             is ExchangeItemsReceivedMessage -> rethinkDbService.saveTrades(message.trades)
             is TradeChannelSubscribed -> {
-                LOG.info("Bitfinex channel ${message.currencyPair.label()} subscribed")
-                bitfinexMetaInformation.tradesChannelIdForCurrencyPair.put(message.channelId, message.currencyPair)
+                LOG.info("Bitfinex channel ${message.tokensPair.label()} subscribed")
+                bitfinexMetaInformation.tradesChannelIdForTokensPair.put(message.channelId, message.tokensPair)
             }
         }
     }

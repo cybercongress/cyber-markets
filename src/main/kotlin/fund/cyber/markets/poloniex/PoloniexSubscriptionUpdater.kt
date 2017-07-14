@@ -40,13 +40,13 @@ open class PoloniexSubscriptionUpdater(
     private fun updatePoloniexMetaData(): Collection<Int> {
 
         val poloniex = ExchangeFactory.INSTANCE.createExchange(PoloniexExchange::class.java.name) as PoloniexExchange
-        val channelIdForCurrencyPair = poloniex.getCurrencyPairsWithChannelIds()
+        val channelIdForTokensPair = poloniex.getTokensPairsWithChannelIds()
 
-        val newChannelIds = channelIdForCurrencyPair.keys
-                .filter { channelId -> !poloniexMetaInformation.channelIdForCurrencyPair.containsKey(channelId) }
+        val newChannelIds = channelIdForTokensPair.keys
+                .filter { channelId -> !poloniexMetaInformation.channelIdForTokensPairs.containsKey(channelId) }
                 .toList()
 
-        poloniexMetaInformation.channelIdForCurrencyPair = channelIdForCurrencyPair
+        poloniexMetaInformation.channelIdForTokensPairs = channelIdForTokensPair
 
         return newChannelIds
     }

@@ -1,6 +1,6 @@
 package fund.cyber.markets.bitfinex
 
-import fund.cyber.markets.model.CurrencyPair
+import fund.cyber.markets.model.TokensPair
 import org.springframework.stereotype.Component
 
 /**
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component
 @Component
 open class BitfinexMetaInformation {
 
-    var channelSymbolForCurrencyPair: Map<String, CurrencyPair> = HashMap()
+    var channelSymbolForTokensPair: Map<String, TokensPair> = HashMap()
 
     // populated during parsing channel subscription result message
     // each time you subscribe channel, a new id is provided -> no possibility to cache it
-    val tradesChannelIdForCurrencyPair: MutableMap<Int, CurrencyPair> = HashMap()
+    val tradesChannelIdForTokensPair: MutableMap<Int, TokensPair> = HashMap()
 }
