@@ -50,6 +50,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-websocket")
     compile("org.springframework.boot:spring-boot-starter-jetty")
     compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version")
+    compile("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
     compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
     compile("com.rethinkdb:rethinkdb-driver:$rethinkdb_driver_version")
     compile("org.apache.commons:commons-pool2:$commons_pool2_version")
@@ -59,6 +60,7 @@ dependencies {
     compile("org.knowm.xchange:xchange-bitfinex:$xchange_version")
 
     testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
+    testCompile("org.junit.platform:junit-platform-launcher:${junit_platform_version}")
     testCompile("org.mockito:mockito-core:${mockito_version}")
     testCompile "com.nhaarman:mockito-kotlin:${mockito_kotlin_version}"
     testRuntime("org.junit.jupiter:junit-jupiter-engine:${junit_version}")

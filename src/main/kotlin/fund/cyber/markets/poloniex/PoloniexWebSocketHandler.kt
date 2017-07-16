@@ -1,6 +1,7 @@
 package fund.cyber.markets.poloniex
 
 
+import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.storage.RethinkDbService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
@@ -35,8 +36,10 @@ open class PoloniexWebSocketHandler(
     @Throws(Exception::class)
     override fun handleMessage(session: WebSocketSession, message: WebSocketMessage<*>) {
         val jsonMessage = message.payload.toString()
-        val newExchangeItems = poloniexMessageParser.parseMessage(jsonMessage)
-        rethinkDbService.saveTrades(newExchangeItems.trades)
+        val exchangeMessage = poloniexMessageParser.parseMessage(jsonMessage)
+        when (exchangeMessage) {
+            is TradesAndOrdersUpdatesMessage -> rethinkDbService.saveTrades(exchangeMessage.trades)
+        }
     }
 
     @Throws(Exception::class)

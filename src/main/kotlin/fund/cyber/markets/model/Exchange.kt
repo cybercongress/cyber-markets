@@ -8,9 +8,10 @@ package fund.cyber.markets.model
 
 val bitfinex = "Bitfinex"
 val poloniex = "Poloniex"
+val hitbtc = "HitBtc"
 
 
-data class TokensPair(
+open class TokensPair(
         val base: String,
         val quote: String
 ) {
@@ -18,15 +19,3 @@ data class TokensPair(
         return base + "/" + quote
     }
 }
-
-/**
- *
- * Websocket model part
- *
- */
-
-open class ExchangeMessage
-
-data class ExchangeItemsReceivedMessage(
-        val trades: MutableList<Trade> = ArrayList()
-) : ExchangeMessage()
