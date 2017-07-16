@@ -1,6 +1,6 @@
 package fund.cyber.markets.bitfinex
 
-import fund.cyber.markets.model.ExchangeItemsReceivedMessage
+import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.storage.RethinkDbService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -33,7 +33,7 @@ open class BitfinexWebSocketHandler(
         val jsonMessage = wsMessage.payload.toString()
         val message = bitfinexMessageParser.parseMessage(jsonMessage)
         when (message) {
-            is ExchangeItemsReceivedMessage -> rethinkDbService.saveTrades(message.trades)
+            is TradesAndOrdersUpdatesMessage -> rethinkDbService.saveTrades(message.trades)
             is TradeChannelSubscribed -> {
                 LOG.info("Bitfinex channel ${message.tokensPair.label()} subscribed")
                 bitfinexMetaInformation.tradesChannelIdForTokensPair.put(message.channelId, message.tokensPair)

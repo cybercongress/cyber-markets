@@ -1,16 +1,17 @@
 package fund.cyber.markets.bitfinex
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.model.ExchangeItemsReceivedMessage
-import fund.cyber.markets.model.ExchangeMessage
+import fund.cyber.markets.exchanges.common.BasicWsMessageParser
+import fund.cyber.markets.exchanges.common.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.exchanges.common.ExchangeMessage
+import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
 import fund.cyber.markets.model.bitfinex
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.util.*
 
 
 val event_property = "event"
@@ -25,41 +26,32 @@ val channel_symbol = "symbol"
 val trade_executed = "te"
 
 /**
- *   Bitfinex ws v2 message parser.
+ *  Bitfinex ws v2 message parser.
  *
  *  @author hleb.albau@gmail.com
  */
 @Component
 open class BitfinexMessageParser(
         val bitfinexMetaInformation: BitfinexMetaInformation
-) {
+) : BasicWsMessageParser(bitfinex) {
 
-    private val LOG = LoggerFactory.getLogger(BitfinexMessageParser::class.java)
-    private val jsonReader = ObjectMapper()
+    override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
+        val eventType = jsonRoot[event_property]?.asText()
 
-    fun parseMessage(message: String): ExchangeMessage? {
-        try {
-            val jsonRoot = jsonReader.readTree(message)
-            val eventType = jsonRoot[event_property]?.asText()
-
-            //ex - {"event":"subscribed","channel":"trades","chanId":53,"symbol":"tBTCUSD","pair":"BTCUSD"}
-            if (eventType != null) {
-                return when (eventType) {
-                    event_type_info -> parseInfoEvent(jsonRoot)
-                    event_type_subscribed -> parseSubscribedMessage(jsonRoot)
-                    else -> null
-                }
-            }
-
-            // ex - [53,"te",[43334639,1499972199000,0.01293103,2320]]
-            val updateType = jsonRoot[1]?.asText()
-            return when (updateType) {
-                trade_executed -> parseNewTrade(jsonRoot)
+        //ex - {"event":"subscribed","channel":"trades","chanId":53,"symbol":"tBTCUSD","pair":"BTCUSD"}
+        if (eventType != null) {
+            return when (eventType) {
+                event_type_info -> parseInfoEvent(jsonRoot)
+                event_type_subscribed -> parseSubscribedMessage(jsonRoot)
                 else -> null
             }
-        } catch (exception: Exception) {
-            LOG.error("Unexpected exception for Bitfinex message: '$message'", exception)
-            return null
+        }
+
+        // ex - [53,"te",[43334639,1499972199000,0.01293103,2320]]
+        val updateType = jsonRoot[1]?.asText()
+        return when (updateType) {
+            trade_executed -> parseTrade(jsonRoot)
+            else -> null
         }
     }
 
@@ -77,22 +69,23 @@ open class BitfinexMessageParser(
     }
 
     //{"event":"subscribed","channel":"trades","chanId":53,"symbol":"tBTCUSD","pair":"BTCUSD"}
-    private fun parseTradesChannelSubscribed(jsonNode: JsonNode): ExchangeMessage? {
+    private fun parseTradesChannelSubscribed(jsonNode: JsonNode): ExchangeMessage {
         val channelId = jsonNode[channel_id].asInt()
         val channelSymbol = jsonNode[channel_symbol].asText()
         val tokensPair = bitfinexMetaInformation.channelSymbolForTokensPair[channelSymbol]
-        if (tokensPair != null) {
-            return TradeChannelSubscribed(channelId, tokensPair)
-        }
-        return null
+                ?: return ContainingUnknownTokensPairMessage(channelSymbol)
+
+        return TradeChannelSubscribed(channelId, tokensPair)
     }
 
     // [53,"te",[43334639,1499972199000,-0.01293103,2320]]
     // Trade node - [id, time(ms), baseAmount, rate]
     // sign of base amount determines trade type ( - sell | + buy)
-    private fun parseNewTrade(jsonRoot: JsonNode): ExchangeMessage? {
+    private fun parseTrade(jsonRoot: JsonNode): ExchangeMessage {
 
-        val tokensPair = bitfinexMetaInformation.tradesChannelIdForTokensPair[jsonRoot[0].asInt()] ?: return null
+        val channelId = jsonRoot[0].asInt()
+        val tokensPair = bitfinexMetaInformation.tradesChannelIdForTokensPair[channelId]
+                ?: return ContainingUnknownTokensPairMessage(channelId.toString())
 
         val tradeNode = jsonRoot[2]
         val rate = BigDecimal(tradeNode[3].asText())
@@ -100,16 +93,14 @@ open class BitfinexMessageParser(
         val tradeType = if (baseAmount.signum() > 0) BUY else SELL
         baseAmount = baseAmount.abs()
 
-        val trade = Trade(
+        val trades = Collections.singletonList(Trade(
                 tradeId = tradeNode[0].asText(), exchange = bitfinex,
                 tokensPair = tokensPair, type = tradeType,
                 baseAmount = baseAmount, quoteAmount = rate * baseAmount,
                 spotPrice = rate, timestamp = tradeNode[1].asLong().div(1000)
-        )
+        ))
 
-        val newItems = ExchangeItemsReceivedMessage()
-        newItems.trades.add(trade)
-        return newItems
+        return TradesAndOrdersUpdatesMessage(trades)
     }
 
     private fun parseOrdersChannelSubscribed(jsonNode: JsonNode): ExchangeMessage? {

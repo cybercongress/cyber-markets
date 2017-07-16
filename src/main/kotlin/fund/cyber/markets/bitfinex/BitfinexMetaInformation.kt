@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component
  * @author hleb.albau@gmail.com
  */
 @Component
-open class BitfinexMetaInformation {
+open class BitfinexMetaInformation(
 
-    var channelSymbolForTokensPair: Map<String, TokensPair> = HashMap()
+        var channelSymbolForTokensPair: Map<String, TokensPair> = HashMap(),
 
-    // populated during parsing channel subscription result message
-    // each time you subscribe channel, a new id is provided -> no possibility to cache it
-    val tradesChannelIdForTokensPair: MutableMap<Int, TokensPair> = HashMap()
-}
+        // populated during receiving channel subscription result message
+        // each time you subscribe channel, a new id is provided -> no possibility to cache it
+        val tradesChannelIdForTokensPair: MutableMap<Int, TokensPair> = HashMap()
+)

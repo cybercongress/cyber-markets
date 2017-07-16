@@ -1,7 +1,7 @@
 package fund.cyber.markets.bitfinex
 
 import fund.cyber.markets.model.TokensPair
-import fund.cyber.markets.model.ExchangeMessage
+import fund.cyber.markets.exchanges.common.ExchangeMessage
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 

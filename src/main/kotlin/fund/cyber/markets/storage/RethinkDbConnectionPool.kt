@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 
 @Component
-open class RethinkDbConnectionPoolConfig() : GenericObjectPoolConfig() {
+open class RethinkDbConnectionPoolConfig : GenericObjectPoolConfig() {
     init {
         maxTotal = 100
         maxIdle = 100
