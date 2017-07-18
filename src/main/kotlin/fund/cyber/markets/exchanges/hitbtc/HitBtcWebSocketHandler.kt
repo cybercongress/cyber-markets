@@ -1,6 +1,6 @@
-package fund.cyber.markets.hitbtc
+package fund.cyber.markets.exchanges.hitbtc
 
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.storage.RethinkDbService
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.CloseStatus
@@ -8,7 +8,6 @@ import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.WebSocketMessage
 import org.springframework.web.socket.WebSocketSession
 
-@Component
 open class HitBtcWebSocketHandler(
         val messageParser: HitBtcMessageParser,
         val rethinkDbService: RethinkDbService

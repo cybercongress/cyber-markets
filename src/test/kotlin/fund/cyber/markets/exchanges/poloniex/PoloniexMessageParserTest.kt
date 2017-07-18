@@ -1,15 +1,13 @@
 package fund.cyber.markets.exchanges.poloniex
 
-import fund.cyber.markets.bitfinex.BitfinexMessageParser
-import fund.cyber.markets.bitfinex.BitfinexMetaInformation
-import fund.cyber.markets.exchanges.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.exchanges.bitfinex.BitfinexMessageParser
+import fund.cyber.markets.exchanges.bitfinex.BitfinexMetaInformation
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import fund.cyber.markets.model.poloniex
-import fund.cyber.markets.poloniex.PoloniexMessageParser
-import fund.cyber.markets.poloniex.PoloniexMetaInformation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

@@ -1,9 +1,7 @@
 package fund.cyber.markets.exchanges.bitfinex
 
-import fund.cyber.markets.bitfinex.BitfinexMessageParser
-import fund.cyber.markets.bitfinex.BitfinexMetaInformation
-import fund.cyber.markets.exchanges.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.SELL

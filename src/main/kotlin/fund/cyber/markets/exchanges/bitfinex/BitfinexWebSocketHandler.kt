@@ -1,6 +1,6 @@
-package fund.cyber.markets.bitfinex
+package fund.cyber.markets.exchanges.bitfinex
 
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.storage.RethinkDbService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

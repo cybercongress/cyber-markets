@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.socket.client.WebSocketClient
-import org.springframework.web.socket.client.standard.StandardWebSocketClient
+import org.springframework.web.socket.client.jetty.JettyWebSocketClient
 
 /**
  * Application entry point.
@@ -26,7 +26,9 @@ open class Application {
 
     @Bean
     open fun webSocketClient(): WebSocketClient {
-        return StandardWebSocketClient()
+        val client = JettyWebSocketClient()
+        client.start()
+        return client
     }
 
     @Bean

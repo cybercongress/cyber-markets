@@ -1,14 +1,13 @@
-package fund.cyber.markets.hitbtc
+package fund.cyber.markets.exchanges.hitbtc
 
 import com.fasterxml.jackson.databind.JsonNode
-import fund.cyber.markets.exchanges.common.BasicWsMessageParser
-import fund.cyber.markets.exchanges.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.exchanges.common.ExchangeMessage
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import fund.cyber.markets.model.hitbtc
-import org.springframework.stereotype.Component
+import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.ExchangeMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import java.math.BigDecimal
 
 
@@ -18,10 +17,9 @@ import java.math.BigDecimal
  * HitBtc sends instead of trade baseamount -> number of lots. Each {@link HitBtcTokensPair} contains lot size.
  *
  */
-@Component
 open class HitBtcMessageParser(
-        val hitBtcMetaInformation: HitBtcMetaInformation
-) : BasicWsMessageParser(hitbtc) {
+        private val metadata: HitBtcMetadata
+) : BasicWebSocketMessageParser(hitbtc) {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
         val marketDataIncrementalRefreshNode = jsonRoot["MarketDataIncrementalRefresh"] ?: return null
@@ -31,7 +29,7 @@ open class HitBtcMessageParser(
     private fun parseMarketDataIncrementalRefresh(node: JsonNode): ExchangeMessage {
 
         val symbol = node["symbol"].asText()
-        val tokensPair = hitBtcMetaInformation.channelSymbolForTokensPair[symbol]
+        val tokensPair = metadata.channelSymbolForTokensPair[symbol]
                 ?: return ContainingUnknownTokensPairMessage(symbol)
 
         val timestamp = node["timestamp"].asLong() / 1000

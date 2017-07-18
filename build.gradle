@@ -56,6 +56,7 @@ dependencies {
     compile("org.apache.commons:commons-pool2:$commons_pool2_version")
 
     compile("org.knowm.xchange:xchange-core:$xchange_version")
+    compile("org.knowm.xchange:xchange-hitbtc:$xchange_version")
     compile("org.knowm.xchange:xchange-poloniex:$xchange_version")
     compile("org.knowm.xchange:xchange-bitfinex:$xchange_version")
 

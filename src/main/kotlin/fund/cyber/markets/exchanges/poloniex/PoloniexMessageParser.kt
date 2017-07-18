@@ -1,10 +1,10 @@
-package fund.cyber.markets.poloniex
+package fund.cyber.markets.exchanges.poloniex
 
 import com.fasterxml.jackson.databind.JsonNode
-import fund.cyber.markets.exchanges.common.BasicWsMessageParser
-import fund.cyber.markets.exchanges.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.exchanges.common.ExchangeMessage
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.ExchangeMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
@@ -30,7 +30,7 @@ import java.math.BigDecimal
 @Component
 open class PoloniexMessageParser(
         val poloniexMetaInformation: PoloniexMetaInformation
-) : BasicWsMessageParser(poloniex) {
+) : BasicWebSocketMessageParser(poloniex) {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
         val channelId = jsonRoot.get(0).asInt()

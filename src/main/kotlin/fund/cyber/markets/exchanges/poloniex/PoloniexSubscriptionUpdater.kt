@@ -1,4 +1,4 @@
-package fund.cyber.markets.poloniex
+package fund.cyber.markets.exchanges.poloniex
 
 import org.knowm.xchange.ExchangeFactory
 import org.knowm.xchange.poloniex.PoloniexExchange
