@@ -1,4 +1,4 @@
-package fund.cyber.markets.bitfinex
+package fund.cyber.markets.exchanges.bitfinex
 
 import fund.cyber.markets.model.TokensPair
 import org.springframework.stereotype.Component

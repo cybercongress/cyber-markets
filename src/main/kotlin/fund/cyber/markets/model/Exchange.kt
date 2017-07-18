@@ -19,3 +19,8 @@ open class TokensPair(
         return base + "/" + quote
     }
 }
+
+open class ExchangeMetadata(
+        val exchange: String,
+        val wsAddress: String
+)

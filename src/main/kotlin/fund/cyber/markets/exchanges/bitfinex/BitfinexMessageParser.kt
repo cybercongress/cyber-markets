@@ -1,10 +1,10 @@
-package fund.cyber.markets.bitfinex
+package fund.cyber.markets.exchanges.bitfinex
 
 import com.fasterxml.jackson.databind.JsonNode
-import fund.cyber.markets.exchanges.common.BasicWsMessageParser
-import fund.cyber.markets.exchanges.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.exchanges.common.ExchangeMessage
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.ExchangeMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
@@ -33,7 +33,7 @@ val trade_executed = "te"
 @Component
 open class BitfinexMessageParser(
         val bitfinexMetaInformation: BitfinexMetaInformation
-) : BasicWsMessageParser(bitfinex) {
+) : BasicWebSocketMessageParser(bitfinex) {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
         val eventType = jsonRoot[event_property]?.asText()

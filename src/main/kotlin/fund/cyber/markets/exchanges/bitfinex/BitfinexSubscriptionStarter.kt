@@ -1,11 +1,10 @@
-package fund.cyber.markets.bitfinex
+package fund.cyber.markets.exchanges.bitfinex
 
 import org.knowm.xchange.ExchangeFactory
 import org.knowm.xchange.bitfinex.v1.BitfinexExchange
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.client.WebSocketClient
 import org.springframework.web.socket.client.WebSocketConnectionManager
-import javax.annotation.PostConstruct
 
 
 /**
@@ -21,7 +20,6 @@ open class BitfinexSubscriptionStarter(
         val webSocketClient: WebSocketClient
 ) {
 
-    @PostConstruct
     fun startSubscription() {
 
         val bitfinex = ExchangeFactory.INSTANCE.createExchange(BitfinexExchange::class.java.name) as BitfinexExchange

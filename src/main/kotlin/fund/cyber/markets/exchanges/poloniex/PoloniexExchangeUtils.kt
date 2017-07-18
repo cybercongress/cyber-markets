@@ -1,4 +1,4 @@
-package fund.cyber.markets.poloniex
+package fund.cyber.markets.exchanges.poloniex
 
 import fund.cyber.markets.model.TokensPair
 import org.knowm.xchange.poloniex.PoloniexExchange

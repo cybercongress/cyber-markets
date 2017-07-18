@@ -1,4 +1,4 @@
-package fund.cyber.markets.exchanges.common
+package fund.cyber.markets.webscoket
 
 import fund.cyber.markets.model.Trade
 
@@ -8,7 +8,7 @@ import fund.cyber.markets.model.Trade
  */
 open class ExchangeMessage
 
-open class NotParsedExchangeMessage() : ExchangeMessage()
+open class NotParsedExchangeMessage : ExchangeMessage()
 
 /**
  * Represents unknown format message obtained from exchange.

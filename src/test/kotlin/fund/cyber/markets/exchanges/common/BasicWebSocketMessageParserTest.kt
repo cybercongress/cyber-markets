@@ -1,21 +1,24 @@
 package fund.cyber.markets.exchanges.common
 
 import com.fasterxml.jackson.databind.JsonNode
+import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
+import fund.cyber.markets.webscoket.ExchangeMessage
+import fund.cyber.markets.webscoket.UnknownFormatMessage
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
 
 @DisplayName("Every message parser:")
-class BasicWsMessageParserTest {
+class BasicWebSocketMessageParserTest {
 
-    private class NoOpBasicWsMessageParser : BasicWsMessageParser("Poloniex") {
+    private class NoOpBasicWebSocketMessageParser : BasicWebSocketMessageParser("Poloniex") {
         override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
             return null
         }
     }
 
-    private val messageParser = NoOpBasicWsMessageParser()
+    private val messageParser = NoOpBasicWebSocketMessageParser()
 
     @Test
     @DisplayName("Should not throw exception for invalid provided json, but return UnknownFormatMessage")

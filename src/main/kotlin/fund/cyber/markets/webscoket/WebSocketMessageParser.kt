@@ -1,4 +1,4 @@
-package fund.cyber.markets.exchanges.common
+package fund.cyber.markets.webscoket
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 /**
  * Parse exchange messages.
  */
-interface WsMessageParser {
+interface WebSocketMessageParser {
     /**
      * Parse message obtained from exchange.
      * Contract:
@@ -19,11 +19,11 @@ interface WsMessageParser {
     fun parseMessage(message: String): ExchangeMessage
 }
 
-abstract class BasicWsMessageParser(
+abstract class BasicWebSocketMessageParser(
         val exchange: String
-) : WsMessageParser {
+) : WebSocketMessageParser {
 
-    private val LOG = LoggerFactory.getLogger(BasicWsMessageParser::class.java)
+    private val LOG = LoggerFactory.getLogger(BasicWebSocketMessageParser::class.java)
 
     private val jsonReader = ObjectMapper()
 

@@ -1,14 +1,11 @@
 package fund.cyber.markets.exchanges.hitbtc
 
-import fund.cyber.markets.exchanges.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.exchanges.common.TradesAndOrdersUpdatesMessage
-import fund.cyber.markets.hitbtc.HitBtcMessageParser
-import fund.cyber.markets.hitbtc.HitBtcMetaInformation
-import fund.cyber.markets.hitbtc.HitBtcTokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
 import fund.cyber.markets.model.hitbtc
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -53,8 +50,8 @@ class HitBtcMessageParserTest {
                 lotSize = BigDecimal("0.1"), priceStep = BigDecimal("0.00001")
         )
 
-        val hitBtcMetaInfo = HitBtcMetaInformation(mapOf(Pair(tokensPair.symbol, tokensPair)))
-        val messageParser = HitBtcMessageParser(hitBtcMetaInfo)
+        val hitBtcMetadata = HitBtcMetadata(channelSymbolForTokensPair = mapOf(Pair(tokensPair.symbol, tokensPair)))
+        val messageParser = HitBtcMessageParser(hitBtcMetadata)
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is TradesAndOrdersUpdatesMessage)
@@ -80,8 +77,8 @@ class HitBtcMessageParserTest {
     @DisplayName("Should not parse due to containing unknown tokens pair")
     fun testParseMessageWithUnknownTokensPair() {
 
-        val hitBtcMetaInfo = HitBtcMetaInformation()
-        val messageParser = HitBtcMessageParser(hitBtcMetaInfo)
+        val hitBtcMetadata = HitBtcMetadata()
+        val messageParser = HitBtcMessageParser(hitBtcMetadata)
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is ContainingUnknownTokensPairMessage)
