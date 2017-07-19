@@ -1,5 +1,8 @@
 package fund.cyber.markets.model
 
+import org.springframework.web.util.UriComponentsBuilder
+import java.net.URI
+
 /**
  * Exchange model elements.
  *
@@ -23,4 +26,9 @@ open class TokensPair(
 open class ExchangeMetadata(
         val exchange: String,
         val wsAddress: String
-)
+) {
+
+    fun wsUri(): URI {
+        return UriComponentsBuilder.fromUriString(wsAddress).build().encode().toUri()
+    }
+}
