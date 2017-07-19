@@ -12,6 +12,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.socket.client.WebSocketClient
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient
 
+
 /**
  * Application entry point.
  *
@@ -26,10 +27,13 @@ open class Application {
 
     @Bean
     open fun webSocketClient(): WebSocketClient {
-        val client = JettyWebSocketClient()
-        client.start()
-        return client
+        val jettyNativeClient = org.eclipse.jetty.websocket.client.WebSocketClient()
+        jettyNativeClient.policy.maxTextMessageSize = Int.MAX_VALUE
+        jettyNativeClient.policy.idleTimeout = 10 * 1000
+        jettyNativeClient.start()
+        return JettyWebSocketClient(jettyNativeClient)
     }
+
 
     @Bean
     open fun taskExecutor(): TaskScheduler {
