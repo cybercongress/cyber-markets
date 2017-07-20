@@ -1,9 +1,9 @@
 package fund.cyber.markets.service
 
 import fund.cyber.markets.model.ExchangeMetadata
+import fund.cyber.markets.model.ExchangeMetadataInitializedEvent
 import fund.cyber.markets.storage.RethinkDbService
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 
@@ -38,7 +38,6 @@ abstract class ExchangeMetadataService<out M : ExchangeMetadata>(
         if (cachedMetadata == null) {
             cachedMetadata = initializeMetadata()
             cachedMetadata?.let { eventPublisher.publishEvent(ExchangeMetadataInitializedEvent(metadata = it)) }
-
         } else {
             //todo update mechanism
         }
@@ -69,7 +68,7 @@ abstract class ExchangeMetadataService<out M : ExchangeMetadata>(
             LOG.info("Accessing $exchange metadata by api")
             return getMetadataFromExchange()
         } catch (exception: Exception) {
-            LOG.error("Cant access $exchange metadata by api", exception)
+            LOG.info("Cant access $exchange metadata by api", exception)
             return null
         }
     }
@@ -77,9 +76,6 @@ abstract class ExchangeMetadataService<out M : ExchangeMetadata>(
     protected abstract fun getMetadataFromExchange(): M
 }
 
-class ExchangeMetadataInitializedEvent<out M : ExchangeMetadata>(
-        val metadata: M
-) : ApplicationEvent(metadata)
 
 
 

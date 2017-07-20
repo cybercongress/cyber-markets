@@ -1,5 +1,6 @@
 package fund.cyber.markets
 
+import fund.cyber.markets.configuration.WS_CONNECTION_IDLE_TIMEOUT
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -27,9 +28,12 @@ open class Application {
 
     @Bean
     open fun webSocketClient(): WebSocketClient {
-        val jettyNativeClient = org.eclipse.jetty.websocket.client.WebSocketClient()
-        jettyNativeClient.policy.maxTextMessageSize = Int.MAX_VALUE
-        jettyNativeClient.policy.idleTimeout = 10 * 1000
+
+        val jettyNativeClient = org.eclipse.jetty.websocket.client.WebSocketClient().apply {
+            policy.idleTimeout = WS_CONNECTION_IDLE_TIMEOUT * 1000
+            maxIdleTimeout = WS_CONNECTION_IDLE_TIMEOUT * 1000
+        }
+
         jettyNativeClient.start()
         return JettyWebSocketClient(jettyNativeClient)
     }
@@ -37,10 +41,10 @@ open class Application {
 
     @Bean
     open fun taskExecutor(): TaskScheduler {
-        val scheduler = ThreadPoolTaskScheduler()
-        scheduler.poolSize = 5
-        scheduler.threadNamePrefix = "Cyber.Markets Task Executor"
-        return scheduler
+        return ThreadPoolTaskScheduler().apply {
+            poolSize = 5
+            threadNamePrefix = "Cyber.Markets Task Executor"
+        }
     }
 }
 
