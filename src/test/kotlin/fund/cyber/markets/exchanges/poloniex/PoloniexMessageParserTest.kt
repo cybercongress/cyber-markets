@@ -57,7 +57,7 @@ class PoloniexMessageParserTest {
     fun testParseMessageWithUnknownTokensPair() {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
-        val metadata = PoloniexMetadata()
+        val metadata = PoloniexMetadata(emptyMap())
         val messageParser = PoloniexMessageParser(metadata)
 
         val exchangeMessage = messageParser.parseMessage(message)

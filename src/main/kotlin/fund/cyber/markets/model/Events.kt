@@ -4,9 +4,7 @@ import java.time.Instant
 
 open class Event
 
-class ExchangeMetadataInitializedEvent<out M : ExchangeMetadata>(
-        val metadata: M
-) : Event()
+class ExchangeMetadataInitializedEvent(val exchange: String) : Event()
 
 
 class ConnectionWithExchangeIsEstablished(
