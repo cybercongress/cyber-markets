@@ -1,13 +1,11 @@
 package fund.cyber.markets.exchanges.poloniex
 
-import fund.cyber.markets.exchanges.bitfinex.BitfinexMessageParser
-import fund.cyber.markets.exchanges.bitfinex.BitfinexMetaInformation
-import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import fund.cyber.markets.model.poloniex
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -31,8 +29,8 @@ class PoloniexMessageParserTest {
         ]"""
 
         val tokensPair = TokensPair("BTC", "ETH")
-        val poloniexMetaInformation = PoloniexMetaInformation(mapOf(Pair(129, tokensPair)))
-        val messageParser = PoloniexMessageParser(poloniexMetaInformation)
+        val metadata = PoloniexMetadata(channelIdForTokensPairs = mapOf(Pair(129, tokensPair)))
+        val messageParser = PoloniexMessageParser(metadata)
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is TradesAndOrdersUpdatesMessage)
@@ -59,8 +57,8 @@ class PoloniexMessageParserTest {
     fun testParseMessageWithUnknownTokensPair() {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
-        val bitfinexMetaInfo = BitfinexMetaInformation()
-        val messageParser = BitfinexMessageParser(bitfinexMetaInfo)
+        val metadata = PoloniexMetadata()
+        val messageParser = PoloniexMessageParser(metadata)
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is ContainingUnknownTokensPairMessage)

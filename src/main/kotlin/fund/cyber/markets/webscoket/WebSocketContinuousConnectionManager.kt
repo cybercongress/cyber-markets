@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.TaskScheduler
-import org.springframework.scheduling.annotation.Async
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.WebSocketHttpHeaders
@@ -40,7 +39,9 @@ val pingMessage = TextMessage("ping")
  * and state go to 4) point "Monitoring"
  *
  */
-abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata> {
+abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
+        val exchange: String
+) {
 
     private val LOG = LoggerFactory.getLogger(WebSocketContinuousConnectionManager::class.java)
 
@@ -55,19 +56,20 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata> {
 
     //threads
     private val monitor = Any()
-    //current active session
+    //current active session. update session only using monitor
     private var webSocketSession: WebSocketSession? = null
 
     private var connectionLostEventAlreadyFired = false
 
 
     protected abstract fun setupWebSocketHandler(metadata: M): WebSocketHandler
-    protected abstract fun setupChannels(session: WebSocketSession, metadata: M)
+    protected abstract fun subscribeChannels(session: WebSocketSession, metadata: M)
 
-    @Async
     @EventListener
     open fun initialize(exchangeMetadataInitializedEvent: ExchangeMetadataInitializedEvent<M>) {
-
+        if (exchangeMetadataInitializedEvent.metadata.exchange != exchange) {
+            return
+        }
         metadata = exchangeMetadataInitializedEvent.metadata
         taskScheduler.scheduleWithFixedDelay(this::checkWebSocketConnectionStatus, WS_CONNECTION_IDLE_TIMEOUT * 1000)
     }
@@ -139,10 +141,10 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata> {
         newSessionFuture.addCallback(
                 { session ->
                     LOG.info("Connected to ${metadata.exchange} exchange websocket endpoint")
-                    setupChannels(session, metadata)
+                    subscribeChannels(session, metadata)
                 },
                 { error ->
-                    LOG.info("Error during connection to  ${metadata.exchange} exchange websocket endpoint", error)
+                    LOG.info("Error during connection to  ${metadata.exchange} exchange websocket endpoint")
                 }
         )
 
