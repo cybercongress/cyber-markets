@@ -77,7 +77,7 @@ class HitBtcMessageParserTest {
     @DisplayName("Should not parse due to containing unknown tokens pair")
     fun testParseMessageWithUnknownTokensPair() {
 
-        val hitBtcMetadata = HitBtcMetadata()
+        val hitBtcMetadata = HitBtcMetadata(emptyMap())
         val messageParser = HitBtcMessageParser(hitBtcMetadata)
 
         val exchangeMessage = messageParser.parseMessage(message)

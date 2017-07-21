@@ -1,5 +1,6 @@
 package fund.cyber.markets
 
+import fund.cyber.markets.configuration.SCHEDULER_POOL_SIZE
 import fund.cyber.markets.configuration.WS_CONNECTION_IDLE_TIMEOUT
 import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.util.ssl.SslContextFactory
@@ -50,7 +51,7 @@ open class Application {
     @Bean
     open fun taskExecutor(): TaskScheduler {
         return ThreadPoolTaskScheduler().apply {
-            poolSize = 5
+            poolSize = SCHEDULER_POOL_SIZE
             threadNamePrefix = "Cyber.Markets Task Executor"
         }
     }

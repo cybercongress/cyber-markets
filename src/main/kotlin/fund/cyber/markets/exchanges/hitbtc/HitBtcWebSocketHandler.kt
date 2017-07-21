@@ -8,9 +8,11 @@ import org.springframework.web.socket.WebSocketMessage
 import org.springframework.web.socket.WebSocketSession
 
 open class HitBtcWebSocketHandler(
-        val messageParser: HitBtcMessageParser,
-        val rethinkDbService: RethinkDbService
+        private val rethinkDbService: RethinkDbService,
+        metadataService: HitBtcExchangeMetadataService
 ) : BasicWebSocketHandler(hitbtc) {
+
+    private val messageParser = HitBtcMessageParser(metadataService.getMetadata())
 
     override fun handleMessage(session: WebSocketSession?, message: WebSocketMessage<*>?) {
         val jsonMessage = message?.payload.toString()

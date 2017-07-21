@@ -1,15 +1,14 @@
 package fund.cyber.markets.exchanges.bitfinex
 
 import com.fasterxml.jackson.databind.JsonNode
-import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
-import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.webscoket.ExchangeMessage
-import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
 import fund.cyber.markets.model.bitfinex
-import org.springframework.stereotype.Component
+import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.ExchangeMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import java.math.BigDecimal
 import java.util.*
 
@@ -30,10 +29,7 @@ val trade_executed = "te"
  *
  *  @author hleb.albau@gmail.com
  */
-@Component
-open class BitfinexMessageParser(
-        val bitfinexMetaInformation: BitfinexMetaInformation
-) : BasicWebSocketMessageParser(bitfinex) {
+open class BitfinexMessageParser(val metadata: BitfinexMetadata) : BasicWebSocketMessageParser(bitfinex) {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
         val eventType = jsonRoot[event_property]?.asText()
@@ -72,7 +68,7 @@ open class BitfinexMessageParser(
     private fun parseTradesChannelSubscribed(jsonNode: JsonNode): ExchangeMessage {
         val channelId = jsonNode[channel_id].asInt()
         val channelSymbol = jsonNode[channel_symbol].asText()
-        val tokensPair = bitfinexMetaInformation.channelSymbolForTokensPair[channelSymbol]
+        val tokensPair = metadata.channelSymbolForTokensPair[channelSymbol]
                 ?: return ContainingUnknownTokensPairMessage(channelSymbol)
 
         return TradeChannelSubscribed(channelId, tokensPair)
@@ -84,7 +80,7 @@ open class BitfinexMessageParser(
     private fun parseTrade(jsonRoot: JsonNode): ExchangeMessage {
 
         val channelId = jsonRoot[0].asInt()
-        val tokensPair = bitfinexMetaInformation.tradesChannelIdForTokensPair[channelId]
+        val tokensPair = metadata.tradesChannelIdForTokensPair[channelId]
                 ?: return ContainingUnknownTokensPairMessage(channelId.toString())
 
         val tradeNode = jsonRoot[2]

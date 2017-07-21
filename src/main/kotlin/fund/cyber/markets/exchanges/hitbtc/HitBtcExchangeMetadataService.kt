@@ -1,16 +1,16 @@
 package fund.cyber.markets.exchanges.hitbtc
 
+import fund.cyber.markets.exchanges.ExchangeMetadataService
 import fund.cyber.markets.model.ExchangeMetadata
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.hitbtc
-import fund.cyber.markets.service.ExchangeMetadataService
-import fund.cyber.markets.storage.RethinkDbService
 import org.knowm.xchange.ExchangeFactory
 import org.knowm.xchange.hitbtc.HitbtcExchange
 import org.knowm.xchange.hitbtc.service.HitbtcMarketDataService
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.util.concurrent.ConcurrentHashMap
+
 
 // pairs of currency and tokens
 class HitBtcTokensPair(
@@ -21,34 +21,39 @@ class HitBtcTokensPair(
         quote: String
 ) : TokensPair(base, quote)
 
+
 class HitBtcMetadata(
-        exchange: String = hitbtc,
-        wsAddress: String = "ws://api.hitbtc.com:80",
-        var channelSymbolForTokensPair: Map<String, HitBtcTokensPair> = HashMap()
-) : ExchangeMetadata(exchange, wsAddress)
+        val channelSymbolForTokensPair: Map<String, HitBtcTokensPair>
+) : ExchangeMetadata(hitbtc, "ws://api.hitbtc.com:80")
 
 
 @Component
-open class HitBtcExchangeMetadataService(
-        eventPublisher: ApplicationEventPublisher, rethinkDbService: RethinkDbService
-) : ExchangeMetadataService<HitBtcMetadata>(
-        exchange = hitbtc, metadataClass = HitBtcMetadata::class.java,
-        eventPublisher = eventPublisher, rethinkDbService = rethinkDbService
-) {
+open class HitBtcExchangeMetadataService : ExchangeMetadataService<HitBtcMetadata>(exchange = hitbtc) {
 
+    private val channelSymbolForTokensPair: MutableMap<String, HitBtcTokensPair> = ConcurrentHashMap(16, 0.75f, 2)
+    private val metadata = HitBtcMetadata(channelSymbolForTokensPair)
 
-    override fun getMetadataFromExchange(): HitBtcMetadata {
+    override fun getMetadata(): HitBtcMetadata {
+        return metadata
+    }
 
+    override fun initializeMetadata() {
         val hitbtc = ExchangeFactory.INSTANCE.createExchange(HitbtcExchange::class.java.name) as HitbtcExchange
         val marketDataService = hitbtc.marketDataService as HitbtcMarketDataService
 
-        val channelSymbolForTokensPair = marketDataService.getHitbtcSymbols().hitbtcSymbols
-                .map { symbols -> HitBtcTokensPair(
+        val updatedChannelSymbolForTokensPair = marketDataService.getHitbtcSymbols().hitbtcSymbols
+                .map { symbols ->
+                    HitBtcTokensPair(
                             base = symbols.commodity, quote = symbols.currency,
                             symbol = (symbols.commodity + symbols.currency).toUpperCase(),
-                            lotSize = symbols.lot, priceStep = symbols.step)}
+                            lotSize = symbols.lot, priceStep = symbols.step)
+                }
                 .associateBy { tokensPair: HitBtcTokensPair -> tokensPair.symbol }
 
-        return HitBtcMetadata(channelSymbolForTokensPair = channelSymbolForTokensPair)
+        channelSymbolForTokensPair.putAll(updatedChannelSymbolForTokensPair)
+    }
+
+    override fun updateMetadata() {
+        //todo implement
     }
 }

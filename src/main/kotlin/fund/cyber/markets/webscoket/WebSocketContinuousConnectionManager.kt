@@ -1,6 +1,7 @@
 package fund.cyber.markets.webscoket
 
 import fund.cyber.markets.configuration.WS_CONNECTION_IDLE_TIMEOUT
+import fund.cyber.markets.exchanges.ExchangeMetadataService
 import fund.cyber.markets.model.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +41,9 @@ val pingMessage = TextMessage("ping")
  *
  */
 abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
-        val exchange: String
+        val exchange: String,
+        private val webSocketHandler: WebSocketHandler,
+        private val metadataService: ExchangeMetadataService<M>
 ) {
 
     private val LOG = LoggerFactory.getLogger(WebSocketContinuousConnectionManager::class.java)
@@ -51,8 +54,6 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
     private lateinit var taskScheduler: TaskScheduler
     @Autowired
     private lateinit var eventBus: ApplicationEventPublisher
-    // initialized by event
-    private lateinit var metadata: M
 
     //threads
     private val monitor = Any()
@@ -61,16 +62,13 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
 
     private var connectionLostEventAlreadyFired = false
 
-
-    protected abstract fun setupWebSocketHandler(metadata: M): WebSocketHandler
     protected abstract fun subscribeChannels(session: WebSocketSession, metadata: M)
 
     @EventListener
-    open fun initialize(exchangeMetadataInitializedEvent: ExchangeMetadataInitializedEvent<M>) {
-        if (exchangeMetadataInitializedEvent.metadata.exchange != exchange) {
+    open fun initialize(event: ExchangeMetadataInitializedEvent) {
+        if (event.exchange != exchange) {
             return
         }
-        metadata = exchangeMetadataInitializedEvent.metadata
         taskScheduler.scheduleWithFixedDelay(this::checkWebSocketConnectionStatus, WS_CONNECTION_IDLE_TIMEOUT * 1000)
     }
 
@@ -80,9 +78,9 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
 
             //initialize first session
             if (webSocketSession == null) {
-                webSocketSession = openConnection(metadata)
+                webSocketSession = openConnection()
                 if (webSocketSession != null)
-                    eventBus.publishEvent(ConnectionWithExchangeIsEstablished(metadata.exchange))
+                    eventBus.publishEvent(ConnectionWithExchangeIsEstablished(exchange))
                 return
             }
 
@@ -110,7 +108,7 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
             webSocketSession.sendMessage(pingMessage)
             return true
         } catch (e: Exception) {
-            LOG.error("Session for ${metadata.exchange} exchange was not closed, by connection lost")
+            LOG.error("Session for $exchange exchange was not closed, by connection lost")
             return false
         }
     }
@@ -118,33 +116,33 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
     private fun reconnect() {
         //should fire event on first exploration of connection lost
         if (!connectionLostEventAlreadyFired) {
-            eventBus.publishEvent(ConnectionWithExchangeIsLost(metadata.exchange))
+            eventBus.publishEvent(ConnectionWithExchangeIsLost(exchange))
             connectionLostEventAlreadyFired = true
         }
         webSocketSession?.close()
-        val newSession = openConnection(metadata)
+        val newSession = openConnection()
         if (newSession != null) {
             //successfully reconnected
             webSocketSession = newSession
-            eventBus.publishEvent(ConnectionWithExchangeIsReestablished(metadata.exchange))
+            eventBus.publishEvent(ConnectionWithExchangeIsReestablished(exchange))
             connectionLostEventAlreadyFired = false
         }
     }
 
-    private fun openConnection(metadata: M): WebSocketSession? {
+    private fun openConnection(): WebSocketSession? {
 
-        LOG.info("Try to connect to ${metadata.exchange} exchange websocket endpoint")
+        LOG.info("Connecting to $exchange exchange websocket endpoint")
 
-        val webSocketHandler = setupWebSocketHandler(metadata)
+        val metadata = metadataService.getMetadata()
         val newSessionFuture = client.doHandshake(webSocketHandler, WebSocketHttpHeaders(), metadata.wsUri())
 
         newSessionFuture.addCallback(
                 { session ->
-                    LOG.info("Connected to ${metadata.exchange} exchange websocket endpoint")
+                    LOG.info("Connected to $exchange exchange websocket endpoint")
                     subscribeChannels(session, metadata)
                 },
                 { error ->
-                    LOG.info("Error during connection to  ${metadata.exchange} exchange websocket endpoint")
+                    LOG.info("Error during connection to  $exchange exchange websocket endpoint")
                 }
         )
 
