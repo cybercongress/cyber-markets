@@ -1,16 +1,15 @@
 package fund.cyber.markets.exchanges.poloniex
 
 import com.fasterxml.jackson.databind.JsonNode
-import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
-import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.webscoket.ExchangeMessage
-import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
 import fund.cyber.markets.model.poloniex
-import org.springframework.stereotype.Component
+import fund.cyber.markets.webscoket.BasicWebSocketMessageParser
+import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.webscoket.ExchangeMessage
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import java.math.BigDecimal
 
 /**
@@ -27,14 +26,13 @@ import java.math.BigDecimal
  */
 
 
-@Component
 open class PoloniexMessageParser(
-        val poloniexMetaInformation: PoloniexMetaInformation
+        val metadata: PoloniexMetadata
 ) : BasicWebSocketMessageParser(poloniex) {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
         val channelId = jsonRoot.get(0).asInt()
-        val tokensPair = poloniexMetaInformation.channelIdForTokensPairs[channelId]
+        val tokensPair = metadata.channelIdForTokensPairs[channelId]
                 ?: return ContainingUnknownTokensPairMessage(channelId.toString())
 
         val trades = jsonRoot[2].toList()

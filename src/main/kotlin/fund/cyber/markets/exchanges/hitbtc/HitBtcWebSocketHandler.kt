@@ -1,20 +1,16 @@
 package fund.cyber.markets.exchanges.hitbtc
 
-import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.model.hitbtc
 import fund.cyber.markets.storage.RethinkDbService
-import org.springframework.stereotype.Component
-import org.springframework.web.socket.CloseStatus
-import org.springframework.web.socket.WebSocketHandler
+import fund.cyber.markets.webscoket.BasicWebSocketHandler
+import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import org.springframework.web.socket.WebSocketMessage
 import org.springframework.web.socket.WebSocketSession
 
 open class HitBtcWebSocketHandler(
         val messageParser: HitBtcMessageParser,
         val rethinkDbService: RethinkDbService
-) : WebSocketHandler {
-
-    override fun afterConnectionClosed(session: WebSocketSession?, closeStatus: CloseStatus?) {
-    }
+) : BasicWebSocketHandler(hitbtc) {
 
     override fun handleMessage(session: WebSocketSession?, message: WebSocketMessage<*>?) {
         val jsonMessage = message?.payload.toString()
@@ -22,16 +18,5 @@ open class HitBtcWebSocketHandler(
         when (exchangeMessage) {
             is TradesAndOrdersUpdatesMessage -> rethinkDbService.saveTrades(exchangeMessage.trades)
         }
-    }
-
-    override fun afterConnectionEstablished(session: WebSocketSession) {
-        session.textMessageSizeLimit = Integer.MAX_VALUE
-    }
-
-    override fun handleTransportError(session: WebSocketSession?, exception: Throwable?) {
-    }
-
-    override fun supportsPartialMessages(): Boolean {
-        return false
     }
 }

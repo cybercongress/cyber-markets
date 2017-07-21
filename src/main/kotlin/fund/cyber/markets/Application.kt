@@ -1,6 +1,8 @@
 package fund.cyber.markets
 
 import fund.cyber.markets.configuration.WS_CONNECTION_IDLE_TIMEOUT
+import org.eclipse.jetty.client.HttpClient
+import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -29,12 +31,18 @@ open class Application {
     @Bean
     open fun webSocketClient(): WebSocketClient {
 
-        val jettyNativeClient = org.eclipse.jetty.websocket.client.WebSocketClient().apply {
+        //add support for wss
+        val httpClient = HttpClient(SslContextFactory())
+        val jettyNativeClient = org.eclipse.jetty.websocket.client.WebSocketClient(httpClient).apply {
             policy.idleTimeout = WS_CONNECTION_IDLE_TIMEOUT * 1000
+            policy.maxTextMessageSize = Int.MAX_VALUE
+            policy.maxTextMessageBufferSize = Int.MAX_VALUE
             maxIdleTimeout = WS_CONNECTION_IDLE_TIMEOUT * 1000
         }
-
+        //strange jetty code
+        jettyNativeClient.addBean(httpClient)
         jettyNativeClient.start()
+
         return JettyWebSocketClient(jettyNativeClient)
     }
 
