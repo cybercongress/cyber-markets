@@ -1,10 +1,10 @@
 package fund.cyber.markets.service
 
+import fund.cyber.markets.helpers.logger
 import fund.cyber.markets.model.ConnectionWithExchangeIsLost
 import fund.cyber.markets.model.ConnectionWithExchangeIsReestablished
 import fund.cyber.markets.model.HistoryGap
 import fund.cyber.markets.storage.RethinkDbService
-import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
@@ -15,8 +15,6 @@ import java.util.concurrent.ConcurrentHashMap
 open class HistoryDataGapsService(
         val rethinkDbService: RethinkDbService
 ) {
-
-    private val LOG = LoggerFactory.getLogger(HistoryDataGapsService::class.java)
 
     private val exchangesWithLostConnection: MutableMap<String, HistoryGap> = ConcurrentHashMap()
 
@@ -48,5 +46,9 @@ open class HistoryDataGapsService(
         exchangesWithLostConnection.remove(event.exchange)
         historyGap.endTime = event.time
         rethinkDbService.saveHistoryGap(historyGap)
+    }
+
+    companion object {
+        private val LOG = logger(HistoryDataGapsService::class)
     }
 }

@@ -12,7 +12,7 @@ open class HitBtcWebSocketHandler(
         metadataService: HitBtcExchangeMetadataService
 ) : BasicWebSocketHandler(hitbtc) {
 
-    private val messageParser = HitBtcMessageParser(metadataService.getMetadata())
+    private val messageParser = HitBtcMessageParser(metadataService.metadata)
 
     override fun handleMessage(session: WebSocketSession?, message: WebSocketMessage<*>?) {
         val jsonMessage = message?.payload.toString()

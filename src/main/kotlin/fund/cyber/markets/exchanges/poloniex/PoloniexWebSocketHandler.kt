@@ -14,7 +14,7 @@ open class PoloniexWebSocketHandler(
         metadataService: PoloniexExchangeMetadataService
 ) : BasicWebSocketHandler(poloniex) {
 
-    private val poloniexMessageParser = PoloniexMessageParser(metadataService.getMetadata())
+    private val poloniexMessageParser = PoloniexMessageParser(metadataService.metadata)
 
     override fun handleMessage(session: WebSocketSession, message: WebSocketMessage<*>) {
         val jsonMessage = message.payload.toString()

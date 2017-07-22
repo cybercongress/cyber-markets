@@ -31,11 +31,7 @@ class HitBtcMetadata(
 open class HitBtcExchangeMetadataService : ExchangeMetadataService<HitBtcMetadata>(exchange = hitbtc) {
 
     private val channelSymbolForTokensPair: MutableMap<String, HitBtcTokensPair> = ConcurrentHashMap(16, 0.75f, 2)
-    private val metadata = HitBtcMetadata(channelSymbolForTokensPair)
-
-    override fun getMetadata(): HitBtcMetadata {
-        return metadata
-    }
+    override val metadata = HitBtcMetadata(channelSymbolForTokensPair)
 
     override fun initializeMetadata() {
         val hitbtc = ExchangeFactory.INSTANCE.createExchange(HitbtcExchange::class.java.name) as HitbtcExchange
