@@ -3,6 +3,7 @@ buildscript {
 
     ext.spring_version = '1.5.4.RELEASE'
     ext.kotlin_version = '1.1.3-2'
+    ext.kotlin_coroutines_version = '0.16'
     ext.xchange_version = '4.2.0'
     ext.jackson_version = '2.8.9'
     ext.rethinkdb_driver_version = '2.3.3'
@@ -39,6 +40,12 @@ bootRun {
     systemProperties = System.properties
 }
 
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
 /* Java dependencies part */
 repositories {
     jcenter()
@@ -54,6 +61,7 @@ dependencies {
     compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
     compile("com.rethinkdb:rethinkdb-driver:$rethinkdb_driver_version")
     compile("org.apache.commons:commons-pool2:$commons_pool2_version")
+    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version")
 
     compile("org.knowm.xchange:xchange-core:$xchange_version")
     compile("org.knowm.xchange:xchange-hitbtc:$xchange_version")
