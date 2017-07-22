@@ -10,19 +10,18 @@ import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.webscoket.ExchangeMessage
 import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import java.math.BigDecimal
-import java.util.*
+import java.util.Collections
 
+private val event_property = "event"
+private val channel_property = "channel"
 
-val event_property = "event"
-val channel_property = "channel"
+private val event_type_subscribed = "subscribed"
+private val event_type_info = "info"
 
-val event_type_subscribed = "subscribed"
-val event_type_info = "info"
+private val channel_id = "chanId"
+private val channel_symbol = "symbol"
 
-val channel_id = "chanId"
-val channel_symbol = "symbol"
-
-val trade_executed = "te"
+private val trade_executed = "te"
 
 /**
  *  Bitfinex ws v2 message parser.

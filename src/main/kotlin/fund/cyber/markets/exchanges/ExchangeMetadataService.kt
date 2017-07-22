@@ -1,8 +1,8 @@
 package fund.cyber.markets.exchanges
 
+import fund.cyber.markets.helpers.logger
 import fund.cyber.markets.model.ExchangeMetadata
 import fund.cyber.markets.model.ExchangeMetadataInitializedEvent
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
@@ -23,8 +23,6 @@ import org.springframework.scheduling.annotation.Scheduled
  */
 abstract class ExchangeMetadataService<out M : ExchangeMetadata>(val exchange: String) {
 
-    private val LOG = LoggerFactory.getLogger(ExchangeMetadataService::class.java)
-
     @Autowired
     private lateinit var eventPublisher: ApplicationEventPublisher
 
@@ -41,28 +39,32 @@ abstract class ExchangeMetadataService<out M : ExchangeMetadata>(val exchange: S
 
     private fun internalInitializeMetadata() {
         try {
-            LOG.info("Initialize $exchange metadata job is started")
+            LOGGER.info("Initialize $exchange metadata job is started")
             initializeMetadata()
             isInitialized = true
-            LOG.info("Initialize $exchange metadata job completed")
+            LOGGER.info("Initialize $exchange metadata job completed")
             eventPublisher.publishEvent(ExchangeMetadataInitializedEvent(exchange))
         } catch (exception: Exception) {
-            LOG.info("Initialize $exchange metadata job failed")
+            LOGGER.info("Initialize $exchange metadata job failed")
         }
     }
 
     private fun internalUpdateMetadata() {
         try {
-            LOG.info("Update $exchange metadata job is started")
+            LOGGER.info("Update $exchange metadata job is started")
             updateMetadata()
-            LOG.info("Update $exchange metadata job completed")
+            LOGGER.info("Update $exchange metadata job completed")
             //todo send update event
         } catch (exception: Exception) {
-            LOG.info("Update $exchange metadata job failed")
+            LOGGER.info("Update $exchange metadata job failed")
         }
     }
 
     protected abstract fun initializeMetadata()
     protected abstract fun updateMetadata()
-    abstract fun getMetadata(): M
+    abstract val metadata: M
+
+    companion object {
+        private val LOGGER = logger(ExchangeMetadataService::class)
+    }
 }

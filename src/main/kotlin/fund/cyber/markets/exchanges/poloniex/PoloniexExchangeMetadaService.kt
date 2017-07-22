@@ -19,12 +19,7 @@ class PoloniexMetadata(
 open class PoloniexExchangeMetadataService : ExchangeMetadataService<PoloniexMetadata>(poloniex) {
 
     private val channelIdForTokensPairs: MutableMap<Int, TokensPair> = ConcurrentHashMap(16, 0.75f, 2)
-    private val metadata = PoloniexMetadata(channelIdForTokensPairs)
-
-
-    override fun getMetadata(): PoloniexMetadata {
-        return metadata
-    }
+    override val metadata = PoloniexMetadata(channelIdForTokensPairs)
 
     override fun initializeMetadata() {
         val poloniex = ExchangeFactory.INSTANCE.createExchange(PoloniexExchange::class.java.name) as PoloniexExchange
