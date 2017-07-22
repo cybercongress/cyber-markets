@@ -2,7 +2,7 @@ package fund.cyber.markets.webscoket
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.slf4j.LoggerFactory
+import fund.cyber.markets.helpers.logger
 
 
 /**
@@ -23,8 +23,6 @@ abstract class BasicWebSocketMessageParser(
         val exchange: String
 ) : WebSocketMessageParser {
 
-    private val LOG = LoggerFactory.getLogger(BasicWebSocketMessageParser::class.java)
-
     private val jsonReader = ObjectMapper()
 
     override fun parseMessage(message: String): ExchangeMessage {
@@ -32,10 +30,14 @@ abstract class BasicWebSocketMessageParser(
             val jsonRoot = jsonReader.readTree(message)
             return parseMessage(jsonRoot) ?: UnknownFormatMessage(message)
         } catch (exception: Exception) {
-            LOG.debug("Exception during parsing message", exception)
+            LOGGER.debug("Exception during parsing message", exception)
             return UnknownFormatMessage(message)
         }
     }
 
     abstract fun parseMessage(jsonRoot: JsonNode): ExchangeMessage?
+
+    companion object {
+        private val LOGGER = logger(BasicWebSocketMessageParser::class)
+    }
 }

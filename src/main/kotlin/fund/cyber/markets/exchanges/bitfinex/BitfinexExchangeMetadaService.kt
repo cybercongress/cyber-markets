@@ -26,11 +26,7 @@ open class BitfinexExchangeMetadataService : ExchangeMetadataService<BitfinexMet
     private val tradesChannelIdForTokensPair: MutableMap<Int, TokensPair> = ConcurrentHashMap(32, 0.75f, SCHEDULER_POOL_SIZE)
     private val channelSymbolForTokensPair: MutableMap<String, TokensPair> = ConcurrentHashMap(32, 0.75f, 2)
 
-    private val metadata = BitfinexMetadata(channelSymbolForTokensPair, tradesChannelIdForTokensPair)
-
-    override fun getMetadata(): BitfinexMetadata {
-        return metadata
-    }
+    override val metadata = BitfinexMetadata(channelSymbolForTokensPair, tradesChannelIdForTokensPair)
 
     override fun initializeMetadata() {
 
