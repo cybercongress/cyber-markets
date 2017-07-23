@@ -14,7 +14,6 @@ val tradesTable: String = "trades"
 val exchangeMetaDataTable: String = "exchange_metadata"
 val historyGapsTable: String = "history_gaps"
 
-
 @Component
 open class RethinkDbService(
         val connectionPool: RethinkDbConnectionPool,
@@ -41,24 +40,9 @@ open class RethinkDbService(
 
 
     fun saveTrades(trades: List<Trade>) {
-
-        val tradesObjects = trades.map { (tradeId, exchange, timestamp, type, tokensPair,
-                                                 baseAmount, quoteAmount, spotPrice) ->
-            val tradeObject = MapObject()
-            tradeObject.with("tradeId", tradeId)
-            tradeObject.with("exchange", exchange)
-            tradeObject.with("type", type.name)
-            tradeObject.with("baseToken", tokensPair.base)
-            tradeObject.with("quoteToken", tokensPair.quote)
-            tradeObject.with("baseAmount", baseAmount.toPlainString())
-            tradeObject.with("quoteAmount", quoteAmount.toPlainString())
-            tradeObject.with("spotPrice", spotPrice.toPlainString())
-            tradeObject.with("timestamp", timestamp)
-        }.toList()
-
+        val tradesObjects = trades.map(::tradeToTradeObj)
         r.db(dbName).table(tradesTable).insert(tradesObjects).run()
     }
-
 
     fun saveHistoryGap(gap: HistoryGap) {
 
@@ -99,5 +83,19 @@ open class RethinkDbService(
         val result = run<T, T>(connection, clazz)
         connectionPool.returnObject(connection)
         return result
+    }
+}
+
+private fun tradeToTradeObj(trade: Trade): MapObject {
+    return MapObject().apply {
+        with("tradeId", trade.tradeId)
+        with("exchange", trade.exchange)
+        with("type", trade.type.name)
+        with("baseToken", trade.tokensPair.base)
+        with("quoteToken", trade.tokensPair.quote)
+        with("baseAmount", trade.baseAmount.toPlainString())
+        with("quoteAmount", trade.quoteAmount.toPlainString())
+        with("spotPrice", trade.spotPrice.toPlainString())
+        with("timestamp", trade.timestamp)
     }
 }

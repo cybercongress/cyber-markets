@@ -61,7 +61,7 @@ dependencies {
     compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
     compile("com.rethinkdb:rethinkdb-driver:$rethinkdb_driver_version")
     compile("org.apache.commons:commons-pool2:$commons_pool2_version")
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version")
+    compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines_version")
 
     compile("org.knowm.xchange:xchange-core:$xchange_version")
     compile("org.knowm.xchange:xchange-hitbtc:$xchange_version")

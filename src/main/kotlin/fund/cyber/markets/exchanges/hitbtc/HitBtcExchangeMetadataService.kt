@@ -1,6 +1,7 @@
 package fund.cyber.markets.exchanges.hitbtc
 
 import fund.cyber.markets.exchanges.ExchangeMetadataService
+import fund.cyber.markets.helpers.createExchange
 import fund.cyber.markets.model.ExchangeMetadata
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.hitbtc
@@ -34,7 +35,7 @@ open class HitBtcExchangeMetadataService : ExchangeMetadataService<HitBtcMetadat
     override val metadata = HitBtcMetadata(channelSymbolForTokensPair)
 
     override fun initializeMetadata() {
-        val hitbtc = ExchangeFactory.INSTANCE.createExchange(HitbtcExchange::class.java.name) as HitbtcExchange
+        val hitbtc = ExchangeFactory.INSTANCE.createExchange<HitbtcExchange>()
         val marketDataService = hitbtc.marketDataService as HitbtcMarketDataService
 
         val updatedChannelSymbolForTokensPair = marketDataService.getHitbtcSymbols().hitbtcSymbols
