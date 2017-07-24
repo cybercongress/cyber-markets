@@ -4,19 +4,20 @@ import fund.cyber.markets.applicationPool
 import fund.cyber.markets.exchanges.poloniex.PoloniexMetadata
 import fund.cyber.markets.exchanges.poloniex.PoloniexWebSocketHandler
 import fund.cyber.markets.exchanges.poloniex.getTokensPairsWithChannelIds
+import fund.cyber.markets.exchanges.poloniex.subscribeChannel
 import fund.cyber.markets.helpers.createExchange
 import fund.cyber.markets.helpers.logger
 import fund.cyber.markets.helpers.retryUntilSuccess
 import fund.cyber.markets.model.ExchangeMetadata
 import fund.cyber.markets.storage.RethinkDbService
 import fund.cyber.markets.webscoket.DefaultWebSocketManager
-import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.launch
 import org.knowm.xchange.ExchangeFactory
 import org.knowm.xchange.poloniex.PoloniexExchange
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.WebSocketHandler
+import org.springframework.web.socket.WebSocketSession
 import java.net.URI
 import java.util.concurrent.CompletableFuture.supplyAsync
 
@@ -24,12 +25,19 @@ interface Exchange<out M : ExchangeMetadata> {
     suspend fun loadMetadata(): M
     fun getHandler(): WebSocketHandler
     val uri: URI
+    fun subscribe(wsConnection: WebSocketSession)
 }
 
 @Component
 open class PoloniexExchange(
     private val rethinkDbService: RethinkDbService
 ) : Exchange<PoloniexMetadata> {
+
+    override fun subscribe(wsConnection: WebSocketSession) {
+        metadata.channelIdForTokensPairs.keys.forEach { channelId ->
+            wsConnection.subscribeChannel(channelId)
+        }
+    }
 
     override val uri: URI
         get() = metadata.wsUri()
@@ -63,14 +71,28 @@ open class ExchangeManagingService(
     fun run() {
         exchanges.forEach { exchange ->
             launch(applicationPool) {
-                delay(10000)
                 try {
                     println("Loading metadata")
                     retryUntilSuccess { exchange.loadMetadata() }
                     println("Metadata loaded")
                     val connection = webSocketManager.newConnection()
-                    connection.connect(exchange.getHandler(), exchange.uri)
+                    val wsConnection = connection.connect(exchange.getHandler(), exchange.uri)
 
+                    exchange.subscribe(wsConnection)
+
+                    launch(applicationPool) {
+                        while (true) {
+                            connection.onDisconnect()
+                            LOGGER.error("=== Disconnected")
+                        }
+                    }
+
+                    launch(applicationPool) {
+                        while (true) {
+                            connection.onReconnect()
+                            LOGGER.error("=== Reconnected")
+                        }
+                    }
                 } catch (e: Exception) {
                     LOGGER.error("Unhandled error working with exchange ${exchange::class.simpleName}.", e)
                 }

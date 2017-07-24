@@ -5,6 +5,7 @@ import fund.cyber.markets.helpers.await
 import fund.cyber.markets.helpers.logger
 import fund.cyber.markets.helpers.retryUntilSuccess
 import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketHandler
@@ -15,7 +16,7 @@ import java.net.URI
 import java.time.Instant
 
 interface WebSocketConnection {
-    suspend fun connect(handler: WebSocketHandler, wsUri: URI)
+    suspend fun connect(handler: WebSocketHandler, wsUri: URI): WebSocketSession
     suspend fun onDisconnect(): Instant
     suspend fun onReconnect(): Instant
 }
@@ -28,7 +29,7 @@ class DefaultWebSocketConnection(
     private val disconnectChannel = Channel<Instant>()
     private val reconnectChannel = Channel<Instant>()
 
-    suspend override fun connect(handler: WebSocketHandler, wsUri: URI) {
+    suspend override fun connect(handler: WebSocketHandler, wsUri: URI): WebSocketSession {
         var webSocketSession = openConnection(handler, wsUri)
 
         launch(applicationPool) {
@@ -40,8 +41,11 @@ class DefaultWebSocketConnection(
                         webSocketSession = newSession
                     }
                 }
+                delay(5000)
             }
         }
+
+        return webSocketSession
     }
 
     suspend override fun onDisconnect(): Instant {

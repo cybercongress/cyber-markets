@@ -10,7 +10,6 @@ import fund.cyber.markets.model.ExchangeMetadata
 import fund.cyber.markets.model.ExchangeMetadataInitializedEvent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.context.event.EventListener
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketHandler
@@ -65,7 +64,7 @@ abstract class WebSocketContinuousConnectionManager<in M : ExchangeMetadata>(
 
     protected abstract fun subscribeChannels(session: WebSocketSession, metadata: M)
 
-    @EventListener
+//    @EventListener
     open fun initialize(event: ExchangeMetadataInitializedEvent) {
         if (event.exchange != exchange) {
             return
