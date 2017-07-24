@@ -17,13 +17,13 @@ private object Helpers {
     val LOGGER = logger(Helpers::class)
 }
 
-suspend fun <T, R> T.retryUntilSuccess(retryDelay: Long = 5, block: suspend () -> R): R {
+suspend fun <T, R> T.retryUntilSuccess(retryDelay: Long = 5000L, block: suspend () -> R): R {
     while (true) {
         try {
             return block()
         } catch (e: Exception) {
             Helpers.LOGGER.error("Retryable block completes exceptionally", e)
-            delay(retryDelay, TimeUnit.SECONDS)
+            delay(retryDelay)
         }
     }
 }

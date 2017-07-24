@@ -12,7 +12,7 @@ import org.springframework.web.socket.WebSocketSession
 open class PoloniexWebSocketConnectionManager(
         rethinkDbService: RethinkDbService, metadataService: PoloniexExchangeMetadataService
 ) : WebSocketContinuousConnectionManager<PoloniexMetadata>(
-        poloniex, PoloniexWebSocketHandler(rethinkDbService, metadataService), metadataService
+        poloniex, PoloniexWebSocketHandler(rethinkDbService, metadataService.metadata), metadataService
 ) {
 
     override fun subscribeChannels(session: WebSocketSession, metadata: PoloniexMetadata) {

@@ -11,10 +11,10 @@ import org.springframework.web.socket.WebSocketSession
 
 open class PoloniexWebSocketHandler(
         private val rethinkDbService: RethinkDbService,
-        metadataService: PoloniexExchangeMetadataService
+        metadata: PoloniexMetadata
 ) : BasicWebSocketHandler(poloniex) {
 
-    private val poloniexMessageParser = PoloniexMessageParser(metadataService.metadata)
+    private val poloniexMessageParser = PoloniexMessageParser(metadata)
 
     override fun handleMessage(session: WebSocketSession, message: WebSocketMessage<*>) {
         val jsonMessage = message.payload.toString()

@@ -27,7 +27,7 @@ abstract class ExchangeMetadataService<out M : ExchangeMetadata>(val exchange: S
 
     private var isInitialized = false
 
-    @Scheduled(fixedDelay = 5 * 60 * 1000, initialDelay = 5 * 1000)
+//    @Scheduled(fixedDelay = 5 * 60 * 1000, initialDelay = 5 * 1000)
     private fun updateMetadataJob() {
         if (!isInitialized) {
             internalInitializeMetadata()
