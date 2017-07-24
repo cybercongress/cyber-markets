@@ -8,7 +8,6 @@ import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import org.springframework.web.socket.WebSocketMessage
 import org.springframework.web.socket.WebSocketSession
 
-
 open class PoloniexWebSocketHandler(
     private val asyncRethinkDbService: AsyncRethinkDbService,
     metadata: PoloniexMetadata

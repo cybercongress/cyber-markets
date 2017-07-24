@@ -9,7 +9,7 @@ import kotlinx.coroutines.experimental.channels.actor
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import org.springframework.stereotype.Component
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.supplyAsync
 
 /**
  * @author Ibragimov Ruslan
@@ -62,7 +62,7 @@ open class DefaultAsyncRethinkDbService(
     }
 
     private fun flush(trades: List<Trade>) {
-        CompletableFuture.supplyAsync {
+        supplyAsync {
             rethinkDbService.saveTrades(trades)
         }
     }
