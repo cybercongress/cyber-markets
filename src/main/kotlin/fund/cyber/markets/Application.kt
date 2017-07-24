@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.socket.client.WebSocketClient
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient
+import org.eclipse.jetty.websocket.client.WebSocketClient as JettyNativeWebSocketClient
 
 
 /**
@@ -36,7 +37,7 @@ open class Application {
 
         //add support for wss
         val httpClient = HttpClient(SslContextFactory())
-        val jettyNativeClient = org.eclipse.jetty.websocket.client.WebSocketClient(httpClient).apply {
+        val jettyNativeClient = JettyNativeWebSocketClient(httpClient).apply {
             policy.idleTimeout = WS_CONNECTION_IDLE_TIMEOUT * 1000
             policy.maxTextMessageSize = Int.MAX_VALUE
             policy.maxTextMessageBufferSize = Int.MAX_VALUE
