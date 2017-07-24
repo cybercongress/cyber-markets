@@ -2,7 +2,7 @@ package fund.cyber.markets.exchanges.poloniex
 
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.poloniex
-import fund.cyber.markets.storage.RethinkDbService
+import fund.cyber.markets.storage.AsyncRethinkDbService
 import fund.cyber.markets.webscoket.WebSocketContinuousConnectionManager
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.TextMessage
@@ -11,9 +11,10 @@ import org.springframework.web.socket.WebSocketSession
 
 @Component
 open class PoloniexWebSocketConnectionManager(
-        rethinkDbService: RethinkDbService, metadataService: PoloniexExchangeMetadataService
+    asyncRethinkDbService: AsyncRethinkDbService,
+    metadataService: PoloniexExchangeMetadataService
 ) : WebSocketContinuousConnectionManager<PoloniexMetadata>(
-        poloniex, PoloniexWebSocketHandler(rethinkDbService, metadataService.metadata), metadataService
+        poloniex, PoloniexWebSocketHandler(asyncRethinkDbService, metadataService.metadata), metadataService
 ) {
 
     override fun subscribeChannels(session: WebSocketSession, metadata: PoloniexMetadata) {

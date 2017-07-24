@@ -9,7 +9,7 @@ import fund.cyber.markets.helpers.createExchange
 import fund.cyber.markets.helpers.logger
 import fund.cyber.markets.helpers.retryUntilSuccess
 import fund.cyber.markets.model.ExchangeMetadata
-import fund.cyber.markets.storage.RethinkDbService
+import fund.cyber.markets.storage.AsyncRethinkDbService
 import fund.cyber.markets.webscoket.DefaultWebSocketManager
 import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.launch
@@ -30,7 +30,7 @@ interface Exchange<out M : ExchangeMetadata> {
 
 @Component
 open class PoloniexExchange(
-    private val rethinkDbService: RethinkDbService
+    private val asyncRethinkDbService: AsyncRethinkDbService
 ) : Exchange<PoloniexMetadata> {
 
     override fun subscribe(wsConnection: WebSocketSession) {
@@ -45,7 +45,7 @@ open class PoloniexExchange(
     lateinit var metadata: PoloniexMetadata
 
     override fun getHandler(): WebSocketHandler {
-        return PoloniexWebSocketHandler(rethinkDbService, metadata)
+        return PoloniexWebSocketHandler(asyncRethinkDbService, metadata)
     }
 
     override suspend fun loadMetadata(): PoloniexMetadata {
@@ -83,18 +83,18 @@ open class ExchangeManagingService(
                     LOGGER.info("Subscribed.")
                     launch(applicationPool) {
                         while (true) {
-                            connection.onDisconnect()
-                            LOGGER.error("=== Disconnected")
+                            val instant = connection.onDisconnect()
+                            LOGGER.error("Disconnected: $instant")
                         }
                     }
 
                     launch(applicationPool) {
                         while (true) {
-                            val (_, newSession) = connection.onReconnect()
+                            val (instant, newSession) = connection.onReconnect()
 
                             exchange.subscribe(newSession)
 
-                            LOGGER.error("=== Reconnected")
+                            LOGGER.error("Reconnected: $instant")
                         }
                     }
                 } catch (e: Exception) {
