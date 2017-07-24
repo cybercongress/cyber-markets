@@ -3,7 +3,7 @@ package fund.cyber.markets
 import fund.cyber.markets.configuration.SCHEDULER_POOL_SIZE
 import fund.cyber.markets.configuration.WS_CONNECTION_IDLE_TIMEOUT
 import fund.cyber.markets.exchanges.ExchangeManagingService
-import kotlinx.coroutines.experimental.newFixedThreadPoolContext
+import kotlinx.coroutines.experimental.newSingleThreadContext
 import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.springframework.boot.SpringApplication
@@ -66,7 +66,6 @@ fun main(args: Array<String>) {
     }
 }
 
-val applicationPool = newFixedThreadPoolContext(
-    Runtime.getRuntime().availableProcessors() - 1,
-    "Cyber Markets Coroutines Pool"
+val applicationPool = newSingleThreadContext(
+    "cmcp"
 )
