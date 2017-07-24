@@ -2,6 +2,8 @@ package fund.cyber.markets
 
 import fund.cyber.markets.configuration.SCHEDULER_POOL_SIZE
 import fund.cyber.markets.configuration.WS_CONNECTION_IDLE_TIMEOUT
+import fund.cyber.markets.exchanges.ExchangeManagingService
+import kotlinx.coroutines.experimental.newSingleThreadContext
 import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.springframework.boot.SpringApplication
@@ -15,6 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.socket.client.WebSocketClient
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient
+import org.eclipse.jetty.websocket.client.WebSocketClient as JettyNativeWebSocketClient
 
 
 /**
@@ -34,7 +37,7 @@ open class Application {
 
         //add support for wss
         val httpClient = HttpClient(SslContextFactory())
-        val jettyNativeClient = org.eclipse.jetty.websocket.client.WebSocketClient(httpClient).apply {
+        val jettyNativeClient = JettyNativeWebSocketClient(httpClient).apply {
             policy.idleTimeout = WS_CONNECTION_IDLE_TIMEOUT * 1000
             policy.maxTextMessageSize = Int.MAX_VALUE
             policy.maxTextMessageBufferSize = Int.MAX_VALUE
@@ -58,5 +61,11 @@ open class Application {
 }
 
 fun main(args: Array<String>) {
-    SpringApplication.run(Application::class.java, *args)
+    SpringApplication.run(Application::class.java, *args).apply {
+        getBean(ExchangeManagingService::class.java).run()
+    }
 }
+
+val applicationPool = newSingleThreadContext(
+    "cmcp"
+)

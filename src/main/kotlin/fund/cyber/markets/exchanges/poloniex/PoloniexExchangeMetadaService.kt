@@ -1,6 +1,7 @@
 package fund.cyber.markets.exchanges.poloniex
 
 import fund.cyber.markets.exchanges.ExchangeMetadataService
+import fund.cyber.markets.helpers.createExchange
 import fund.cyber.markets.model.ExchangeMetadata
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.poloniex
@@ -22,10 +23,9 @@ open class PoloniexExchangeMetadataService : ExchangeMetadataService<PoloniexMet
     override val metadata = PoloniexMetadata(channelIdForTokensPairs)
 
     override fun initializeMetadata() {
-        val poloniex = ExchangeFactory.INSTANCE.createExchange(PoloniexExchange::class.java.name) as PoloniexExchange
+        val poloniex = ExchangeFactory.INSTANCE.createExchange<PoloniexExchange>()
         val actualChannelIdForTokensPairs = poloniex.getTokensPairsWithChannelIds()
         channelIdForTokensPairs.putAll(actualChannelIdForTokensPairs)
-
     }
 
     override fun updateMetadata() {
@@ -39,7 +39,7 @@ open class PoloniexExchangeMetadataService : ExchangeMetadataService<PoloniexMet
 fun PoloniexExchange.getTokensPairsWithChannelIds(): Map<Int, TokensPair> {
 
     remoteInit()
-    val poloniexTickers = (marketDataService as PoloniexMarketDataService).getAllPoloniexTickers()
+    val poloniexTickers = (marketDataService as PoloniexMarketDataService).allPoloniexTickers
 
     val channelIdForTokensPair: MutableMap<Int, TokensPair> = HashMap()
     poloniexTickers?.forEach { tokensPairSymbol, metaInfo ->

@@ -5,7 +5,6 @@ import fund.cyber.markets.model.ExchangeMetadata
 import fund.cyber.markets.model.ExchangeMetadataInitializedEvent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.scheduling.annotation.Scheduled
 
 
 /**
@@ -28,7 +27,7 @@ abstract class ExchangeMetadataService<out M : ExchangeMetadata>(val exchange: S
 
     private var isInitialized = false
 
-    @Scheduled(fixedDelay = 5 * 60 * 1000, initialDelay = 5 * 1000)
+//    @Scheduled(fixedDelay = 5 * 60 * 1000, initialDelay = 5 * 1000)
     private fun updateMetadataJob() {
         if (!isInitialized) {
             internalInitializeMetadata()
