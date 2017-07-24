@@ -2,6 +2,12 @@ package fund.cyber.markets
 
 import fund.cyber.markets.configuration.SCHEDULER_POOL_SIZE
 import fund.cyber.markets.configuration.WS_CONNECTION_IDLE_TIMEOUT
+import fund.cyber.markets.model.Trade
+import fund.cyber.markets.storage.RethinkDbService
+import io.deepstream.DeepstreamClient
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.channels.ActorJob
+import kotlinx.coroutines.experimental.channels.actor
 import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.springframework.boot.SpringApplication
@@ -9,6 +15,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -47,7 +54,6 @@ open class Application {
         return JettyWebSocketClient(jettyNativeClient)
     }
 
-
     @Bean
     open fun taskExecutor(): TaskScheduler {
         return ThreadPoolTaskScheduler().apply {
@@ -55,8 +61,50 @@ open class Application {
             threadNamePrefix = "Cyber.Markets Task Executor"
         }
     }
+
+    @Bean
+    open fun deepStreamClient(): DeepstreamClient {
+        val deepstreamUrl = System.getenv("deepstreamUrl") ?: "localhost:6020"
+        val client = DeepstreamClient(deepstreamUrl)
+        val result = client.login()
+        if (result.loggedIn()) {
+            println("Log in success!")
+        }
+        return client
+    }
+
+    @Bean
+    open fun deepStreamActor(deepstreamClient: DeepstreamClient): ActorJob<Trade> {
+        return actor(CommonPool) {
+            for (trade in channel) {
+                deepstreamClient.event.emit("cyber.markets.trades", trade)
+            }
+        }
+    }
+
+/*    @Bean
+    @Profile("!console")
+    open fun rethinkDbTradesSaverActor(rethinkDbService: RethinkDbService): ActorJob<Trade> {
+        return actor(CommonPool) {
+            for (trade in channel) {
+                rethinkDbService.saveTrades(listOf(trade))
+            }
+        }
+    }*/
+
+    @Bean
+    @Profile("console")
+    open fun consolePrinterActor(rethinkDbService: RethinkDbService): ActorJob<Trade> {
+        return actor(CommonPool) {
+            for (trade in channel) {
+                println(trade)
+            }
+        }
+    }
 }
 
 fun main(args: Array<String>) {
-    SpringApplication.run(Application::class.java, *args)
+    SpringApplication.run(Application::class.java, *args).apply {
+        getBean(RethinkDbService::class.java)
+    }
 }

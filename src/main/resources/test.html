@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Custom title</title>
+</head>
+<body>
+<script src="//cdnjs.cloudflare.com/ajax/libs/deepstream.io-client-js/2.1.1/deepstream.js"></script>
+<body>
+        <script type="text/javascript">
+            window.onload = function () {
+                var client = deepstream('localhost:6020')
+                client.login()
+                client.event.subscribe('cyber.markets.trades', function (value) {
+                    document.body.innerHTML += '<div>' + JSON.stringify(value)  + '</div>';
+                    window.scrollTo(0,document.body.scrollHeight);
+                })
+            };
+        </script>
+</body>
+</html>
