@@ -90,7 +90,10 @@ open class ExchangeManagingService(
 
                     launch(applicationPool) {
                         while (true) {
-                            connection.onReconnect()
+                            val (_, newSession) = connection.onReconnect()
+
+                            exchange.subscribe(newSession)
+
                             LOGGER.error("=== Reconnected")
                         }
                     }

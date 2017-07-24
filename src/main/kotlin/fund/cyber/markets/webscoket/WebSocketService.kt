@@ -18,7 +18,7 @@ import java.time.Instant
 interface WebSocketConnection {
     suspend fun connect(handler: WebSocketHandler, wsUri: URI): WebSocketSession
     suspend fun onDisconnect(): Instant
-    suspend fun onReconnect(): Instant
+    suspend fun onReconnect(): Pair<Instant, WebSocketSession>
 }
 
 class DefaultWebSocketConnection(
@@ -27,7 +27,7 @@ class DefaultWebSocketConnection(
 
     private var connectionLostEventAlreadyFired = false
     private val disconnectChannel = Channel<Instant>()
-    private val reconnectChannel = Channel<Instant>()
+    private val reconnectChannel = Channel<Pair<Instant, WebSocketSession>>()
 
     suspend override fun connect(handler: WebSocketHandler, wsUri: URI): WebSocketSession {
         var webSocketSession = openConnection(handler, wsUri)
@@ -54,7 +54,7 @@ class DefaultWebSocketConnection(
         return disconnectChannel.receive()
     }
 
-    suspend override fun onReconnect(): Instant {
+    suspend override fun onReconnect(): Pair<Instant, WebSocketSession> {
         return reconnectChannel.receive()
     }
 
@@ -103,7 +103,7 @@ class DefaultWebSocketConnection(
         val newSession = openConnection(handler, wsUri)
         //successfully reconnected
         webSocketSupplier(newSession)
-        reconnectChannel.send(Instant.now())
+        reconnectChannel.send(Instant.now() to newSession)
         connectionLostEventAlreadyFired = false
     }
 
