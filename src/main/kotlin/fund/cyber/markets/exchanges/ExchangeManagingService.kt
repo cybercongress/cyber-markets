@@ -72,14 +72,15 @@ open class ExchangeManagingService(
         exchanges.forEach { exchange ->
             launch(applicationPool) {
                 try {
-                    println("Loading metadata")
+                    LOGGER.info("Loading metadata.")
                     retryUntilSuccess { exchange.loadMetadata() }
-                    println("Metadata loaded")
+                    LOGGER.info("Metadata loaded.")
                     val connection = webSocketManager.newConnection()
                     val wsConnection = connection.connect(exchange.getHandler(), exchange.uri)
 
+                    LOGGER.info("Connected.")
                     exchange.subscribe(wsConnection)
-
+                    LOGGER.info("Subscribed.")
                     launch(applicationPool) {
                         while (true) {
                             connection.onDisconnect()

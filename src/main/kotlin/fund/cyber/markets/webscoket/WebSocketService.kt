@@ -7,12 +7,13 @@ import fund.cyber.markets.helpers.retryUntilSuccess
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import org.springframework.web.socket.TextMessage
+import org.springframework.web.socket.PingMessage
 import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.WebSocketHttpHeaders
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.client.WebSocketClient
 import java.net.URI
+import java.nio.ByteBuffer
 import java.time.Instant
 
 interface WebSocketConnection {
@@ -34,6 +35,7 @@ class DefaultWebSocketConnection(
 
         launch(applicationPool) {
             while (isActive) {
+                LOGGER.info("Check is $wsUri session alive.")
                 val sessionIsAlive = isSessionAlive(webSocketSession)
 
                 if (!sessionIsAlive) {
@@ -88,6 +90,8 @@ class DefaultWebSocketConnection(
         wsUri: URI,
         webSocketSupplier: WebSocketSupplier
     ) {
+        LOGGER.info("Try to reconnect to $wsUri.")
+
         //should fire event on first exploration of connection lost
         if (!connectionLostEventAlreadyFired) {
             disconnectChannel.send(Instant.now())
@@ -108,6 +112,6 @@ class DefaultWebSocketConnection(
     }
 }
 
-private val pingMessage = TextMessage("ping")
+private val pingMessage = PingMessage(ByteBuffer.wrap("ping".toByteArray(Charsets.UTF_8)))
 
 typealias WebSocketSupplier = (WebSocketSession) -> Unit
