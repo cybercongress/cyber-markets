@@ -7,13 +7,12 @@ import fund.cyber.markets.helpers.retryUntilSuccess
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import org.springframework.web.socket.PingMessage
+import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.WebSocketHttpHeaders
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.client.WebSocketClient
 import java.net.URI
-import java.nio.ByteBuffer
 import java.time.Instant
 
 interface WebSocketConnection {
@@ -37,6 +36,7 @@ class DefaultWebSocketConnection(
             while (isActive) {
                 LOGGER.info("Check is $wsUri session alive.")
                 val sessionIsAlive = isSessionAlive(webSocketSession)
+                LOGGER.info("Session status: $sessionIsAlive")
 
                 if (!sessionIsAlive) {
                     reconnect(webSocketSession, handler, wsUri) { newSession ->
@@ -112,6 +112,6 @@ class DefaultWebSocketConnection(
     }
 }
 
-private val pingMessage = PingMessage(ByteBuffer.wrap("ping".toByteArray(Charsets.UTF_8)))
+private val pingMessage = TextMessage("ping")
 
 typealias WebSocketSupplier = (WebSocketSession) -> Unit
