@@ -34,8 +34,8 @@ open class PoloniexExchange(
 ) : Exchange<PoloniexMetadata> {
 
     override fun subscribe(wsConnection: WebSocketSession) {
-        metadata.channelIdForTokensPairs.keys.forEach { channelId ->
-            wsConnection.subscribeChannel(channelId)
+        metadata.channelIdForTokensPairs.values.forEach { pair ->
+            wsConnection.subscribeChannel(pair)
         }
     }
 

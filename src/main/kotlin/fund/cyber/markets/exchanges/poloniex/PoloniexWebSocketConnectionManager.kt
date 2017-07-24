@@ -1,5 +1,6 @@
 package fund.cyber.markets.exchanges.poloniex
 
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.poloniex
 import fund.cyber.markets.storage.RethinkDbService
 import fund.cyber.markets.webscoket.WebSocketContinuousConnectionManager
@@ -16,7 +17,7 @@ open class PoloniexWebSocketConnectionManager(
 ) {
 
     override fun subscribeChannels(session: WebSocketSession, metadata: PoloniexMetadata) {
-        metadata.channelIdForTokensPairs.keys.forEach { channelId -> session.subscribeChannel(channelId) }
+        metadata.channelIdForTokensPairs.values.forEach { pair -> session.subscribeChannel(pair) }
     }
 }
 
@@ -25,4 +26,8 @@ open class PoloniexWebSocketConnectionManager(
  */
 fun WebSocketSession.subscribeChannel(channelId: Int) {
     sendMessage(TextMessage(""""{"command":"subscribe","channel":"$channelId"}"""))
+}
+
+fun WebSocketSession.subscribeChannel(pair: TokensPair) {
+    sendMessage(TextMessage("""{"command":"subscribe","channel":"${pair.base}_${pair.quote}"}"""))
 }
