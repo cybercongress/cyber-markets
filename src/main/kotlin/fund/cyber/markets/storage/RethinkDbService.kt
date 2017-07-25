@@ -17,7 +17,7 @@ val historyGapsTable: String = "history_gaps"
 
 @Component
 open class RethinkDbService(
-        val connectionPool: RethinkDbConnectionPool,
+        private val connectionPool: RethinkDbConnectionPool,
         rethinkDbProperties: RethinkDbProperties
 ) {
 
