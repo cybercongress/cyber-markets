@@ -50,14 +50,14 @@ abstract class ReconnectableWsExchange : WsExchange {
             subscribeChannels(connection)
 
             concurrent {
-                var isActive = true
-                while (isActive) {
+                var connectionIsOpen = true
+                while (connectionIsOpen) {
                     delay(30, SECONDS)
                     if (!connection.isOpen || connection.isCloseFrameSent) {
                         LOGGER.debug("Session for $name exchange was closed")
                         connection.close()
                         subscribeData()
-                        isActive = false
+                        connectionIsOpen = false
                     }
                 }
             }
