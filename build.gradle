@@ -33,8 +33,8 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'org.junit.platform.gradle.plugin'
 
 jar {
-    baseName = 'cyber.markets'
-    version = '0.0.1'
+    baseName = 'cyber-markets'
+    version = '0.1.0'
 }
 
 bootRun {
