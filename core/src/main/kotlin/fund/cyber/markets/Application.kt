@@ -2,11 +2,9 @@ package fund.cyber.markets
 
 import fund.cyber.markets.exchanges.bitfinex.BitfinexExchange
 import fund.cyber.markets.exchanges.poloniex.PoloniexExchange
+import fund.cyber.markets.helpers.concurrent
 import io.undertow.protocols.ssl.UndertowXnioSsl
 import io.undertow.server.DefaultByteBufferPool
-import kotlinx.coroutines.experimental.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.experimental.Unconfined
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.newSingleThreadContext
 import org.xnio.OptionMap
@@ -35,8 +33,8 @@ val byteBuffersPool = DefaultByteBufferPool(true, 2048)
 
 /*----------------------------- Others ---------------------------------------------*/
 val coroutinesThreads = 2
-val coroutinesContext = newFixedThreadPoolContext(coroutinesThreads, "Coroutines Concurrent Pool")
-val singleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool")
+val applicationContext = newFixedThreadPoolContext(coroutinesThreads, "Coroutines Concurrent Pool")
+val applicationSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool")
 /*----------------------------------------------------------------------------------*/
 
 val supportedExchanges = listOf(
@@ -47,10 +45,10 @@ val supportedExchanges = listOf(
 fun main(args: Array<String>) {
 
     supportedExchanges.forEach { exchange ->
-        async(Unconfined, UNDISPATCHED) {
+        concurrent {
 
             val dataChannel = exchange.subscribeData()
-            async(coroutinesContext) {
+            concurrent {
                 while (true) {
                     val tradesAndOrdersUpdatesMessage = dataChannel.receive()
                     println(tradesAndOrdersUpdatesMessage.trades)

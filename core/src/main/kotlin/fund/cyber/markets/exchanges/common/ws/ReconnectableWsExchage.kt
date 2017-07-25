@@ -1,8 +1,8 @@
 package fund.cyber.markets.exchanges.common.ws
 
 import fund.cyber.markets.byteBuffersPool
-import fund.cyber.markets.coroutinesContext
 import fund.cyber.markets.exchanges.Exchange
+import fund.cyber.markets.helpers.concurrent
 import fund.cyber.markets.helpers.retryUntilSuccess
 import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.webscoket.ExchangeMessage
@@ -14,9 +14,6 @@ import io.undertow.websockets.client.WebSocketClient
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
 import io.undertow.websockets.core.WebSocketChannel
-import kotlinx.coroutines.experimental.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.experimental.Unconfined
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.delay
 import org.slf4j.LoggerFactory
@@ -40,7 +37,7 @@ abstract class ReconnectableWsExchange : WsExchange {
 
     override fun subscribeData(): Channel<TradesAndOrdersUpdatesMessage> {
 
-        async(Unconfined, UNDISPATCHED) {
+        concurrent {
 
             LOGGER.debug("Initialize $name metadata job is started")
             retryUntilSuccess { initializeMetadata() }
@@ -52,7 +49,7 @@ abstract class ReconnectableWsExchange : WsExchange {
 
             subscribeChannels(connection)
 
-            async(coroutinesContext) {
+            concurrent {
                 var isActive = true
                 while (isActive) {
                     delay(30, SECONDS)
@@ -75,7 +72,7 @@ abstract class ReconnectableWsExchange : WsExchange {
         connection.idleTimeout = 30 * 1000
         connection.receiveSetter.set(object : AbstractReceiveListener() {
             override fun onFullTextMessage(session: WebSocketChannel, message: BufferedTextMessage) {
-                async(coroutinesContext) {
+                concurrent {
                     val result = messageParser.parseMessage(message.data)
                     when (result) {
                         is TradesAndOrdersUpdatesMessage -> if(!result.trades.isEmpty()) channel.send(result)
