@@ -2,6 +2,7 @@ package fund.cyber.markets.exchanges.common.ws
 
 import fund.cyber.markets.byteBuffersPool
 import fund.cyber.markets.exchanges.Exchange
+import fund.cyber.markets.helpers.cAwait
 import fund.cyber.markets.helpers.concurrent
 import fund.cyber.markets.helpers.retryUntilSuccess
 import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
@@ -30,7 +31,7 @@ abstract class ReconnectableWsExchange : WsExchange {
     private val LOGGER = LoggerFactory.getLogger(ReconnectableWsExchange::class.java)!!
     protected val channel = Channel<TradesAndOrdersUpdatesMessage>()
 
-    abstract fun initializeMetadata()
+    abstract suspend fun initializeMetadata()
     abstract fun subscribeChannels(connection: WebSocketChannel)
     protected abstract val messageParser: ExchangeMessageParser
 
@@ -65,17 +66,17 @@ abstract class ReconnectableWsExchange : WsExchange {
         return channel
     }
 
-    private fun initializeConnection(): WebSocketChannel {
+    suspend private fun initializeConnection(): WebSocketChannel {
 
         val connection = WebSocketClient
-                .connectionBuilder(xnioWorker, byteBuffersPool, URI(wsAddress)).setSsl(xnioSsl).connect().get()
+                .connectionBuilder(xnioWorker, byteBuffersPool, URI(wsAddress)).setSsl(xnioSsl).connect().cAwait()
         connection.idleTimeout = 30 * 1000
         connection.receiveSetter.set(object : AbstractReceiveListener() {
             override fun onFullTextMessage(session: WebSocketChannel, message: BufferedTextMessage) {
                 concurrent {
                     val result = messageParser.parseMessage(message.data)
                     when (result) {
-                        is TradesAndOrdersUpdatesMessage -> if(!result.trades.isEmpty()) channel.send(result)
+                        is TradesAndOrdersUpdatesMessage -> if (!result.trades.isEmpty()) channel.send(result)
                         else -> handleUnknownMessage(result)
                     }
                 }

@@ -14,7 +14,7 @@ class PoloniexExchange : ReconnectableWsExchange() {
     override val messageParser = PoloniexMessageParser(channelIdForTokensPairs)
 
 
-    override fun initializeMetadata() {
+    override suspend fun initializeMetadata() {
         channelIdForTokensPairs.put(148, TokensPair("BTC", "ETH"))
     }
 

@@ -20,7 +20,7 @@ class BitfinexExchange : ReconnectableWsExchange() {
     private val tradesChannelIdForTokensPair = ConcurrentHashMap<Int, TokensPair>(64, 0.75f, 5)
     override val messageParser = BitfinexMessageParser(channelSymbolForTokensPair, tradesChannelIdForTokensPair)
 
-    override fun initializeMetadata() {
+    override suspend fun initializeMetadata() {
         channelSymbolForTokensPair.put("tETHBTC", TokensPair("ETH", "BTC"))
     }
 
