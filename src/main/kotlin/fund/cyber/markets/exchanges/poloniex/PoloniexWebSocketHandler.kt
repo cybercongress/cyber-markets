@@ -1,6 +1,5 @@
 package fund.cyber.markets.exchanges.poloniex
 
-
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.poloniex
 import fund.cyber.markets.webscoket.BasicWebSocketHandler

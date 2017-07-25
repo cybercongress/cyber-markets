@@ -54,6 +54,7 @@ open class Application {
         return JettyWebSocketClient(jettyNativeClient)
     }
 
+
     @Bean
     open fun taskExecutor(): TaskScheduler {
         return ThreadPoolTaskScheduler().apply {
@@ -81,16 +82,6 @@ open class Application {
             }
         }
     }
-
-/*    @Bean
-    @Profile("!console")
-    open fun rethinkDbTradesSaverActor(rethinkDbService: RethinkDbService): ActorJob<Trade> {
-        return actor(CommonPool) {
-            for (trade in channel) {
-                rethinkDbService.saveTrades(listOf(trade))
-            }
-        }
-    }*/
 
     @Bean
     @Profile("console")
