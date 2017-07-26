@@ -1,8 +1,12 @@
 package fund.cyber.markets.helpers
 
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
 import org.xnio.IoFuture
 import org.xnio.IoFuture.Notifier
 import org.xnio.IoFuture.Status.*
+import java.io.IOException
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
@@ -21,5 +25,16 @@ suspend fun <T> IoFuture<T>.cAwait(): T {
 
         }
         addNotifier(notifier, null)
+    }
+}
+
+suspend fun Call.await(): Response {
+
+    return suspendCoroutine { cont: Continuation<Response> ->
+        val callback = object : Callback {
+            override fun onFailure(call: Call?, e: IOException) {cont.resumeWithException(e)}
+            override fun onResponse(call: Call?, response: Response) {cont.resume(response)}
+        }
+        enqueue(callback)
     }
 }
