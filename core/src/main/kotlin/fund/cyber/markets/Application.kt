@@ -1,5 +1,6 @@
 package fund.cyber.markets
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.exchanges.bitfinex.BitfinexExchange
 import fund.cyber.markets.exchanges.poloniex.PoloniexExchange
 import fund.cyber.markets.helpers.concurrent
@@ -7,6 +8,8 @@ import io.undertow.protocols.ssl.UndertowXnioSsl
 import io.undertow.server.DefaultByteBufferPool
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.newSingleThreadContext
+import okhttp3.Dispatcher
+import okhttp3.OkHttpClient
 import org.xnio.OptionMap
 import org.xnio.Options
 import org.xnio.Xnio
@@ -32,9 +35,14 @@ val byteBuffersPool = DefaultByteBufferPool(true, 2048)
 
 
 /*----------------------------- Others ---------------------------------------------*/
+val httpDispatcher = Dispatcher(xnioWorker)
+val httpClient = OkHttpClient.Builder().dispatcher(httpDispatcher).build()!!
+
 val coroutinesThreads = 2
 val applicationContext = newFixedThreadPoolContext(coroutinesThreads, "Coroutines Concurrent Pool")
 val applicationSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool")
+
+val jsonParser = ObjectMapper()
 /*----------------------------------------------------------------------------------*/
 
 val supportedExchanges = listOf(
@@ -46,7 +54,6 @@ fun main(args: Array<String>) {
 
     supportedExchanges.forEach { exchange ->
         concurrent {
-
             val dataChannel = exchange.subscribeData()
             concurrent {
                 while (true) {

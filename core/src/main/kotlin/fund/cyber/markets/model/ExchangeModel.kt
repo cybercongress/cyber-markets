@@ -11,6 +11,12 @@ open class TokensPair(
     fun label(delimiter: String = "/"): String {
         return base + delimiter + quote
     }
+
+    companion object {
+        fun fromLabel(label: String, delimiter: String = "/"): TokensPair {
+            return TokensPair(label.substringBefore(delimiter), label.substringAfter(delimiter))
+        }
+    }
 }
 
 enum class TradeType {

@@ -1,7 +1,7 @@
 package fund.cyber.markets.webscoket
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import fund.cyber.markets.jsonParser
 
 
 /**
@@ -20,11 +20,9 @@ interface ExchangeMessageParser {
 
 abstract class SaveExchangeMessageParser : ExchangeMessageParser {
 
-    private val jsonReader = ObjectMapper()
-
     override fun parseMessage(message: String): ExchangeMessage {
         try {
-            val jsonRoot = jsonReader.readTree(message)
+            val jsonRoot = jsonParser.readTree(message)
             return parseMessage(jsonRoot) ?: UnknownFormatMessage(message)
         } catch (exception: Exception) {
             return UnknownFormatMessage(message)
