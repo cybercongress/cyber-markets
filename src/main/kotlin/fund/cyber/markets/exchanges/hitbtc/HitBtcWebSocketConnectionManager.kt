@@ -1,17 +1,19 @@
 package fund.cyber.markets.exchanges.hitbtc
 
+import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.hitbtc
 import fund.cyber.markets.storage.RethinkDbService
 import fund.cyber.markets.webscoket.WebSocketContinuousConnectionManager
+import kotlinx.coroutines.experimental.channels.SendChannel
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.WebSocketSession
 
 
 @Component
 open class HitBtcWebSocketConnectionManager(
-        metadataService: HitBtcExchangeMetadataService, rethinkDbService: RethinkDbService
+        metadataService: HitBtcExchangeMetadataService, tradesChannel: SendChannel<Trade>
 ) : WebSocketContinuousConnectionManager<HitBtcMetadata>(
-        hitbtc, HitBtcWebSocketHandler(rethinkDbService, metadataService), metadataService
+        hitbtc, HitBtcWebSocketHandler(tradesChannel, metadataService), metadataService
 ) {
 
     override fun subscribeChannels(session: WebSocketSession, metadata: HitBtcMetadata) {

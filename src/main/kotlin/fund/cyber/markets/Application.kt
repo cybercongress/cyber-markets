@@ -85,7 +85,7 @@ open class Application {
 
     @Bean
     @Profile("console")
-    open fun consolePrinterActor(rethinkDbService: RethinkDbService): ActorJob<Trade> {
+    open fun consolePrinterActor(): ActorJob<Trade> {
         return actor(CommonPool) {
             for (trade in channel) {
                 println(trade)
@@ -95,7 +95,5 @@ open class Application {
 }
 
 fun main(args: Array<String>) {
-    SpringApplication.run(Application::class.java, *args).apply {
-        getBean(RethinkDbService::class.java)
-    }
+    SpringApplication.run(Application::class.java, *args)
 }

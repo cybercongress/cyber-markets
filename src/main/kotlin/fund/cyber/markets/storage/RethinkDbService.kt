@@ -15,7 +15,6 @@ val exchangeMetaDataTable: String = "exchange_metadata"
 val historyGapsTable: String = "history_gaps"
 
 
-@Component
 open class RethinkDbService(
         private val connectionPool: RethinkDbConnectionPool,
         rethinkDbProperties: RethinkDbProperties
