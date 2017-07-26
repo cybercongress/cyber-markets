@@ -1,17 +1,19 @@
 package fund.cyber.markets.exchanges.bitfinex
 
+import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.bitfinex
 import fund.cyber.markets.storage.RethinkDbService
 import fund.cyber.markets.webscoket.WebSocketContinuousConnectionManager
+import kotlinx.coroutines.experimental.channels.SendChannel
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 
 @Component
 open class BitfinexWebSocketConnectionManager(
-        metadataService: BitfinexExchangeMetadataService, rethinkDbService: RethinkDbService
+        metadataService: BitfinexExchangeMetadataService, tradesChannel: SendChannel<Trade>
 ) : WebSocketContinuousConnectionManager<BitfinexMetadata>(
-        bitfinex, BitfinexWebSocketHandler(metadataService, rethinkDbService), metadataService
+        bitfinex, BitfinexWebSocketHandler(metadataService, tradesChannel), metadataService
 ) {
 
     override fun subscribeChannels(session: WebSocketSession, metadata: BitfinexMetadata) {
