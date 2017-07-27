@@ -70,7 +70,7 @@ abstract class ReconnectableWsExchange : WsExchange {
 
         val connection = WebSocketClient
                 .connectionBuilder(xnioWorker, byteBuffersPool, URI(wsAddress)).setSsl(xnioSsl).connect().cAwait()
-        connection.idleTimeout = 30 * 1000
+        connection.idleTimeout = 60 * 1000
         connection.receiveSetter.set(object : AbstractReceiveListener() {
             override fun onFullTextMessage(session: WebSocketChannel, message: BufferedTextMessage) {
                 concurrent {

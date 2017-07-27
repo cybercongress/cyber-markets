@@ -2,6 +2,7 @@ package fund.cyber.markets
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.exchanges.bitfinex.BitfinexExchange
+import fund.cyber.markets.exchanges.hitbtc.HitBtcExchange
 import fund.cyber.markets.exchanges.poloniex.PoloniexExchange
 import fund.cyber.markets.helpers.concurrent
 import io.undertow.protocols.ssl.UndertowXnioSsl
@@ -45,8 +46,9 @@ val applicationSingleThreadContext = newSingleThreadContext("Coroutines Single T
 val jsonParser = ObjectMapper()
 /*----------------------------------------------------------------------------------*/
 
+
 val supportedExchanges = listOf(
-        PoloniexExchange(), BitfinexExchange()
+        PoloniexExchange(), BitfinexExchange(), HitBtcExchange()
 )
 
 
