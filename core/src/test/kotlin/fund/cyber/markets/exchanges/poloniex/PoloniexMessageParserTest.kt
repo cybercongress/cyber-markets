@@ -3,7 +3,6 @@ package fund.cyber.markets.exchanges.poloniex
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
-import fund.cyber.markets.model.poloniex
 import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import org.junit.jupiter.api.Assertions
@@ -29,22 +28,22 @@ class PoloniexMessageParserTest {
         ]"""
 
         val tokensPair = TokensPair("BTC", "ETH")
-        val metadata = PoloniexMetadata(channelIdForTokensPairs = mapOf(Pair(129, tokensPair)))
-        val messageParser = PoloniexMessageParser(metadata)
+        val channelIdForTokensPairs = mapOf(Pair(129, tokensPair))
+        val messageParser = PoloniexMessageParser(channelIdForTokensPairs)
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is TradesAndOrdersUpdatesMessage)
         Assertions.assertTrue((exchangeMessage as TradesAndOrdersUpdatesMessage).trades.size == 2)
 
         val firstTrade = Trade(
-                tradeId = "126320", exchange = poloniex,
-                tokensPair = tokensPair, type = TradeType.BUY,
+                tradeId = "126320", exchange = "Poloniex", type = TradeType.BUY,
+                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
                 baseAmount = BigDecimal("399377.76875000"), quoteAmount = BigDecimal("13.2912921440000000"),
                 spotPrice = BigDecimal("0.00003328"), timestamp = 1499708547
         )
         val secondTrade = Trade(
-                tradeId = "126321", exchange = poloniex,
-                tokensPair = tokensPair, type = TradeType.SELL,
+                tradeId = "126321", exchange = "Poloniex", type = TradeType.SELL,
+                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
                 baseAmount = BigDecimal("2.76875000"), quoteAmount = BigDecimal("0.0006458940000000"),
                 spotPrice = BigDecimal("0.00023328"), timestamp = 1499708549
         )
@@ -57,8 +56,7 @@ class PoloniexMessageParserTest {
     fun testParseMessageWithUnknownTokensPair() {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
-        val metadata = PoloniexMetadata(emptyMap())
-        val messageParser = PoloniexMessageParser(metadata)
+        val messageParser = PoloniexMessageParser(emptyMap())
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is ContainingUnknownTokensPairMessage)

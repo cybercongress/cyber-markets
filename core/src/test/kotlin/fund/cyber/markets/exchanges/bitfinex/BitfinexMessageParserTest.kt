@@ -3,7 +3,6 @@ package fund.cyber.markets.exchanges.bitfinex
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.SELL
-import fund.cyber.markets.model.bitfinex
 import fund.cyber.markets.webscoket.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.webscoket.TradesAndOrdersUpdatesMessage
 import org.junit.jupiter.api.Assertions
@@ -22,17 +21,17 @@ class BitfinexMessageParserTest {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
         val tokensPair = TokensPair("BTC", "ETH")
-        val tradesChannelIdForTokensPair = mapOf(Pair(53, tokensPair))
-        val metadata = BitfinexMetadata(emptyMap(), tradesChannelIdForTokensPair)
-        val messageParser = BitfinexMessageParser(metadata)
+        val tradesChannelSymbolForTokensPair = mapOf("tBTCETH" to tokensPair)
+        val tradesChannelIdForTokensPair = mapOf(53 to tokensPair)
+        val messageParser = BitfinexMessageParser(tradesChannelSymbolForTokensPair, tradesChannelIdForTokensPair)
 
         val exchangeMessage = messageParser.parseMessage(message)
         assertTrue(exchangeMessage is TradesAndOrdersUpdatesMessage)
         assertTrue((exchangeMessage as TradesAndOrdersUpdatesMessage).trades.size == 1)
 
         val trade = Trade(
-                tradeId = "43334639", exchange = bitfinex,
-                tokensPair = tokensPair, type = SELL,
+                tradeId = "43334639", exchange = "Bitfinex", type = SELL,
+                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
                 baseAmount = BigDecimal("0.01293103"), quoteAmount = BigDecimal("0.01293103") * BigDecimal("2320"),
                 spotPrice = BigDecimal("2320"), timestamp = 1499972199
         )
@@ -44,8 +43,7 @@ class BitfinexMessageParserTest {
     fun testParseMessageWithUnknownTokensPair() {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
-        val metadata = BitfinexMetadata(emptyMap(), emptyMap())
-        val messageParser = BitfinexMessageParser(metadata)
+        val messageParser = BitfinexMessageParser(emptyMap(), emptyMap())
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is ContainingUnknownTokensPairMessage)
