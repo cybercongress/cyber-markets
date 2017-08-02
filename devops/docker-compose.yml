@@ -1,0 +1,38 @@
+version: "2"
+services:
+  zoo1:
+    image: zookeeper:3.4.10
+    restart: always
+    container_name: cm_zookeeper1
+    ports:
+     - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+     - $APPLICATION_DATA/zookeeper1/data:/data
+     - $APPLICATION_DATA/zookeeper1/datalog:/datalog
+  zoo2:
+    image: zookeeper:3.4.10
+    restart: always
+    container_name: cm_zookeeper2
+    ports:
+     - 2182:2181
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+     - $APPLICATION_DATA/zookeeper2/data:/data
+     - $APPLICATION_DATA/zookeeper2/datalog:/datalog
+  zoo3:
+    image: zookeeper:3.4.10
+    restart: always
+    container_name: cm_zookeeper3
+    ports:
+     - 2183:2181
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+     - $APPLICATION_DATA/zookeeper3/data:/data
+     - $APPLICATION_DATA/zookeeper3/datalog:/datalog
