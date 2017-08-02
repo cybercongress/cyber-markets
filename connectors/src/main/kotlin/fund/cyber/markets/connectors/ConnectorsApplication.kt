@@ -1,7 +1,8 @@
-package fund.cyber.markets.connectors
+package fund.cyber.markets
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connectors.bitfinex.BitfinexExchange
+import fund.cyber.markets.connectors.bitstamp.BitstampExchange
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.connectors.hitbtc.HitBtcExchange
 import fund.cyber.markets.connectors.poloniex.PoloniexExchange
@@ -48,7 +49,7 @@ val jsonParser = ObjectMapper()
 
 
 val supportedExchanges = listOf(
-        PoloniexExchange(), BitfinexExchange(), HitBtcExchange()
+        PoloniexExchange(), BitfinexExchange(), HitBtcExchange(), BitstampExchange()
 )
 
 
