@@ -4,9 +4,8 @@ buildscript {
     ext.kotlin_version = '1.1.3-2'
     ext.kotlin_coroutines_version = '0.17'
     ext.jackson_version = '2.8.9'
-    ext.deepstream_version = '2.2.1'
     ext.okHttp_version = '3.8.1'
-    ext.deepstream_version = '2.2.1'
+    ext.undertow_version = '1.4.18.Final'
 
     //tests
     ext.junit_version = '5.0.0-M5'
@@ -49,6 +48,8 @@ subprojects {
     }
 
     dependencies {
+
+
         compile("org.slf4j:jcl-over-slf4j:$slf4j_version")
         compile("ch.qos.logback:logback-classic:$lockback_version")
 
@@ -57,7 +58,6 @@ subprojects {
         compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines_version")
 
         compile("com.squareup.okhttp3:okhttp:${okHttp_version}")
-        compile("io.deepstream:deepstream.io-client-java:$deepstream_version")
         compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
 
         testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")

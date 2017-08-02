@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trades Test</title>
+</head>
+<body>
+<form onsubmit="return false;">
+    <input type="button" value="Send Web Socket Message" onclick="send()"/>
+</form>
+
+<script type="text/javascript">
+
+    var websockets;
+
+    window.onload = function () {
+        websockets = new WebSocket("ws://127.0.0.1:8082");
+        websockets.onmessage = function (event) {
+            document.body.innerHTML += '<div>' + event.data + '</div>';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    };
+
+    function send() {
+        websockets.send("{\"subscribe\":\"trades\",\"pairs\":[\"BTC_ETH\",\"ETH_USD\"]}");
+    }
+
+
+</script>
+</body>
+</html>

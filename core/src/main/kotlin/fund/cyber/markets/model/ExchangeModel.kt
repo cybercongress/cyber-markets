@@ -4,21 +4,6 @@ package fund.cyber.markets.model
 import java.math.BigDecimal
 
 
-open class TokensPair(
-        val base: String,
-        val quote: String
-) {
-    fun label(delimiter: String = "/"): String {
-        return base + delimiter + quote
-    }
-
-    companion object {
-        fun fromLabel(label: String, delimiter: String = "/"): TokensPair {
-            return TokensPair(label.substringBefore(delimiter), label.substringAfter(delimiter))
-        }
-    }
-}
-
 enum class TradeType {
     SELL,
     BUY,
