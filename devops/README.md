@@ -4,5 +4,5 @@ To run cluster:
 
 ```bash
 export APPLICATION_DATA=./data
-docker-compose up
+docker-compose up -d
 ```

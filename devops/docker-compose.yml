@@ -36,3 +36,25 @@ services:
     volumes:
      - $APPLICATION_DATA/zookeeper3/data:/data
      - $APPLICATION_DATA/zookeeper3/datalog:/datalog
+  kafka:
+    image: wurstmeister/kafka:0.10.2.1
+    restart: always
+    container_name: cm_kafka
+    ports:
+     - "9092:9092"
+    environment:
+      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  kafka_manager:
+    image: sheepkiller/kafka-manager
+    ports:
+      - "9000:9000"
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+    environment:
+      ZK_HOSTS: "zoo1:2181,zoo2:2182,zoo3:2183"
+      APPLICATION_SECRET: "dilbert"
