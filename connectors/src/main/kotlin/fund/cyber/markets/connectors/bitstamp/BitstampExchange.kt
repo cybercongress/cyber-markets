@@ -10,9 +10,6 @@ import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
 import org.slf4j.LoggerFactory
 
-/**
- * Created by aalbov on 1.8.17.
- */
 class BitstampExchange: ReconnectableWsExchange() {
     private val LOGGER = LoggerFactory.getLogger(BitfinexExchange::class.java)!!
 

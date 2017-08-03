@@ -1,4 +1,4 @@
-package fund.cyber.markets
+package fund.cyber.markets.connectors
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connectors.bitfinex.BitfinexExchange

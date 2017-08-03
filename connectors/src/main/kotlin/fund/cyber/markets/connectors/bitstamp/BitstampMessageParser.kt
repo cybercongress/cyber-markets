@@ -6,16 +6,13 @@ import fund.cyber.markets.connectors.common.ExchangeMessage
 import fund.cyber.markets.connectors.common.TradesAndOrdersUpdatesMessage
 import fund.cyber.markets.connectors.common.ws.SaveExchangeMessageParser
 import fund.cyber.markets.connectors.common.ws.pusher.getPusherEventByValue
-import fund.cyber.markets.jsonParser
+import fund.cyber.markets.connectors.jsonParser
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import java.math.BigDecimal
 import java.util.*
 
-/**
- * Created by aalbov on 1.8.17.
- */
 private val event_type_trade = "trade"
 
 open class BitstampMessageParser(
