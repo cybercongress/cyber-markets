@@ -2,24 +2,27 @@ package fund.cyber.markets.connectors
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connectors.bitfinex.BitfinexExchange
+import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
 import fund.cyber.markets.connectors.bitstamp.BitstampExchange
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.connectors.hitbtc.HitBtcExchange
 import fund.cyber.markets.connectors.poloniex.PoloniexExchange
+import fund.cyber.markets.connectors.writer.ConsoleMessageWriter
+import fund.cyber.markets.connectors.writer.KafkaMessageWriter
+import fund.cyber.markets.connectors.writer.MessageWriter
+import fund.cyber.markets.model.Trade
 import io.undertow.protocols.ssl.UndertowXnioSsl
 import io.undertow.server.DefaultByteBufferPool
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.newSingleThreadContext
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.xnio.OptionMap
 import org.xnio.Options
 import org.xnio.Xnio
 import org.xnio.XnioWorker
-import java.util.*
 
 
 /*----------------------------- Undertow ------------------------------------------*/
@@ -56,34 +59,9 @@ val supportedExchanges = listOf(
         PoloniexExchange(), BitfinexExchange(), HitBtcExchange(), BitstampExchange()
 )
 
-// create instance for properties to access producer configs
-val props: Properties = Properties().apply {
-    //Assign localhost id
-    put("bootstrap.servers", "localhost:9092");
+val kafkaMessageWriter: MessageWriter = KafkaMessageWriter()
+val consoleMessageWriter: MessageWriter = ConsoleMessageWriter()
 
-    //Set acknowledgements for producer requests.      
-    put("acks", "all");
-
-    //If the request fails, the producer can automatically retry,
-    put("retries", 0);
-
-    //Specify buffer size in config
-    put("batch.size", 16384);
-
-    //Reduce the no of requests less than 0   
-    put("linger.ms", 1);
-
-    //The buffer.memory controls the total amount of memory available to the producer for buffering.   
-    put("buffer.memory", 33554432);
-
-    put("key.serializer",
-            "org.apache.kafka.common.serialization.StringSerializer");
-
-    put("value.serializer",
-            "org.apache.kafka.common.serialization.StringSerializer");
-}
-
-val producer: Producer<String, String> = KafkaProducer(props)
 
 fun main(args: Array<String>) {
 
@@ -94,9 +72,9 @@ fun main(args: Array<String>) {
                 while (true) {
                     val tradesAndOrdersUpdatesMessage = dataChannel.receive()
                     tradesAndOrdersUpdatesMessage.trades.forEach { trade ->
-                        producer.send(ProducerRecord(exchange.name, trade.toString()))
+                        kafkaMessageWriter.writeTradeMessage(trade)
+                        consoleMessageWriter.writeTradeMessage(trade)
                     }
-                    println(tradesAndOrdersUpdatesMessage.trades)
                 }
             }
         }
