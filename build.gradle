@@ -60,6 +60,7 @@ subprojects {
 
         compile("com.squareup.okhttp3:okhttp:${okHttp_version}")
         compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
+        compile("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version")
 
         compile("org.apache.kafka:kafka-clients:${kafka_clients_version}")
 

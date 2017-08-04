@@ -2,6 +2,7 @@ package fund.cyber.markets.kafka
 
 import org.apache.kafka.common.serialization.Deserializer
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.apache.kafka.common.serialization.Serializer
 
 
@@ -17,7 +18,7 @@ class JsonSerializer<T> : Serializer<T> {
 }
 
 class JsonDeserializer<T>(private val type: Class<T>) : Deserializer<T> {
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = ObjectMapper().registerKotlinModule()
 
     override fun deserialize(topic: String, data: ByteArray): T {
         return objectMapper.readValue(data, type)
