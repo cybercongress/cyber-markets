@@ -5,4 +5,8 @@ dependencies {
     compile("io.undertow:undertow-core:$undertow_version")
 }
 
-mainClassName = "fund.cyber.markets.connectors.ConnectorsApplication"
+mainClassName = "fund.cyber.markets.connectors.ConnectorsApplicationKt"
+
+run {
+    systemProperties System.getProperties()
+}

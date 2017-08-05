@@ -60,6 +60,7 @@ val kafkaTradeProducer = ConnectorKafkaProducer<Trade>()
 
 
 fun main(args: Array<String>) {
+    val debugMode = System.getProperty("debug") != null
 
     supportedExchanges.forEach { exchange ->
         concurrent {
@@ -68,8 +69,7 @@ fun main(args: Array<String>) {
                 while (true) {
                     val tradesAndOrdersUpdatesMessage = dataChannel.receive()
                     tradesAndOrdersUpdatesMessage.trades.forEach { trade ->
-                        kafkaTradeProducer.send(TradeProducerRecord(trade))
-                        println(trade)
+                        if (debugMode) println(trade) else kafkaTradeProducer.send(TradeProducerRecord(trade))
                     }
                 }
             }
