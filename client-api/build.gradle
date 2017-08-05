@@ -5,4 +5,4 @@ dependencies {
     compile("io.undertow:undertow-core:$undertow_version")
 }
 
-mainClassName = "fund.cyber.markets.ClientApiApplication"
+mainClassName = "fund.cyber.markets.ClientApiApplicationKt"
