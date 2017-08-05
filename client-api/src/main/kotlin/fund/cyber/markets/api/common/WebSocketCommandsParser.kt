@@ -7,7 +7,7 @@ import fund.cyber.markets.model.TokensPair
 
 
 sealed class WebSocketCommand
-class UnknownMessage(val message: String) : WebSocketCommand()
+class UnknownCommand(val message: String) : WebSocketCommand()
 
 // {"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}
 class TradeChannelSubscriptionCommand(val pairs: List<TokensPair>) : WebSocketCommand()
@@ -22,7 +22,7 @@ class WebSocketCommandsParser(
             val jsonRoot = jsonDeserializer.readTree(message)
             return parseMessage(message, jsonRoot)
         } catch (exception: Exception) {
-            return UnknownMessage(message)
+            return UnknownCommand(message)
         }
     }
 
@@ -30,7 +30,7 @@ class WebSocketCommandsParser(
         val topic = jsonMessage["subscribe"].asText()
         return when (topic) {
             "trades" -> parseTradesSubscription(jsonMessage)
-            else -> UnknownMessage(message)
+            else -> UnknownCommand(message)
         }
     }
 

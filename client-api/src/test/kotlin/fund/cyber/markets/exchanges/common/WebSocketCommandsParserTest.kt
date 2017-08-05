@@ -1,7 +1,7 @@
 package fund.cyber.markets.exchanges.common
 
 import fund.cyber.markets.api.common.TradeChannelSubscriptionCommand
-import fund.cyber.markets.api.common.UnknownMessage
+import fund.cyber.markets.api.common.UnknownCommand
 import fund.cyber.markets.api.common.WebSocketCommandsParser
 import fund.cyber.markets.model.TokensPair
 import org.junit.jupiter.api.Assertions
@@ -21,8 +21,8 @@ class WebSocketCommandsParserTest {
         val message = "[q34342%&$&__~~~~"
         val command = commandsParser.parseMessage(message)
 
-        Assertions.assertTrue(command is UnknownMessage)
-        command as UnknownMessage
+        Assertions.assertTrue(command is UnknownCommand)
+        command as UnknownCommand
         Assertions.assertEquals(message, command.message)
     }
 
