@@ -14,7 +14,7 @@ class IncomingMessagesHandler : AbstractReceiveListener() {
         val message = bufferedMessage.data
         when (commandsParser.parseMessage(message)) {
             is UnknownMessage -> {}
-            is TradeChannelSubscribtionCommand -> {}
+            is TradeChannelSubscriptionCommand -> {}
         }
     }
 
