@@ -3,13 +3,12 @@ package fund.cyber.markets.connectors
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connectors.bitfinex.BitfinexExchange
 import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
+import fund.cyber.markets.connectors.common.kafka.TradeProducerRecord
+import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
 import fund.cyber.markets.connectors.bitstamp.BitstampExchange
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.connectors.hitbtc.HitBtcExchange
 import fund.cyber.markets.connectors.poloniex.PoloniexExchange
-import fund.cyber.markets.connectors.writer.ConsoleMessageWriter
-import fund.cyber.markets.connectors.writer.KafkaMessageWriter
-import fund.cyber.markets.connectors.writer.MessageWriter
 import fund.cyber.markets.model.Trade
 import io.undertow.protocols.ssl.UndertowXnioSsl
 import io.undertow.server.DefaultByteBufferPool
@@ -57,8 +56,7 @@ val supportedExchanges = listOf(
         PoloniexExchange(), BitfinexExchange(), HitBtcExchange(), BitstampExchange()
 )
 
-val kafkaTradeMessageWriter: MessageWriter<Trade> = KafkaMessageWriter<Trade>()
-val consoleTradeMessageWriter: MessageWriter<Trade> = ConsoleMessageWriter<Trade>()
+val kafkaTradeProducer = ConnectorKafkaProducer<Trade>()
 
 
 fun main(args: Array<String>) {
@@ -70,8 +68,8 @@ fun main(args: Array<String>) {
                 while (true) {
                     val tradesAndOrdersUpdatesMessage = dataChannel.receive()
                     tradesAndOrdersUpdatesMessage.trades.forEach { trade ->
-                        kafkaTradeMessageWriter.writeMessage(trade)
-                        consoleTradeMessageWriter.writeMessage(trade)
+                        kafkaTradeProducer.send(TradeProducerRecord(trade))
+                        println(trade)
                     }
                 }
             }

@@ -10,10 +10,6 @@ enum class TradeType {
     UNKNOWN
 }
 
-interface HasTopic {
-    fun topic(): String
-}
-
 data class Trade (
 
         //some markets get crazy id (ex: kraken - 1499515072.2199)
@@ -26,9 +22,4 @@ data class Trade (
         val baseAmount: BigDecimal,
         val quoteAmount: BigDecimal,
         val spotPrice: BigDecimal
-) : HasTopic {
-    private val TRADES_TOPIC_PREFIX = "TRADES"
-    override fun topic(): String {
-        return "$TRADES_TOPIC_PREFIX-${exchange}"
-    }
-}
+)
