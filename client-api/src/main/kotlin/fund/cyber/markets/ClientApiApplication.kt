@@ -2,8 +2,8 @@ package fund.cyber.markets
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.RootWebSocketHandler
+import fund.cyber.markets.api.configuration.KafkaConfiguration
 import fund.cyber.markets.kafka.JsonDeserializer
-import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import io.undertow.Handlers
 import io.undertow.Handlers.path
@@ -11,30 +11,12 @@ import io.undertow.Undertow
 import kotlinx.coroutines.experimental.newSingleThreadContext
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.util.*
-import org.apache.kafka.common.errors.WakeupException
-import java.util.HashMap
-import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
-import java.util.regex.Pattern
+import org.apache.kafka.common.serialization.StringDeserializer
 
 
 val applicationSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool")
 val jsonParser = ObjectMapper()
-
-val props: Properties = Properties().apply {
-    put("bootstrap.servers", "localhost:9092")
-    put("retries", 5)
-    put("batch.size", 16384)
-    put("buffer.memory", 33554432)
-    put("metadata.max.age.ms", 1 * 60 * 1000)
-    put("group.id", "trades")
-}
-
-val keyDeserializer = JsonDeserializer(TokensPair::class.java)
-val valueDeserializer = JsonDeserializer(Trade::class.java)
-val consumer: Consumer<TokensPair, Trade> = KafkaConsumer(props, keyDeserializer, valueDeserializer)
 
 
 fun main(args: Array<String>) {
@@ -46,19 +28,27 @@ fun main(args: Array<String>) {
             )
             .build()
     server.start()
+    initializeTradesKafkaConsumers()
+}
 
 
-    consumer.use { consumer ->
+private fun initializeTradesKafkaConsumers() {
 
-        val pattern = Pattern.compile("TRADES-.*")
-        consumer.subscribe(pattern, NoOpConsumerRebalanceListener())
+    val configuration = KafkaConfiguration()
 
+    //there is no key, in trades topics -> faked key deserializer
+    val tradesDeserializer = JsonDeserializer(Trade::class.java)
+    val keyDeserializer = StringDeserializer()
+    val consumerProperties = configuration.tradesConsumersProperties("trades-1")
+    val tradesConsumer: Consumer<String, Trade> = KafkaConsumer(consumerProperties, keyDeserializer, tradesDeserializer)
+
+    tradesConsumer.use { consumer ->
+
+        consumer.subscribe(configuration.tradesTopicNamePattern, NoOpConsumerRebalanceListener())
         while (true) {
-            val records = consumer.poll(500)
+            val records = consumer.poll(configuration.tradesPoolAwaitTimeout)
             for (record in records) {
-                println(record.key())
-                print("   -   ")
-                print(record.value())
+                println(record.value())
             }
         }
     }

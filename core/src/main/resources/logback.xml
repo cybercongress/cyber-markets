@@ -6,7 +6,8 @@
         </encoder>
     </appender>
 
-    <logger name="io.undertow.websockets.core.request" level="INFO"/>
+    <logger name="io.undertow.websockets.core.request" level="ERROR"/>
+    <logger name="org.apache.kafka" level="ERROR"/>
 
     <root level="debug">
         <appender-ref ref="STDOUT"/>
