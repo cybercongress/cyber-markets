@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connectors.bitfinex.BitfinexExchange
 import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
 import fund.cyber.markets.connectors.common.kafka.TradeProducerRecord
-import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
 import fund.cyber.markets.connectors.bitstamp.BitstampExchange
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.connectors.hitbtc.HitBtcExchange
