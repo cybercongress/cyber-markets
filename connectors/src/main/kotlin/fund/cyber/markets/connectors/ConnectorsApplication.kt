@@ -17,8 +17,6 @@ import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.newSingleThreadContext
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
-import org.apache.kafka.clients.producer.Producer
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.xnio.OptionMap
 import org.xnio.Options
 import org.xnio.Xnio
@@ -59,8 +57,8 @@ val supportedExchanges = listOf(
         PoloniexExchange(), BitfinexExchange(), HitBtcExchange(), BitstampExchange()
 )
 
-val kafkaMessageWriter: MessageWriter = KafkaMessageWriter()
-val consoleMessageWriter: MessageWriter = ConsoleMessageWriter()
+val kafkaTradeMessageWriter: MessageWriter<Trade> = KafkaMessageWriter<Trade>()
+val consoleTradeMessageWriter: MessageWriter<Trade> = ConsoleMessageWriter<Trade>()
 
 
 fun main(args: Array<String>) {
@@ -72,8 +70,8 @@ fun main(args: Array<String>) {
                 while (true) {
                     val tradesAndOrdersUpdatesMessage = dataChannel.receive()
                     tradesAndOrdersUpdatesMessage.trades.forEach { trade ->
-                        kafkaMessageWriter.writeTradeMessage(trade)
-                        consoleMessageWriter.writeTradeMessage(trade)
+                        kafkaTradeMessageWriter.writeMessage(trade)
+                        consoleTradeMessageWriter.writeMessage(trade)
                     }
                 }
             }
