@@ -1,16 +1,23 @@
 package fund.cyber.markets.api.trades
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.applicationSingleThreadContext
 import fund.cyber.markets.common.CircularQueue
+import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 
+typealias TradesChannel = Channel<Trade>
 
-class TokensPairTradesBroadcaster(private val newTradesChannel: ReceiveChannel<String>) {
+class TokensPairTradesBroadcaster(
+        private val newTradesChannel: TradesChannel,
+        private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
+) {
 
-    private val lastTrades = CircularQueue<String>(10)
+    private val lastTrades = CircularQueue<Trade>(10)
     private val registeredChannels = HashSet<WebSocketChannel>()
 
     init {
@@ -22,16 +29,17 @@ class TokensPairTradesBroadcaster(private val newTradesChannel: ReceiveChannel<S
     }
 
 
-    private fun handleNewTrade(jsonTrade: String) {
+    private fun handleNewTrade(trade: Trade) {
 
-        lastTrades.addNext(jsonTrade)
+        lastTrades.addNext(trade)
         if (registeredChannels.size == 0) {
             return
         }
 
+        val tradeAsJson = jsonSerializer.writeValueAsString(trade)
         launch(applicationSingleThreadContext) {
             for (channel in registeredChannels) {
-                WebSockets.sendText(jsonTrade, channel, null)
+                WebSockets.sendText(tradeAsJson, channel, null)
             }
         }
     }
@@ -40,7 +48,7 @@ class TokensPairTradesBroadcaster(private val newTradesChannel: ReceiveChannel<S
     fun registerChannel(channel: WebSocketChannel) {
 
         launch(applicationSingleThreadContext) {
-            val lastTradesAsJson = lastTrades.elements.joinToString(prefix = "[", postfix = "]", separator = ",")
+            val lastTradesAsJson = jsonSerializer.writeValueAsString(lastTrades.elements)
             WebSockets.sendText(lastTradesAsJson, channel, null)
             registeredChannels.add(channel)
         }
