@@ -1,5 +1,17 @@
 version: "2"
 services:
+  connector:
+    build:
+      # specify context - root folder of project
+      context: ../
+      dockerfile: ./devops/connectors/Dockerfile
+    restart: always
+  client-api:
+    build:
+      # specify context - root folder of project
+      context: ../
+      dockerfile: ./devops/client-api/Dockerfile
+    restart: always
   zoo1:
     image: zookeeper:3.4.10
     restart: always
@@ -10,8 +22,8 @@ services:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
     volumes:
-     - $APPLICATION_DATA/zookeeper1/data:/data
-     - $APPLICATION_DATA/zookeeper1/datalog:/datalog
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper1/data:/data
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper1/datalog:/datalog
   zoo2:
     image: zookeeper:3.4.10
     restart: always
@@ -22,8 +34,8 @@ services:
       ZOO_MY_ID: 2
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
     volumes:
-     - $APPLICATION_DATA/zookeeper2/data:/data
-     - $APPLICATION_DATA/zookeeper2/datalog:/datalog
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper2/data:/data
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper2/datalog:/datalog
   zoo3:
     image: zookeeper:3.4.10
     restart: always
@@ -34,8 +46,8 @@ services:
       ZOO_MY_ID: 3
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
     volumes:
-     - $APPLICATION_DATA/zookeeper3/data:/data
-     - $APPLICATION_DATA/zookeeper3/datalog:/datalog
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/data:/data
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/datalog:/datalog
   kafka:
     image: wurstmeister/kafka:0.10.2.1
     restart: always
