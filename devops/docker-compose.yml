@@ -6,18 +6,29 @@ services:
       context: ../
       dockerfile: ./devops/connectors/Dockerfile
     restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      KAFKA_CONNECTION: "kafka:9092"
+      CONNECTORS_DEBUG: "true"
+    depends_on:
+      - kafka
   client-api:
     build:
       # specify context - root folder of project
       context: ../
       dockerfile: ./devops/client-api/Dockerfile
     restart: always
+    environment:
+      KAFKA_CONNECTION: "kafka:9092"
+    depends_on:
+      - kafka
   zoo1:
     image: zookeeper:3.4.10
     restart: always
     container_name: cm_zookeeper1
     ports:
-     - 2181:2181
+     - "2181:2181"
     environment:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
@@ -29,7 +40,7 @@ services:
     restart: always
     container_name: cm_zookeeper2
     ports:
-     - 2182:2181
+     - "2182:2181"
     environment:
       ZOO_MY_ID: 2
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
@@ -41,7 +52,7 @@ services:
     restart: always
     container_name: cm_zookeeper3
     ports:
-     - 2183:2181
+     - "2183:2181"
     environment:
       ZOO_MY_ID: 3
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
@@ -59,14 +70,16 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zoo1:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
   kafka_manager:
     image: sheepkiller/kafka-manager
     ports:
       - "9000:9000"
     depends_on:
-      - zoo1
-      - zoo2
-      - zoo3
+      - kafka
     environment:
       ZK_HOSTS: "zoo1:2181,zoo2:2182,zoo3:2183"
       APPLICATION_SECRET: "dilbert"

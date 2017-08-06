@@ -1,13 +1,14 @@
 package fund.cyber.markets.connectors.common.kafka
 
+import fund.cyber.markets.helpers.env
 import fund.cyber.markets.kafka.JsonSerializer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringSerializer
-import java.util.*
+import java.util.Properties
 
 private val kafkaProps: Properties = Properties().apply {
     //Assign localhost id
-    put("bootstrap.servers", "localhost:9092");
+    put("bootstrap.servers", env("KAFKA_CONNECTION","localhost:9092"));
 
     //Set acknowledgements for producer requests.
     put("acks", "all");
