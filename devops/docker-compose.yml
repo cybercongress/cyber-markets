@@ -63,20 +63,23 @@ services:
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/datalog:/datalog
   kafka:
     container_name: cm_kafka
-    image: wurstmeister/kafka:0.11.0.0
+    image: ches/kafka:0.10.2.1
     restart: always
     ports:
      - "9092:9092"
      - "1099:1099"
      - "1009:1009"
     environment:
+      # Hostname and port which kafka will tell to consumers
       KAFKA_ADVERTISED_HOST_NAME: "kafka"
       KAFKA_ADVERTISED_PORT: "9092"
-      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
+      KAFKA_BROKER_ID: "1"
+      KAFKA_PORT: "9092"
+      ZOOKEEPER_CONNECTION_STRING: "zoo1:2181,zoo2:2182,zoo3:2183"
       KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=1099"
       JMX_PORT: 1099
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - $CYBER_MARKETS_APPLICATION_DATA/kafka1:/data
     depends_on:
       - zoo1
       - zoo2
