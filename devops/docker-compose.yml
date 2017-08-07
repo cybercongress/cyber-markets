@@ -6,11 +6,9 @@ services:
       context: ../
       dockerfile: ./devops/connectors/Dockerfile
     restart: always
-    ports:
-      - "8082:8082"
     environment:
       KAFKA_CONNECTION: "kafka:9092"
-      CONNECTORS_DEBUG: "true"
+      CONNECTORS_DEBUG: "false"
     depends_on:
       - kafka
   client-api:
@@ -19,6 +17,8 @@ services:
       context: ../
       dockerfile: ./devops/client-api/Dockerfile
     restart: always
+    ports:
+      - "8082:8082"
     environment:
       KAFKA_CONNECTION: "kafka:9092"
     depends_on:
@@ -60,14 +60,18 @@ services:
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/data:/data
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/datalog:/datalog
   kafka:
-    image: wurstmeister/kafka:0.10.2.1
+    image: wurstmeister/kafka:0.11.0.0
     restart: always
     container_name: cm_kafka
     ports:
      - "9092:9092"
+     - "1099:1099"
     environment:
-      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
-      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181
+      KAFKA_ADVERTISED_HOST_NAME: "kafka"
+      KAFKA_ADVERTISED_PORT: "9092"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
