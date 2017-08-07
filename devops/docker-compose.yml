@@ -1,6 +1,7 @@
 version: "2"
 services:
   connector:
+    container_name: cm_connector
     build:
       # specify context - root folder of project
       context: ../
@@ -12,6 +13,7 @@ services:
     depends_on:
       - kafka
   client-api:
+    container_name: cm_client_api
     build:
       # specify context - root folder of project
       context: ../
@@ -24,9 +26,9 @@ services:
     depends_on:
       - kafka
   zoo1:
+    container_name: cm_zookeeper1
     image: zookeeper:3.4.10
     restart: always
-    container_name: cm_zookeeper1
     ports:
      - "2181:2181"
     environment:
@@ -36,9 +38,9 @@ services:
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper1/data:/data
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper1/datalog:/datalog
   zoo2:
+    container_name: cm_zookeeper2
     image: zookeeper:3.4.10
     restart: always
-    container_name: cm_zookeeper2
     ports:
      - "2182:2181"
     environment:
@@ -48,9 +50,9 @@ services:
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper2/data:/data
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper2/datalog:/datalog
   zoo3:
+    container_name: cm_zookeeper3
     image: zookeeper:3.4.10
     restart: always
-    container_name: cm_zookeeper3
     ports:
      - "2183:2181"
     environment:
@@ -60,17 +62,18 @@ services:
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/data:/data
      - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/datalog:/datalog
   kafka:
+    container_name: cm_kafka
     image: wurstmeister/kafka:0.11.0.0
     restart: always
-    container_name: cm_kafka
     ports:
      - "9092:9092"
      - "1099:1099"
+     - "1009:1009"
     environment:
       KAFKA_ADVERTISED_HOST_NAME: "kafka"
       KAFKA_ADVERTISED_PORT: "9092"
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=1099"
       JMX_PORT: 1099
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -79,6 +82,7 @@ services:
       - zoo2
       - zoo3
   kafka_manager:
+    container_name: cm_kafka_manager
     image: sheepkiller/kafka-manager
     ports:
       - "9000:9000"
@@ -86,4 +90,5 @@ services:
       - kafka
     environment:
       ZK_HOSTS: "zoo1:2181,zoo2:2182,zoo3:2183"
+      # https://github.com/yahoo/kafka-manager/blob/master/conf/application.conf#L13
       APPLICATION_SECRET: "dilbert"
