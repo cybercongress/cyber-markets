@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
     val rootWebSocketHandler = RootWebSocketHandler(messageHandler)
 
     val server = Undertow.builder()
-            .addHttpListener(8082, "127.0.0.1")
+            .addHttpListener(8082, "0.0.0.0")
             .setHandler(path()
                     .addPrefixPath("/", Handlers.websocket(rootWebSocketHandler))
             )

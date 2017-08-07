@@ -3,29 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>Trades Test</title>
+    <style>
+        .error {
+            color: red
+        }
+    </style>
+    <script type="text/javascript">
+        let websockets;
+
+        window.onload = function () {
+            websockets = new WebSocket("ws://localhost:8082/");
+
+            websockets.onmessage = function (event) {
+                document.body.innerHTML += `<div>${event.data}</div>`;
+                window.scrollTo(0, document.body.scrollHeight);
+            };
+
+            websockets.onclose = function (event) {
+                let message = event.code;
+                if (event.code === 1006) {
+                    message = "The connection was closed abnormally, e.g., without sending or receiving a Close control frame"
+                }
+                document.body.innerHTML += `<div class="error">Error: ${message}</div>`;
+            };
+        };
+
+        function send() {
+            websockets.send(`{"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}`);
+        }
+    </script>
 </head>
 <body>
 <form onsubmit="return false;">
     <input type="button" value="Send Web Socket Message" onclick="send()"/>
 </form>
-
-<script type="text/javascript">
-
-    var websockets;
-
-    window.onload = function () {
-        websockets = new WebSocket("ws://127.0.0.1:8082");
-        websockets.onmessage = function (event) {
-            document.body.innerHTML += '<div>' + event.data + '</div>';
-            window.scrollTo(0, document.body.scrollHeight);
-        }
-    };
-
-    function send() {
-        websockets.send("{\"subscribe\":\"trades\",\"pairs\":[\"BTC_ETH\",\"ETH_USD\"]}");
-    }
-
-
-</script>
 </body>
 </html>
