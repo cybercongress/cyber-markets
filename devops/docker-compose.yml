@@ -68,7 +68,6 @@ services:
     ports:
      - "9092:9092"
      - "1099:1099"
-     - "1009:1009"
     environment:
       # Hostname and port which kafka will tell to consumers
       KAFKA_ADVERTISED_HOST_NAME: "kafka"
