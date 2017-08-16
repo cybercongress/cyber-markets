@@ -9,8 +9,8 @@ buildscript {
     ext.kafka_clients_version = '0.11.0.0'
 
     //tests
-    ext.junit_version = '5.0.0-M5'
-    ext.junit_platform_version = '1.0.0-M5'
+    ext.junit_version = '5.0.0-RC2'
+    ext.junit_platform_version = '1.0.0-RC2'
     ext.mockito_version = '2.1.0'
     ext.mockito_kotlin_version = '0.7.0'
 
