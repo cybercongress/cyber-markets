@@ -3,11 +3,8 @@ version: 2
 
 defaults:
 
-  workspace_root: &workspace_root
-    ~/build
-
   container: &default_container
-    working_directory: *workspace_root
+    working_directory: ~/build
     docker:
       - image: circleci/openjdk:8-jdk
 
