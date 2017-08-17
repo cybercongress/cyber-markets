@@ -14,7 +14,6 @@ services:
   kafka:
     container_name: cm_kafka
     image: ches/kafka:0.10.2.1
-    restart: always
     ports:
      - "9092:9092"
      - "1099:1099"
