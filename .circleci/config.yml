@@ -15,6 +15,7 @@ defaults:
       branches:
         ignore: /.*/
 
+
 jobs:
 
   build_connectors:
@@ -37,7 +38,6 @@ jobs:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
 
-
   build_streams-api:
     <<: *default_container
     steps:
@@ -58,7 +58,6 @@ jobs:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
 
-
   deploy_connectors_image:
      <<: *default_container
      steps:
@@ -75,21 +74,44 @@ jobs:
              docker tag build/cm-connectors cybernode/cm-connectors:latest
              docker push cybernode/cm-connectors:latest
 
+  deploy_stream-api_image:
+     <<: *default_container
+     steps:
+       - checkout
+       - setup_remote_docker:
+           version: 17.05.0-ce
+       - run:
+           name: Build stream-api docker image
+           command: |
+             docker build -t build/cm-stream-api -f ./devops/client-api/Dockerfile ./
+             docker login -u $DOCKER_USER -p $DOCKER_PASS
+             docker tag build/cm-stream-api cybernode/cm-stream-api:$CIRCLE_TAG
+             docker push cybernode/cm-stream-api:$CIRCLE_TAG
+             docker tag build/cm-stream-api cybernode/cm-stream-api:latest
+             docker push cybernode/cm-stream-api:latest
+
 
 workflows:
   version: 2
+
   connectors_build:
     jobs:
       - build_connectors:
           filters:
             tags:
               only: /.*/
-      - approve_deploy_docker_image:
-          <<: *release_filter
-          type: approval
-          requires:
-            - build_connectors
       - deploy_connectors_image:
           <<: *release_filter
           requires:
-            - approve_deploy_docker_image
+            - build_connectors
+
+  stream-api_build:
+    jobs:
+      - build_streams-api:
+          filters:
+            tags:
+              only: /.*/
+      - deploy_stream-api_image:
+          <<: *release_filter
+          requires:
+            - build_streams-api
