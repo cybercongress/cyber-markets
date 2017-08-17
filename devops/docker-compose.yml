@@ -1,0 +1,96 @@
+version: "2"
+services:
+  connector:
+    container_name: cm_connector
+    build:
+      # specify context - root folder of project
+      context: ../
+      dockerfile: ./devops/connectors/Dockerfile
+    restart: always
+    environment:
+      KAFKA_CONNECTION: "kafka:9092"
+      CONNECTORS_DEBUG: "false"
+    depends_on:
+      - kafka
+  client-api:
+    container_name: cm_client_api
+    build:
+      # specify context - root folder of project
+      context: ../
+      dockerfile: ./devops/client-api/Dockerfile
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      KAFKA_CONNECTION: "kafka:9092"
+    depends_on:
+      - kafka
+  zoo1:
+    container_name: cm_zookeeper1
+    image: zookeeper:3.4.10
+    restart: always
+    ports:
+     - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper1/data:/data
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper1/datalog:/datalog
+  zoo2:
+    container_name: cm_zookeeper2
+    image: zookeeper:3.4.10
+    restart: always
+    ports:
+     - "2182:2181"
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper2/data:/data
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper2/datalog:/datalog
+  zoo3:
+    container_name: cm_zookeeper3
+    image: zookeeper:3.4.10
+    restart: always
+    ports:
+     - "2183:2181"
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/data:/data
+     - $CYBER_MARKETS_APPLICATION_DATA/zookeeper3/datalog:/datalog
+  kafka:
+    container_name: cm_kafka
+    image: ches/kafka:0.10.2.1
+    restart: always
+    ports:
+     - "9092:9092"
+     - "1099:1099"
+    environment:
+      # Hostname and port which kafka will tell to consumers
+      KAFKA_ADVERTISED_HOST_NAME: "kafka"
+      KAFKA_ADVERTISED_PORT: "9092"
+      KAFKA_BROKER_ID: "1"
+      KAFKA_PORT: "9092"
+      ZOOKEEPER_CONNECTION_STRING: "zoo1:2181,zoo2:2182,zoo3:2183"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
+    volumes:
+      - $CYBER_MARKETS_APPLICATION_DATA/kafka1:/data
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+  kafka_manager:
+    container_name: cm_kafka_manager
+    image: sheepkiller/kafka-manager
+    ports:
+      - "9000:9000"
+    depends_on:
+      - kafka
+    environment:
+      ZK_HOSTS: "zoo1:2181,zoo2:2182,zoo3:2183"
+      # https://github.com/yahoo/kafka-manager/blob/master/conf/application.conf#L13
+      APPLICATION_SECRET: "dilbert"

@@ -1,0 +1,8 @@
+apply plugin: 'application'
+
+dependencies {
+    compile project(':core')
+    compile("io.undertow:undertow-core:$undertow_version")
+}
+
+mainClassName = "fund.cyber.markets.ClientApiApplicationKt"

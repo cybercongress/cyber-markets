@@ -1,0 +1,92 @@
+version: 2
+
+
+defaults:
+
+  container: &default_container
+    working_directory: ~/build
+    docker:
+      - image: circleci/openjdk:8-jdk
+
+
+jobs:
+
+  build_connectors:
+    <<: *default_container
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - connectors-dependencies-{{ checksum "build.gradle" }}
+            - connectors-dependencies
+          paths:
+            - ~/.gradle/caches/
+            - ~/.gradle/wrapper/
+      - run:
+          name: Test and build connectors project
+          command: ./gradlew -p ./connectors clean build
+      - save_cache:
+          key: connectors-dependencies-{{ checksum "build.gradle" }}
+          paths:
+            - ~/.gradle/caches/
+            - ~/.gradle/wrapper/
+
+
+  build_streams-api:
+    <<: *default_container
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - api-dependencies-{{ checksum "build.gradle" }}
+            - api-dependencies
+          paths:
+            - ~/.gradle/caches/
+            - ~/.gradle/wrapper/
+      - run:
+          name: Test and build streams-api project
+          command: ./gradlew -p ./client-api clean build
+      - save_cache:
+          key: api-dependencies-{{ checksum "build.gradle" }}
+          paths:
+            - ~/.gradle/caches/
+            - ~/.gradle/wrapper/
+
+
+  deploy_connectors_image:
+     <<: *default_container
+     steps:
+       - checkout
+       - setup_remote_docker:
+           version: 17.05.0-ce
+       - run:
+           name: Build connectors docker image
+           command: |
+             docker build -t build/cm-connectors -f ./devops/connectors/Dockerfile ./
+             docker login -u $DOCKER_USER -p $DOCKER_PASS
+             docker tag build/cm-connectors cybernode/cm-connectors:$CIRCLE_TAG
+             docker push cybernode/cm-connectors:$CIRCLE_TAG
+             docker tag build/cm-connectors cybernode/cm-connectors:latest
+             docker push cybernode/cm-connectors:latest
+
+
+workflows:
+  version: 2
+  connectors_build:
+    jobs:
+      - build_connectors:
+          filters:
+            tags:
+              only: /.*/
+      - approve_deploy_docker_image:
+          type: approval
+          filters:
+            tags:
+              only: /^release-.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build_connectors
+      - deploy_connectors_image:
+          requires:
+            - approve_deploy_docker_image

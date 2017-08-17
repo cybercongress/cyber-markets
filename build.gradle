@@ -1,86 +1,74 @@
 /* Gradle plugins part */
 buildscript {
 
-    ext.spring_version = '1.5.4.RELEASE'
     ext.kotlin_version = '1.1.3-2'
-    ext.xchange_version = '4.2.0'
+    ext.kotlin_coroutines_version = '0.17'
     ext.jackson_version = '2.8.9'
-    ext.kotlin_coroutines_version = '0.16'
-    ext.rethinkdb_driver_version = '2.3.3'
-    ext.commons_pool2_version = '2.4.2'
-    ext.deepstream_version = '2.2.1'
+    ext.okHttp_version = '3.8.1'
+    ext.undertow_version = '1.4.18.Final'
+    ext.kafka_clients_version = '0.11.0.0'
 
     //tests
-    ext.junit_version = '5.0.0-M5'
-    ext.junit_platform_version = '1.0.0-M5'
+    ext.junit_version = '5.0.0-RC2'
+    ext.junit_platform_version = '1.0.0-RC2'
     ext.mockito_version = '2.1.0'
     ext.mockito_kotlin_version = '0.7.0'
+
+    //logs
+    ext.slf4j_version = '1.7.25'
+    ext.lockback_version = '1.2.3'
 
     repositories {
         jcenter()
         mavenCentral()
     }
+
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${spring_version}")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
         classpath "org.junit.platform:junit-platform-gradle-plugin:${junit_platform_version}"
     }
 }
 
+
+subprojects {
 /* Gradle plugins settings part */
-apply plugin: 'kotlin'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'org.junit.platform.gradle.plugin'
+    apply plugin: 'kotlin'
+    apply plugin: 'org.junit.platform.gradle.plugin'
 
-jar {
-    baseName = 'cyber-markets'
-    version = '0.1.0'
-}
 
-bootRun {
-    systemProperties = System.properties
-}
+    kotlin {
+        experimental {
+            coroutines "enable"
+        }
+    }
 
-kotlin {
-    experimental {
-        coroutines "enable"
+/* Java dependencies part */
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+
+
+        compile("org.slf4j:jcl-over-slf4j:$slf4j_version")
+        compile("ch.qos.logback:logback-classic:$lockback_version")
+
+        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version")
+        compile("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+        compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines_version")
+
+        compile("com.squareup.okhttp3:okhttp:${okHttp_version}")
+        compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
+        compile("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version")
+
+        compile("org.apache.kafka:kafka-clients:${kafka_clients_version}")
+
+        testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
+        testCompile("org.junit.platform:junit-platform-launcher:${junit_platform_version}")
+        testCompile("org.mockito:mockito-core:${mockito_version}")
+        testCompile "com.nhaarman:mockito-kotlin:${mockito_kotlin_version}"
+        testRuntime("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
     }
 }
 
-/* Java dependencies part */
-repositories {
-    jcenter()
-    mavenCentral()
-}
-
-dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-websocket")
-    compile("org.springframework.boot:spring-boot-starter-jetty")
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version")
-    compile("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version")
-
-
-    compile("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
-    compile("com.rethinkdb:rethinkdb-driver:$rethinkdb_driver_version")
-    compile("org.apache.commons:commons-pool2:$commons_pool2_version")
-    compile("io.deepstream:deepstream.io-client-java:$deepstream_version")
-
-
-    compile("org.knowm.xchange:xchange-core:$xchange_version")
-    compile("org.knowm.xchange:xchange-hitbtc:$xchange_version")
-    compile("org.knowm.xchange:xchange-poloniex:$xchange_version")
-    compile("org.knowm.xchange:xchange-bitfinex:$xchange_version")
-
-    testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
-    testCompile("org.junit.platform:junit-platform-launcher:${junit_platform_version}")
-    testCompile("org.mockito:mockito-core:${mockito_version}")
-    testCompile "com.nhaarman:mockito-kotlin:${mockito_kotlin_version}"
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
-}
-
-configurations {
-    compile.exclude module: 'spring-boot-starter-tomcat'
-    compile.exclude group: 'org.apache.tomcat'
-}
