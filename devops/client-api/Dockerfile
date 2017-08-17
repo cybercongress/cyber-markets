@@ -7,7 +7,7 @@ RUN ./gradlew clean :client-api:installDist
 # Container with application
 FROM openjdk:8u131-jre-alpine
 VOLUME /cyberdata
-COPY --from=build /cm/client-api/build/install/connectors /cyberapp
+COPY --from=build /cm/client-api/build/install/client-api /cyberapp
 ENTRYPOINT ["/cyberapp/bin/client-api"]
 
 
