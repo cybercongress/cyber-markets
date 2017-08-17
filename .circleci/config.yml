@@ -8,6 +8,12 @@ defaults:
     docker:
       - image: circleci/openjdk:8-jdk
 
+  release_filter: &release_filter
+    filters:
+      tags:
+        only: /^release-.*/
+      branches:
+        ignore: /.*/
 
 jobs:
 
@@ -79,14 +85,11 @@ workflows:
             tags:
               only: /.*/
       - approve_deploy_docker_image:
+          <<: *release_filter
           type: approval
-          filters:
-            tags:
-              only: /^release-.*/
-            branches:
-              ignore: /.*/
           requires:
             - build_connectors
       - deploy_connectors_image:
+          <<: *release_filter
           requires:
             - approve_deploy_docker_image
