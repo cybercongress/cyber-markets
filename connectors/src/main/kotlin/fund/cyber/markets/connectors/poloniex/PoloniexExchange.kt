@@ -1,18 +1,21 @@
 package fund.cyber.markets.connectors.poloniex
 
-import fund.cyber.markets.connectors.common.ws.ReconnectableWsExchange
+import fund.cyber.markets.connectors.common.ExchangeType
+import fund.cyber.markets.connectors.common.ws.ReconnectableWsConnector
+import fund.cyber.markets.connectors.common.ws.WsCommonExchange
+import fund.cyber.markets.connectors.common.ws.WsConnector
 import fund.cyber.markets.helpers.await
 import fund.cyber.markets.connectors.httpClient
 import fund.cyber.markets.connectors.jsonParser
 import fund.cyber.markets.model.TokensPair
-import io.undertow.websockets.core.WebSocketChannel
-import io.undertow.websockets.core.WebSockets
 import okhttp3.Request
 
-class PoloniexExchange : ReconnectableWsExchange() {
-
-    override val name = "Poloniex"
-    override val wsAddress = "wss://api2.poloniex.com/"
+class PoloniexExchange(type: ExchangeType) : WsCommonExchange(type) {
+    override val name: String ="Poloniex"
+    override val wsAddress: String = "wss://api2.poloniex.com/"
+    override val connector: WsConnector = ReconnectableWsConnector(wsAddress, name)
+    override val reconnectable: Boolean
+        get() = type == ExchangeType.ORDERS
 
     private val channelIdForTokensPairs = hashMapOf<Int, TokensPair>()
     override val messageParser = PoloniexMessageParser(channelIdForTokensPairs)
@@ -20,8 +23,7 @@ class PoloniexExchange : ReconnectableWsExchange() {
 
     val tickerRequest = Request.Builder().url("https://poloniex.com/public?command=returnTicker").build()!!
 
-    override suspend fun initializeMetadata() {
-
+    override suspend fun initMetadata() {
         val response = httpClient.newCall(tickerRequest).await()
         val pairsTickers = jsonParser.readTree(response.body()?.string())
 
@@ -30,11 +32,22 @@ class PoloniexExchange : ReconnectableWsExchange() {
         }
     }
 
+    override suspend fun updatePairs(): List<String> {
+        val newPairs = mutableListOf<String>()
+        val response = httpClient.newCall(tickerRequest).await()
+        val pairsTickers = jsonParser.readTree(response.body()?.string())
 
-    override fun subscribeChannels(connection: WebSocketChannel) {
-        channelIdForTokensPairs.values.forEach { pair ->
-            val symbol = pair.label("_")
-            WebSockets.sendText("""{"command":"subscribe","channel":"$symbol"}""", connection, null)
+        pairsTickers.fields().forEach { pairTicker ->
+            val pair = channelIdForTokensPairs.putIfAbsent(pairTicker.value["id"].asInt(), TokensPair.fromLabel(pairTicker.key, "_"))
+            pair ?: newPairs.add(pairTicker.value["id"].asText());
         }
+        return newPairs
     }
+
+    override fun getPairsToSubscribe(): Collection<String> {
+        return channelIdForTokensPairs.keys.map { it.toString() }
+    }
+
+    override fun getSubscribeMessage(pairSymbol: String): String = """{"command":"subscribe","channel":"$pairSymbol"}"""
+
 }

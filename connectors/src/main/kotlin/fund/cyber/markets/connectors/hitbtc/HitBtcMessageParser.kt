@@ -3,7 +3,7 @@ package fund.cyber.markets.connectors.hitbtc
 import com.fasterxml.jackson.databind.JsonNode
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.connectors.common.ExchangeMessage
-import fund.cyber.markets.connectors.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import fund.cyber.markets.connectors.common.ws.SaveExchangeMessageParser
@@ -20,9 +20,9 @@ open class HitBtcMessageParser(
         private val channelSymbolForTokensPair: Map<String, HitBtcTokensPair>
 ) : SaveExchangeMessageParser() {
 
-    override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
-        val marketDataIncrementalRefreshNode = jsonRoot["MarketDataIncrementalRefresh"] ?: return null
-        return parseMarketDataIncrementalRefresh(marketDataIncrementalRefreshNode)
+    override fun parseMessage(jsonRoot: JsonNode): List<ExchangeMessage?> {
+        val marketDataIncrementalRefreshNode = jsonRoot["MarketDataIncrementalRefresh"] ?: return listOf(null)
+        return listOf(parseMarketDataIncrementalRefresh(marketDataIncrementalRefreshNode))
     }
 
     private fun parseMarketDataIncrementalRefresh(node: JsonNode): ExchangeMessage {
@@ -44,6 +44,6 @@ open class HitBtcMessageParser(
                             spotPrice = spotPrice, timestamp = timestamp
                     )
                 }
-        return TradesAndOrdersUpdatesMessage(trades)
+        return TradesUpdatesMessage(trades)
     }
 }
