@@ -3,7 +3,7 @@ package fund.cyber.markets.connectors.bitfinex
 import com.fasterxml.jackson.databind.JsonNode
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.connectors.common.ExchangeMessage
-import fund.cyber.markets.connectors.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
@@ -34,23 +34,24 @@ open class BitfinexMessageParser(
 
 ) : SaveExchangeMessageParser() {
 
-    override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
+    override fun parseMessage(jsonRoot: JsonNode): List<ExchangeMessage?> {
         val eventType = jsonRoot[event_property]?.asText()
 
         //ex - {"event":"subscribed","channel":"trades","chanId":53,"symbol":"tBTCUSD","pair":"BTCUSD"}
         if (eventType != null) {
             return when (eventType) {
-                event_type_info -> parseInfoEvent(jsonRoot)
-                event_type_subscribed -> parseSubscribedMessage(jsonRoot)
-                else -> null
+                event_type_info -> listOf(parseInfoEvent(jsonRoot))
+                event_type_subscribed -> listOf(parseSubscribedMessage(jsonRoot))
+                else -> listOf(null)
             }
         }
 
+        // tu ?
         // ex - [53,"te",[43334639,1499972199000,0.01293103,2320]]
         val updateType = jsonRoot[1]?.asText()
         return when (updateType) {
-            trade_executed -> parseTrade(jsonRoot)
-            else -> null
+            trade_executed -> listOf(parseTrade(jsonRoot))
+            else -> listOf(null)
         }
     }
 
@@ -99,7 +100,7 @@ open class BitfinexMessageParser(
                 baseAmount = baseAmount, quoteAmount = rate * baseAmount, spotPrice = rate
         ))
 
-        return TradesAndOrdersUpdatesMessage(trades)
+        return TradesUpdatesMessage(trades)
     }
 
     private fun parseOrdersChannelSubscribed(jsonNode: JsonNode): ExchangeMessage? {
