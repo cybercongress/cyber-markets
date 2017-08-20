@@ -10,38 +10,37 @@ import java.util.concurrent.TimeUnit
 
 interface WsConnector {
     val wsAddress: String
-    val name: String
-    fun connect(messageHandler: (String) -> Unit)
-    fun subscribeChannel(channel: String)
-    fun reconnectEvery(time: Long, timeUnit: TimeUnit)
+    fun connect(messageHandler: (String) -> Unit, afterConnectionEstablished: () -> Unit)
+    fun sendMessage(message: String)
 }
 
 class ReconnectableWsConnector(
         override val wsAddress: String,
-        override val name: String = ""
+        val connectionDropPeriod: Long? = null
 ) : WsConnector {
 
     private val LOGGER = LoggerFactory.getLogger(ReconnectableWsConnector::class.java)!!
 
     val connection: WsConnection = WsConnection(wsAddress)
-    val subscriptionChannels: MutableCollection<String> = mutableListOf()
 
-    override fun connect(messageHandler: (String) -> Unit) {
+    override fun connect(messageHandler: (String) -> Unit, afterConnectionEstablished: () -> Unit) {
         concurrent {
-            LOGGER.debug("Connecting to $name websocket endpoint")
+            LOGGER.debug("Connecting to $wsAddress websocket endpoint")
             retryUntilSuccess { connection.establish(messageHandler) }
-            LOGGER.debug("Connected to $name websocket endpoint")
+            LOGGER.debug("Connected to $wsAddress websocket endpoint")
 
-            handleSubscriptions(subscriptionChannels)
+            afterConnectionEstablished()
+
+            if (connectionDropPeriod != null) reconnectEvery(connectionDropPeriod, TimeUnit.MILLISECONDS)
 
             concurrent {
                 var connectionIsOpen = true
                 while (connectionIsOpen) {
                     delay(30, TimeUnit.SECONDS)
                     if (!connection.isOpen || connection.isCloseFrameSent) {
-                        LOGGER.debug("Session for $name was closed")
+                        LOGGER.debug("Session for $wsAddress was closed")
                         connection.close()
-                        connect(messageHandler)
+                        connect(messageHandler, afterConnectionEstablished)
                         connectionIsOpen = false
                     }
                 }
@@ -49,29 +48,16 @@ class ReconnectableWsConnector(
         }
     }
 
-    override fun reconnectEvery(time: Long, timeUnit: TimeUnit) {
+    override fun sendMessage(message: String) {
+        if (message.isNotEmpty()) connection.sendTextMessage(message)
+    }
+
+    private fun reconnectEvery(time: Long, timeUnit: TimeUnit) {
         concurrent {
             while (true) {
                 delay(time, timeUnit)
-                LOGGER.debug("Force reconnection to $name websocket endpoint")
+                LOGGER.debug("Force reconnection to $wsAddress websocket endpoint")
                 connection.close()
-            }
-        }
-    }
-
-    override fun subscribeChannel(channel: String) {
-        launch(applicationSingleThreadContext) {
-            subscriptionChannels.add(channel)
-            handleSubscriptions(listOf(channel))
-        }
-    }
-
-    private fun handleSubscriptions(subscriptions: Collection<String>) {
-        launch(applicationSingleThreadContext) {
-            subscriptions.forEach {
-                if (connection.isOpen && !connection.isCloseFrameSent) {
-                    connection.sendTextMessage(it)
-                }
             }
         }
     }

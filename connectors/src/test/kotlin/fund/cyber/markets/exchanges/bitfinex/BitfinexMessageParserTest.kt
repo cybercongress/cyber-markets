@@ -1,8 +1,8 @@
 package fund.cyber.markets.exchanges.bitfinex
 
-import fund.cyber.markets.connectors.bitfinex.BitfinexMessageParser
+import fund.cyber.markets.connectors.bitfinex.BitfinexTradesMessageParser
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.connectors.common.TradesAndOrdersUpdatesMessage
+import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.SELL
@@ -24,11 +24,11 @@ class BitfinexMessageParserTest {
         val tokensPair = TokensPair("BTC", "ETH")
         val tradesChannelSymbolForTokensPair = mapOf("tBTCETH" to tokensPair)
         val tradesChannelIdForTokensPair = mapOf(53 to tokensPair)
-        val messageParser = BitfinexMessageParser(tradesChannelSymbolForTokensPair, tradesChannelIdForTokensPair)
+        val messageParser = BitfinexTradesMessageParser(tradesChannelSymbolForTokensPair, tradesChannelIdForTokensPair)
 
         val exchangeMessage = messageParser.parseMessage(message)
-        assertTrue(exchangeMessage is TradesAndOrdersUpdatesMessage)
-        assertTrue((exchangeMessage as TradesAndOrdersUpdatesMessage).trades.size == 1)
+        assertTrue(exchangeMessage is TradesUpdatesMessage)
+        assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 1)
 
         val trade = Trade(
                 tradeId = "43334639", exchange = "Bitfinex", type = SELL,
@@ -44,7 +44,7 @@ class BitfinexMessageParserTest {
     fun testParseMessageWithUnknownTokensPair() {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
-        val messageParser = BitfinexMessageParser(emptyMap(), emptyMap())
+        val messageParser = BitfinexTradesMessageParser(emptyMap(), emptyMap())
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is ContainingUnknownTokensPairMessage)

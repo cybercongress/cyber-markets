@@ -20,41 +20,60 @@ import java.math.BigDecimal
  *
  *  @author hleb.albau@gmail.com
  */
+class PoloniexTradesMessageParser(
+        channelIdForTokensPairs: Map<String, TokensPair>
+): PoloniexMessageParser(channelIdForTokensPairs) {
 
-
-open class PoloniexMessageParser(
-        private val channelIdForTokensPairs: Map<Int, TokensPair>
-) : SaveExchangeMessageParser() {
-
-    override fun parseMessage(jsonRoot: JsonNode): List<ExchangeMessage?> {
-        val channelId = jsonRoot.get(0).asInt()
-        val tokensPair = channelIdForTokensPairs[channelId]
-                ?: return listOf(ContainingUnknownTokensPairMessage(channelId.toString()))
-
+    override fun parseMessage(jsonNode: JsonNode, tokensPair: TokensPair): ExchangeMessage? {
         val trades = ArrayList<Trade>()
-        val orders = ArrayList<Order>()
 
-        val orderBookMessages = mutableListOf<OrdersUpdatesMessage>()
-
-
-        jsonRoot[2].toList().forEach { node ->
+        jsonNode.toList().forEach { node ->
             when(node[0].asText()) {
                 "t" -> trades.add(parseTrade(node, tokensPair))
-                "o" -> orders.add(parseOrder(node, tokensPair))
-                "i" -> orderBookMessages.add(parseOrderBook(node, tokensPair))
             }
         }
 
-        return listOf(
-                TradesUpdatesMessage(trades),
-                OrdersUpdatesMessage(type = OrdersUpdateType.COMMON, orders = orders),
-                *orderBookMessages.toTypedArray()
-        )
+        return TradesUpdatesMessage(trades)
     }
+}
+
+class PoloniexOrdersMessageParser(
+        channelIdForTokensPairs: Map<String, TokensPair>
+): PoloniexMessageParser(channelIdForTokensPairs) {
+
+    override fun parseMessage(jsonNode: JsonNode, tokensPair: TokensPair): ExchangeMessage? {
+        val orders = ArrayList<Order>()
+
+        jsonNode.toList().forEach { node ->
+            when(node[0].asText()) {
+                "o" -> orders.add(parseOrder(node, tokensPair))
+                "i" -> return parseOrderBook(node, tokensPair)
+            }
+        }
+
+        return OrdersUpdatesMessage(type = OrdersUpdateType.COMMON, orders = orders)
+    }
+}
+
+abstract class PoloniexMessageParser(
+        private val channelIdForTokensPairs: Map<String, TokensPair>
+) : SaveExchangeMessageParser() {
+
+    override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
+        val channelId = jsonRoot.get(0).asText()
+        val tokensPair = channelIdForTokensPairs[channelId]
+                ?: return ContainingUnknownTokensPairMessage(channelId.toString())
+
+
+        jsonRoot[2]
+        return parseMessage(jsonRoot[2], tokensPair)
+    }
+
+    protected abstract fun parseMessage(jsonNode: JsonNode, tokensPair: TokensPair): ExchangeMessage?
 
     //["t","126320",1,"0.00003328","399377.76875000",1499708547]
     //["t", id, sell/buy,  rate,      quantity,        time(s) ]
-    private fun parseTrade(node: JsonNode, tokensPair: TokensPair): Trade {
+    protected fun parseTrade(node: JsonNode, tokensPair: TokensPair): Trade {
         val spotPrice = BigDecimal(node[3].asText())
         val baseAmount = BigDecimal(node[4].asText())
         return Trade (
@@ -68,7 +87,7 @@ open class PoloniexMessageParser(
 
     // If amount is 0.00000000 then delete order from book else add or update
     // ["o",0,"0.00003328","0.00000000"]
-    private fun parseOrder(node: JsonNode, tokensPair: TokensPair): Order {
+    protected fun parseOrder(node: JsonNode, tokensPair: TokensPair): Order {
         val spotPrice = BigDecimal(node[2].asText())
         val amount = BigDecimal(node[3].asText())
         return Order (
@@ -81,7 +100,7 @@ open class PoloniexMessageParser(
         )
     }
 
-    private fun parseOrderBook(node: JsonNode, tokensPair: TokensPair): OrdersUpdatesMessage {
+    protected fun parseOrderBook(node: JsonNode, tokensPair: TokensPair): OrdersUpdatesMessage {
         val orders = mutableListOf<Order>()
         node[1]["orderBook"][0].fields().forEach { entry ->
             orders.add(

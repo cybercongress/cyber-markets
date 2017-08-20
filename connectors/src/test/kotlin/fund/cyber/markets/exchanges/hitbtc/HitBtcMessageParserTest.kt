@@ -1,9 +1,9 @@
 package fund.cyber.markets.exchanges.hitbtc
 
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.connectors.common.TradesAndOrdersUpdatesMessage
-import fund.cyber.markets.connectors.hitbtc.HitBtcMessageParser
+import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.connectors.hitbtc.HitBtcTokensPair
+import fund.cyber.markets.connectors.hitbtc.HitBtcTradesMessageParser
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
@@ -52,11 +52,11 @@ class HitBtcMessageParserTest {
         )
 
         val channelSymbolForTokensPair = mapOf(Pair(tokensPair.symbol, tokensPair))
-        val messageParser = HitBtcMessageParser(channelSymbolForTokensPair)
+        val messageParser = HitBtcTradesMessageParser(channelSymbolForTokensPair)
 
         val exchangeMessage = messageParser.parseMessage(message)
-        Assertions.assertTrue(exchangeMessage is TradesAndOrdersUpdatesMessage)
-        Assertions.assertTrue((exchangeMessage as TradesAndOrdersUpdatesMessage).trades.size == 2)
+        Assertions.assertTrue(exchangeMessage is TradesUpdatesMessage)
+        Assertions.assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 2)
 
         val firstTrade = Trade(
                 tradeId = "12987994", exchange = "HitBtc", type = BUY,
@@ -78,7 +78,7 @@ class HitBtcMessageParserTest {
     @DisplayName("Should not parse due to containing unknown tokens pair")
     fun testParseMessageWithUnknownTokensPair() {
 
-        val messageParser = HitBtcMessageParser(emptyMap())
+        val messageParser = HitBtcTradesMessageParser(emptyMap())
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is ContainingUnknownTokensPairMessage)
