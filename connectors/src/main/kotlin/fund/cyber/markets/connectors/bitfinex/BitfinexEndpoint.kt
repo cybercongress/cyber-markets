@@ -17,8 +17,7 @@ class BitfinexTradesEndpoint: TradesWsEndpoint(BITFINEX_WS_ENDPOINT) {
     private val tradesChannelIdForTokensPair = ConcurrentHashMap<Int, TokensPair>(64, 0.75f, 5)
 
     override val name: String = "Bitfinex Trades"
-    override val messageParser: ExchangeMessageParser =
-            BitfinexTradesMessageParser(channelSymbolForTokensPairs, tradesChannelIdForTokensPair)
+    override val messageParser = BitfinexTradesMessageParser(channelSymbolForTokensPairs, tradesChannelIdForTokensPair)
     override val pairsProvider: PairsProvider = BitfinexPairsProvider()
 
     override fun getSubscriptionMsgByChannelSymbol(pairSymbol: String): String {
@@ -41,8 +40,7 @@ class BitfinexOrdersEndpoint: OrdersWsEndpoint(BITFINEX_WS_ENDPOINT) {
     private val ordersChannelIdForTokensPair = ConcurrentHashMap<Int, TokensPair>(64, 0.75f, 5)
 
     override val name: String = "Bitfinex Orders"
-    override val messageParser: ExchangeMessageParser =
-            BitfinexOrdersMessageParser(channelSymbolForTokensPairs, ordersChannelIdForTokensPair)
+    override val messageParser = BitfinexOrdersMessageParser(channelSymbolForTokensPairs, ordersChannelIdForTokensPair)
     override val pairsProvider: PairsProvider = BitfinexPairsProvider()
 
     override fun getSubscriptionMsgByChannelSymbol(pairSymbol: String): String {
@@ -50,10 +48,11 @@ class BitfinexOrdersEndpoint: OrdersWsEndpoint(BITFINEX_WS_ENDPOINT) {
     }
 
     override fun handleUnknownMessage(message: ExchangeMessage) {
-        super.handleUnknownMessage(message)
         if (message is ChannelSubscribed) {
             ordersChannelIdForTokensPair.put(message.channelId, message.tokensPair)
             LOGGER.debug("Subscribed to Bitfinex ${message.tokensPair.label()} channel")
+        } else {
+            super.handleUnknownMessage(message)
         }
     }
 }
