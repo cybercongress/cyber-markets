@@ -1,10 +1,8 @@
 package fund.cyber.markets.connectors.common.ws
 
-import fund.cyber.markets.connectors.applicationSingleThreadContext
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.helpers.retryUntilSuccess
 import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -14,9 +12,11 @@ interface WsConnector {
     fun sendMessage(message: String)
 }
 
+val WITHOUT_RECONNECTION: Long = -1L
+
 class ReconnectableWsConnector(
         override val wsAddress: String,
-        val connectionDropPeriod: Long? = null
+        val connectionDropPeriod: Long = WITHOUT_RECONNECTION
 ) : WsConnector {
 
     private val LOGGER = LoggerFactory.getLogger(ReconnectableWsConnector::class.java)!!
@@ -31,7 +31,7 @@ class ReconnectableWsConnector(
 
             afterConnectionEstablished()
 
-            if (connectionDropPeriod != null) reconnectEvery(connectionDropPeriod, TimeUnit.MILLISECONDS)
+            if (connectionDropPeriod != WITHOUT_RECONNECTION) reconnectEvery(connectionDropPeriod, TimeUnit.MILLISECONDS)
 
             concurrent {
                 var connectionIsOpen = true

@@ -35,6 +35,20 @@ class PoloniexTradesMessageParser(
 
         return TradesUpdatesMessage(trades)
     }
+
+    //["t","126320",1,"0.00003328","399377.76875000",1499708547]
+    //["t", id, sell/buy,  rate,      quantity,        time(s) ]
+    private fun parseTrade(node: JsonNode, tokensPair: TokensPair): Trade {
+        val spotPrice = BigDecimal(node[3].asText())
+        val baseAmount = BigDecimal(node[4].asText())
+        return Trade (
+                tradeId = node[1].asText(), exchange = "Poloniex",
+                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
+                type = if (node[2].asInt() == 0) SELL else BUY,
+                baseAmount = baseAmount, quoteAmount = spotPrice * baseAmount,
+                spotPrice = spotPrice, timestamp = node[5].asLong()
+        )
+    }
 }
 
 class PoloniexOrdersMessageParser(
@@ -53,41 +67,10 @@ class PoloniexOrdersMessageParser(
 
         return OrdersUpdatesMessage(type = OrdersUpdateType.COMMON, orders = orders)
     }
-}
-
-abstract class PoloniexMessageParser(
-        private val channelIdForTokensPairs: Map<String, TokensPair>
-) : SaveExchangeMessageParser() {
-
-    override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
-        val channelId = jsonRoot.get(0).asText()
-        val tokensPair = channelIdForTokensPairs[channelId]
-                ?: return ContainingUnknownTokensPairMessage(channelId.toString())
-
-
-        jsonRoot[2]
-        return parseMessage(jsonRoot[2], tokensPair)
-    }
-
-    protected abstract fun parseMessage(jsonNode: JsonNode, tokensPair: TokensPair): ExchangeMessage?
-
-    //["t","126320",1,"0.00003328","399377.76875000",1499708547]
-    //["t", id, sell/buy,  rate,      quantity,        time(s) ]
-    protected fun parseTrade(node: JsonNode, tokensPair: TokensPair): Trade {
-        val spotPrice = BigDecimal(node[3].asText())
-        val baseAmount = BigDecimal(node[4].asText())
-        return Trade (
-                tradeId = node[1].asText(), exchange = "Poloniex",
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                type = if (node[2].asInt() == 0) SELL else BUY,
-                baseAmount = baseAmount, quoteAmount = spotPrice * baseAmount,
-                spotPrice = spotPrice, timestamp = node[5].asLong()
-        )
-    }
 
     // If amount is 0.00000000 then delete order from book else add or update
     // ["o",0,"0.00003328","0.00000000"]
-    protected fun parseOrder(node: JsonNode, tokensPair: TokensPair): Order {
+    private fun parseOrder(node: JsonNode, tokensPair: TokensPair): Order {
         val spotPrice = BigDecimal(node[2].asText())
         val amount = BigDecimal(node[3].asText())
         return Order (
@@ -100,7 +83,7 @@ abstract class PoloniexMessageParser(
         )
     }
 
-    protected fun parseOrderBook(node: JsonNode, tokensPair: TokensPair): OrdersUpdatesMessage {
+    private fun parseOrderBook(node: JsonNode, tokensPair: TokensPair): OrdersUpdatesMessage {
         val orders = mutableListOf<Order>()
         node[1]["orderBook"][0].fields().forEach { entry ->
             orders.add(
@@ -128,4 +111,21 @@ abstract class PoloniexMessageParser(
         }
         return OrdersUpdatesMessage(type = OrdersUpdateType.FULL_ORDER_BOOK, orders = orders)
     }
+}
+
+abstract class PoloniexMessageParser(
+        private val channelIdForTokensPairs: Map<String, TokensPair>
+) : SaveExchangeMessageParser() {
+
+    override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
+        val channelId = jsonRoot.get(0).asText()
+        val tokensPair = channelIdForTokensPairs[channelId]
+                ?: return ContainingUnknownTokensPairMessage(channelId.toString())
+
+
+        jsonRoot[2]
+        return parseMessage(jsonRoot[2], tokensPair)
+    }
+
+    protected abstract fun parseMessage(jsonNode: JsonNode, tokensPair: TokensPair): ExchangeMessage?
 }
