@@ -1,7 +1,6 @@
 package fund.cyber.markets.connectors.common
 
 import fund.cyber.markets.model.Order
-import fund.cyber.markets.model.OrderBook
 import fund.cyber.markets.model.Trade
 
 

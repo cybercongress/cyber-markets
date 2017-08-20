@@ -1,13 +1,16 @@
 package fund.cyber.markets.connectors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.connectors.common.ExchangeType
-import fund.cyber.markets.connectors.common.OrdersUpdateType
-import fund.cyber.markets.connectors.common.OrdersUpdatesMessage
+import fund.cyber.markets.connectors.bitfinex.BitfinexOrdersEndpoint
+import fund.cyber.markets.connectors.bitfinex.BitfinexTradesEndpoint
+import fund.cyber.markets.connectors.bitstamp.BitstampOrdersEndpoint
+import fund.cyber.markets.connectors.bitstamp.BitstampTradesEndpoint
 import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
-import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.connectors.helpers.concurrent
-import fund.cyber.markets.connectors.poloniex.PoloniexExchange
+import fund.cyber.markets.connectors.hitbtc.HitBtcOrdersEndpoint
+import fund.cyber.markets.connectors.hitbtc.HitBtcTradesEndpoint
+import fund.cyber.markets.connectors.poloniex.PoloniexOrdersEndpoint
+import fund.cyber.markets.connectors.poloniex.PoloniexTradesEndpoint
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Trade
 import io.undertow.protocols.ssl.UndertowXnioSsl
@@ -52,8 +55,12 @@ val jsonParser = ObjectMapper()
 /*----------------------------------------------------------------------------------*/
 
 
-val supportedExchanges = listOf(
-        PoloniexExchange(ExchangeType.TRADES), PoloniexExchange(ExchangeType.ORDERS)
+val supportedTradesEndpoints = listOf(
+        PoloniexTradesEndpoint(), BitstampTradesEndpoint(), BitfinexTradesEndpoint(), HitBtcTradesEndpoint()
+)
+
+val supportedOrdersEndpoints = listOf(
+        PoloniexOrdersEndpoint(), BitfinexOrdersEndpoint(), HitBtcOrdersEndpoint()
 )
 
 val tradeKafkaProducer = ConnectorKafkaProducer<Trade>()
@@ -63,31 +70,25 @@ val orderKafkaProducer = ConnectorKafkaProducer<Order>()
 fun main(args: Array<String>) {
     val debugMode = System.getProperty("debug") != null
 
-    supportedExchanges.forEach { exchange ->
+    supportedTradesEndpoints.forEach { exchange ->
         concurrent {
-            val dataChannel = exchange.subscribeData()
+            val dataChannel = exchange.subscribe()
             concurrent {
                 while (true) {
                     val message = dataChannel.receive()
-                    when (message) {
-                        is TradesUpdatesMessage -> {
-                            message.trades.forEach { trade ->
-                                //                                if (debugMode) println(trade) else tradeKafkaProducer.send(TradeProducerRecord(trade))
-                                println(trade)
-                            }
-//                            message.orders.forEach { order ->
-//                                if (debugMode) println(order) else orderKafkaProducer.send(OrderProducerRecord(order))
-//                            }
-                        }
-                        is OrdersUpdatesMessage -> {
-                            if (message.type == OrdersUpdateType.FULL_ORDER_BOOK)
-                                println("FULL ORDER BOOK: ${message.orders}")
-                            else
-                                message.orders.forEach {
-                                    println(it)
-                                }
-                        }
-                    }
+                    message.trades.forEach { trade -> println(trade) }
+                }
+            }
+        }
+    }
+
+    supportedOrdersEndpoints.forEach { exchange ->
+        concurrent {
+            val dataChannel = exchange.subscribe()
+            concurrent {
+                while (true) {
+                    val message = dataChannel.receive()
+                    println(message)
                 }
             }
         }
