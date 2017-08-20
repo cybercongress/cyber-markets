@@ -1,0 +1,14 @@
+zk-kk-km:
+  image: cybernode/dev-kafka
+  mem_limit: 1G
+  ports:
+    - "2181:2181"
+    - "9092:9092"
+    - "9093:9093"
+    - "9000:9000"
+  environment:
+    JMX_PORT: 9093
+    ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+  volumes:
+    - ./out/zk:/var/lib/zookeeper
+    - ./out/kafka:/tmp/kafka-logs
