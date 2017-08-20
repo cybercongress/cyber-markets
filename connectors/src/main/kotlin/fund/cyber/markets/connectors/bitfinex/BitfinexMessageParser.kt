@@ -3,13 +3,10 @@ package fund.cyber.markets.connectors.bitfinex
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import fund.cyber.markets.connectors.common.*
-import fund.cyber.markets.model.TokensPair
-import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL
 import fund.cyber.markets.connectors.common.ws.SaveExchangeMessageParser
-import fund.cyber.markets.model.Order
-import fund.cyber.markets.model.OrderType
+import fund.cyber.markets.model.*
 import java.math.BigDecimal
 import java.util.*
 
@@ -55,7 +52,7 @@ class BitfinexTradesMessageParser(
         baseAmount = baseAmount.abs()
 
         val trades = Collections.singletonList(Trade(
-                tradeId = tradeNode[0].asText(), exchange = "Bitfinex",
+                tradeId = tradeNode[0].asText(), exchange = Exchanges.bitfinex,
                 baseToken = tokensPair.base, quoteToken = tokensPair.quote,
                 type = tradeType, timestamp = tradeNode[1].asLong().div(1000),
                 baseAmount = baseAmount, quoteAmount = rate * baseAmount, spotPrice = rate
@@ -89,7 +86,8 @@ class BitfinexOrdersMessageParser(
             orders.add(parseOrder(jsonRoot[1], tokensPair))
         }
 
-        return OrdersUpdatesMessage(type = ordersUpdateMessageType, orders = orders)
+        return OrdersUpdatesMessage(type = ordersUpdateMessageType, exchange = Exchanges.bitfinex,
+                baseToken = tokensPair.base, quoteToken = tokensPair.quote, orders = orders)
     }
 
     // Order node - [price, count, amount]
@@ -99,7 +97,7 @@ class BitfinexOrdersMessageParser(
         val orderType = if (amount.signum() > 0) OrderType.SELL else OrderType.BUY
         return Order(
                 type = orderType,
-                exchange = "Bitfinex",
+                exchange = Exchanges.bitfinex,
                 baseToken = tokensPair.base,
                 quoteToken = tokensPair.quote,
                 spotPrice = BigDecimal(jsonNode[0].asText()),

@@ -29,7 +29,7 @@ class BitstampTradesMessageParser(
         val baseAmount = BigDecimal(tradeNode["amount"].asText())
         val tradeType = if (tradeNode["type"].asInt() == 0) TradeType.BUY else TradeType.SELL
         return Trade(
-                tradeId = tradeNode["id"].asText(), exchange = "Bitstamp",
+                tradeId = tradeNode["id"].asText(), exchange = Exchanges.bitstamp,
                 baseToken = tokensPair.base, quoteToken = tokensPair.quote,
                 type = tradeType, timestamp = tradeNode["timestamp"].asLong() / 1000,
                 baseAmount = baseAmount, quoteAmount = rate * baseAmount, spotPrice = rate
@@ -46,7 +46,8 @@ class BitstampOrdersMessageParser(
     override fun parseMessage(jsonDataString: String, eventType: String, tokensPair: TokensPair): ExchangeMessage? {
         return when (eventType) {
             event_type_orders -> OrdersUpdatesMessage(
-                    type = OrdersUpdateType.COMMON,
+                    type = OrdersUpdateType.COMMON, exchange = Exchanges.bitstamp,
+                    baseToken = tokensPair.base, quoteToken = tokensPair.quote,
                     orders = parseOrders(jsonParser.readTree(jsonDataString), tokensPair)
             )
             else -> null
@@ -60,7 +61,7 @@ class BitstampOrdersMessageParser(
             orders.add(
                     Order(
                             type = OrderType.SELL,
-                            exchange = "Bitstamp",
+                            exchange = Exchanges.bitstamp,
                             baseToken = tokensPair.base,
                             quoteToken = tokensPair.quote,
                             spotPrice = BigDecimal(entry[0].asText()),
@@ -72,7 +73,7 @@ class BitstampOrdersMessageParser(
             orders.add(
                     Order(
                             type = OrderType.BUY,
-                            exchange = "Bitstamp",
+                            exchange = Exchanges.bitstamp,
                             baseToken = tokensPair.base,
                             quoteToken = tokensPair.quote,
                             spotPrice = BigDecimal(entry[0].asText()),
