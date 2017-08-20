@@ -3,15 +3,16 @@ package fund.cyber.markets.connectors
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connectors.bitfinex.BitfinexOrdersEndpoint
 import fund.cyber.markets.connectors.bitfinex.BitfinexTradesEndpoint
-import fund.cyber.markets.connectors.bitstamp.BitstampOrdersEndpoint
 import fund.cyber.markets.connectors.bitstamp.BitstampTradesEndpoint
+import fund.cyber.markets.connectors.common.OrdersUpdatesMessage
 import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
+import fund.cyber.markets.connectors.common.kafka.OrdersUpdateProducerRecord
+import fund.cyber.markets.connectors.common.kafka.TradeProducerRecord
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.connectors.hitbtc.HitBtcOrdersEndpoint
 import fund.cyber.markets.connectors.hitbtc.HitBtcTradesEndpoint
 import fund.cyber.markets.connectors.poloniex.PoloniexOrdersEndpoint
 import fund.cyber.markets.connectors.poloniex.PoloniexTradesEndpoint
-import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Trade
 import io.undertow.protocols.ssl.UndertowXnioSsl
 import io.undertow.server.DefaultByteBufferPool
@@ -64,7 +65,7 @@ val supportedOrdersEndpoints = listOf(
 )
 
 val tradeKafkaProducer = ConnectorKafkaProducer<Trade>()
-val orderKafkaProducer = ConnectorKafkaProducer<Order>()
+val orderKafkaProducer = ConnectorKafkaProducer<OrdersUpdatesMessage>()
 
 
 fun main(args: Array<String>) {
@@ -76,7 +77,9 @@ fun main(args: Array<String>) {
             concurrent {
                 while (true) {
                     val message = dataChannel.receive()
-                    message.trades.forEach { trade -> println(trade) }
+                    message.trades.forEach { trade ->
+                        if (debugMode) println(trade) else tradeKafkaProducer.send(TradeProducerRecord(trade))
+                    }
                 }
             }
         }
@@ -88,7 +91,7 @@ fun main(args: Array<String>) {
             concurrent {
                 while (true) {
                     val message = dataChannel.receive()
-                    println(message)
+                    if (debugMode) println(message) else orderKafkaProducer.send(OrdersUpdateProducerRecord(message))
                 }
             }
         }

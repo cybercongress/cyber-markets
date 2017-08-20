@@ -42,7 +42,7 @@ class PoloniexTradesMessageParser(
         val spotPrice = BigDecimal(node[3].asText())
         val baseAmount = BigDecimal(node[4].asText())
         return Trade (
-                tradeId = node[1].asText(), exchange = "Poloniex",
+                tradeId = node[1].asText(), exchange = Exchanges.poloniex,
                 baseToken = tokensPair.base, quoteToken = tokensPair.quote,
                 type = if (node[2].asInt() == 0) SELL else BUY,
                 baseAmount = baseAmount, quoteAmount = spotPrice * baseAmount,
@@ -65,7 +65,8 @@ class PoloniexOrdersMessageParser(
             }
         }
 
-        return OrdersUpdatesMessage(type = OrdersUpdateType.COMMON, orders = orders)
+        return OrdersUpdatesMessage(type = OrdersUpdateType.COMMON, exchange = Exchanges.poloniex,
+                baseToken = tokensPair.base, quoteToken = tokensPair.quote, orders = orders)
     }
 
     // If amount is 0.00000000 then delete order from book else add or update
@@ -75,7 +76,7 @@ class PoloniexOrdersMessageParser(
         val amount = BigDecimal(node[3].asText())
         return Order (
                 type = if (node[1].asInt() == 0) OrderType.SELL else OrderType.BUY,
-                exchange = "Poloniex",
+                exchange = Exchanges.poloniex,
                 baseToken = tokensPair.base,
                 quoteToken = tokensPair.quote,
                 spotPrice = spotPrice,
@@ -89,7 +90,7 @@ class PoloniexOrdersMessageParser(
             orders.add(
                     Order (
                             type = OrderType.SELL,
-                            exchange = "Poloniex",
+                            exchange = Exchanges.poloniex,
                             baseToken =  tokensPair.base,
                             quoteToken = tokensPair.quote,
                             spotPrice = BigDecimal(entry.key),
@@ -101,7 +102,7 @@ class PoloniexOrdersMessageParser(
             orders.add(
                     Order (
                             type = OrderType.BUY,
-                            exchange = "Poloniex",
+                            exchange = Exchanges.poloniex,
                             baseToken =  tokensPair.base,
                             quoteToken = tokensPair.quote,
                             spotPrice = BigDecimal(entry.key),
@@ -109,7 +110,8 @@ class PoloniexOrdersMessageParser(
                     )
             )
         }
-        return OrdersUpdatesMessage(type = OrdersUpdateType.FULL_ORDER_BOOK, orders = orders)
+        return OrdersUpdatesMessage(type = OrdersUpdateType.FULL_ORDER_BOOK, exchange = Exchanges.poloniex,
+                baseToken = tokensPair.base, quoteToken = tokensPair.quote, orders = orders)
     }
 }
 

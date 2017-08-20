@@ -39,5 +39,8 @@ enum class OrdersUpdateType {
 
 data class OrdersUpdatesMessage(
         val type: OrdersUpdateType,
+        val baseToken: String,
+        val exchange: String,
+        val quoteToken: String,
         val orders: List<Order> = ArrayList()
 ) : ExchangeMessage()
