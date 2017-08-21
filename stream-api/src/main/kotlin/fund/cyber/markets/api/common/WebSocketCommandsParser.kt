@@ -10,7 +10,8 @@ sealed class WebSocketCommand
 class UnknownCommand(val message: String) : WebSocketCommand()
 
 // {"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}
-class TradeChannelSubscriptionCommand(val pairs: List<TokensPair>) : WebSocketCommand()
+class TradeChannelSubscriptionCommand(val pairs: List<TokensPair>?,
+                                      val exchanges: List<String>?) : WebSocketCommand()
 
 
 class WebSocketCommandsParser(
@@ -35,9 +36,12 @@ class WebSocketCommandsParser(
     }
 
     private fun parseTradesSubscription(jsonMessage: JsonNode): WebSocketCommand {
-        val pairs = jsonMessage["pairs"].toList()
-                .map { pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") }
-                .toList()
-        return TradeChannelSubscriptionCommand(pairs)
+        var pairs = jsonMessage["pairs"]?.toList()
+                ?.map { pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") }
+                ?.toList()
+        var exchanges = jsonMessage["exchanges"]?.toList()
+                ?.map { exchange -> exchange.asText() }
+                ?.toList()
+        return TradeChannelSubscriptionCommand(pairs, exchanges);
     }
 }

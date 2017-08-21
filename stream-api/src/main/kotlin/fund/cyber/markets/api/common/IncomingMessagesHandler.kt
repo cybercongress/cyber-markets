@@ -1,5 +1,6 @@
 package fund.cyber.markets.api.common
 
+import fund.cyber.markets.api.trades.TokensPairTradesBroadcaster
 import fund.cyber.markets.api.trades.TradesBroadcastersIndex
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
@@ -18,7 +19,7 @@ class IncomingMessagesHandler(
         when (command) {
             is UnknownCommand -> {}
             is TradeChannelSubscriptionCommand -> {
-                tradesBroadcastersIndex.broadcastersFor(command.pairs).forEach { broadcaster ->
+                filterBroadcast(command)?.forEach { broadcaster ->
                     broadcaster.registerChannel(wsChannel)
                 }
             }
@@ -27,5 +28,14 @@ class IncomingMessagesHandler(
 
     override fun onClose(webSocketChannel: WebSocketChannel, channel: StreamSourceFrameChannel) {
         super.onClose(webSocketChannel, channel)
+    }
+
+    private fun filterBroadcast(command: TradeChannelSubscriptionCommand) : Collection<TokensPairTradesBroadcaster> {
+        return when {
+            command.pairs!=null && command.exchanges!=null -> tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
+            command.pairs!= null -> tradesBroadcastersIndex.broadcastersForPairs(command.pairs)
+            command.exchanges!=null -> tradesBroadcastersIndex.broadcastersForExchanges(command.exchanges)
+            else -> tradesBroadcastersIndex.broadcastersForAll()
+        }
     }
 }

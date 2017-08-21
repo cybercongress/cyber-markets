@@ -31,11 +31,29 @@
         function send() {
             websockets.send(`{"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}`);
         }
+        function send1() {
+            websockets.send(`{"subscribe":"trades","exchanges":["Poloniex","HitBtc"]}`);
+        }
+        function send2() {
+            websockets.send(`{"subscribe":"trades","exchanges":["Poloniex","HitBtc"],"pairs":["BTC_ETH","ETH_USD"]}`);
+        }
+        function send3() {
+            websockets.send(`{"subscribe":"trades"}`);
+        }
     </script>
 </head>
 <body>
 <form onsubmit="return false;">
-    <input type="button" value="Send Web Socket Message" onclick="send()"/>
+    <input type="button" value="Subscribe pairs" onclick="send()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe exchanges" onclick="send1()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe pairs & exchencges" onclick="send2()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe all" onclick="send3()"/>
 </form>
 </body>
 </html>
