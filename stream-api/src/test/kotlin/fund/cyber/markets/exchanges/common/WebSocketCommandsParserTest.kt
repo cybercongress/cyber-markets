@@ -40,6 +40,6 @@ class WebSocketCommandsParserTest {
 
         Assertions.assertTrue(command is TradeChannelSubscriptionCommand)
         command as TradeChannelSubscriptionCommand
-        Assertions.assertArrayEquals(pairs.toTypedArray(), command.pairs.toTypedArray())
+        Assertions.assertArrayEquals(pairs.toTypedArray(), command.pairs?.toTypedArray())
     }
 }
