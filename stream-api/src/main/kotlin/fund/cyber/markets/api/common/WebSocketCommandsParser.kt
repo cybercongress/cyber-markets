@@ -2,6 +2,7 @@ package fund.cyber.markets.api.common
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.model.TokensPair
 
@@ -11,8 +12,8 @@ class UnknownCommand(val message: String) : WebSocketCommand()
 
 // {"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}
 class TradeChannelSubscriptionCommand(
-        val pairs: List<TokensPair>?,
-        val exchanges: List<String>?
+        val pairs: List<TokensPair>,
+        val exchanges: List<String>
 ) : WebSocketCommand()
 
 class TradeChannelInfoCommand(val type: IncomingMessageGetTopicType) : WebSocketCommand()
@@ -35,10 +36,8 @@ class WebSocketCommandsParser(
         val getTopic = jsonMessage["get"]?.asText()
         if (getTopic != null) {
             return when (getTopic.toUpperCase()) {
-                IncomingMessageGetTopicType.PAIRS.name ->
-                    TradeChannelInfoCommand(IncomingMessageGetTopicType.PAIRS)
-                IncomingMessageGetTopicType.EXCHANGES.name ->
-                    TradeChannelInfoCommand(IncomingMessageGetTopicType.EXCHANGES)
+                PAIRS.name -> TradeChannelInfoCommand(PAIRS)
+                EXCHANGES.name -> TradeChannelInfoCommand(EXCHANGES)
                 else -> UnknownCommand(message)
             }
         }
@@ -49,12 +48,12 @@ class WebSocketCommandsParser(
     }
 
     private fun parseTradesSubscription(jsonMessage: JsonNode): WebSocketCommand {
-        val pairs = jsonMessage["pairs"].toList()
-                .map { pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") }
-                .toList()
-        val exchanges = jsonMessage["exchanges"].toList()
-                .map { exchange -> exchange.asText() }
-                .toList()
-        return TradeChannelSubscriptionCommand(pairs, exchanges);
+        val pairs = jsonMessage["pairs"]?.toList()
+                ?.map { pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") }
+                ?.toList() ?: emptyList()
+        val exchanges = jsonMessage["exchanges"]?.toList()
+                ?.map { exchange -> exchange.asText() }
+                ?.toList() ?: emptyList()
+        return TradeChannelSubscriptionCommand(pairs, exchanges)
     }
 }
