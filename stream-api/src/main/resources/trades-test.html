@@ -40,6 +40,12 @@
         function send3() {
             websockets.send(`{"subscribe":"trades"}`);
         }
+        function send4() {
+            websockets.send(`{"get":"pairs"}`);
+        }
+        function send5() {
+            websockets.send(`{"get":"exchanges"}`);
+        }
     </script>
 </head>
 <body>
@@ -54,6 +60,12 @@
 </form>
 <form onsubmit="return false;">
     <input type="button" value="Subscribe all" onclick="send3()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Get pairs" onclick="send4()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Get exchanges with pairs" onclick="send5()"/>
 </form>
 </body>
 </html>

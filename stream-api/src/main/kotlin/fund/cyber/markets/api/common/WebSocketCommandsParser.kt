@@ -13,6 +13,8 @@ class UnknownCommand(val message: String) : WebSocketCommand()
 class TradeChannelSubscriptionCommand(val pairs: List<TokensPair>?,
                                       val exchanges: List<String>?) : WebSocketCommand()
 
+class TradeChannelInfoCommand(val type: IncomingMessageGetTopicType) : WebSocketCommand()
+
 
 class WebSocketCommandsParser(
         private val jsonDeserializer: ObjectMapper = AppContext.jsonDeserializer
@@ -28,8 +30,18 @@ class WebSocketCommandsParser(
     }
 
     private fun parseMessage(message: String, jsonMessage: JsonNode): WebSocketCommand {
-        val topic = jsonMessage["subscribe"].asText()
-        return when (topic) {
+        val subscribeTopic = jsonMessage["subscribe"]?.asText()
+        val getTopic = jsonMessage["get"]?.asText()
+        if (getTopic!=null) {
+            return when (getTopic.toUpperCase()) {
+                IncomingMessageGetTopicType.PAIRS.name ->
+                    TradeChannelInfoCommand(IncomingMessageGetTopicType.PAIRS)
+                IncomingMessageGetTopicType.EXCHANGES.name ->
+                    TradeChannelInfoCommand(IncomingMessageGetTopicType.EXCHANGES)
+                else -> UnknownCommand(message)
+            }
+        }
+        return when (subscribeTopic) {
             "trades" -> parseTradesSubscription(jsonMessage)
             else -> UnknownCommand(message)
         }
