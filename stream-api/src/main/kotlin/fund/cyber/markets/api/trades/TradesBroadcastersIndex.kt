@@ -13,38 +13,31 @@ class TradesBroadcastersIndex : TradesChannelsIndexUpdateListener {
         index.getOrPut(pair, { HashMap() }).put(exchange, broadcaster)
     }
 
-    fun broadcastersForPairs (pairs: List<TokensPair>): Collection<TokensPairTradesBroadcaster> {
-        return index
-                .filter { (pair, _) -> pairs.contains(pair) }
-                .flatMap { (_, pairIndex) -> pairIndex.values }
-    }
-
     fun broadcastersFor(pairs: List<TokensPair>, exchanges: List<String> ): Collection<TokensPairTradesBroadcaster> {
-        return index
-                .filter { (pair, _) -> pairs.contains(pair) }
-                .flatMap { (_, pairIndex) -> pairIndex.entries }
-                .filter { (exchange, _) -> exchanges.contains(exchange)}
-                .map { (_, broadcaster) -> broadcaster }
+        return when {
+            !pairs.isEmpty() && !exchanges.isEmpty() -> index
+                    .filter { (pair, _) -> pairs.contains(pair) }
+                    .flatMap { (_, pairIndex) -> pairIndex.entries }
+                    .filter { (exchange, _) -> exchanges.contains(exchange) }
+                    .map { (_, broadcaster) -> broadcaster }
+            !pairs.isEmpty() -> index
+                    .filter { (pair, _) -> pairs.contains(pair) }
+                    .flatMap { (_, pairIndex) -> pairIndex.values }
+            !exchanges.isEmpty() -> index
+                    .flatMap { (_, pairIndex) -> pairIndex.entries }
+                    .filter { (exchange, _) -> exchanges.contains(exchange) }
+                    .map { (_, broadcaster) -> broadcaster }
+            else -> index
+                    .flatMap { (_, pairIndex) -> pairIndex.entries }
+                    .map { (_, broadcaster) -> broadcaster }
+        }
     }
 
-    fun broadcastersForExchanges (exchanges: List<String>): Collection<TokensPairTradesBroadcaster> {
-        return index
-                .flatMap { (_, pairIndex) -> pairIndex.entries }
-                .filter { (exchange, _) -> exchanges.contains(exchange)}
-                .map { (_, broadcaster) -> broadcaster }
-    }
-
-    fun broadcastersForAll (): Collection<TokensPairTradesBroadcaster> {
-        return index
-                .flatMap { (_, pairIndex) -> pairIndex.entries }
-                .map { (_, broadcaster) -> broadcaster }
-    }
-
-    fun broadcastersGetAllPairs (): Collection<TokensPair>{
+    fun getAllPairs (): Collection<TokensPair>{
         return index.keys
     }
 
-    fun broadcastersGetExchangesTree (): MutableMap<String, List<TokensPair>>{
+    fun getAllExchangesWithPairs (): MutableMap<String, List<TokensPair>>{
         var resultMap: HashMap<String, List<TokensPair>> = hashMapOf()
         val indexCopy = index
         val flatMap = indexCopy.flatMap { (_, pairIndex) -> pairIndex.entries }

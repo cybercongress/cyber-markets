@@ -1,8 +1,8 @@
 package fund.cyber.markets.api.common
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.api.trades.TokensPairTradesBroadcaster
 import fund.cyber.markets.api.trades.TradesBroadcastersIndex
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
@@ -24,21 +24,21 @@ class IncomingMessagesHandler(
             is UnknownCommand -> {}
             is TradeChannelInfoCommand -> {
                 when (command.type) {
-                    IncomingMessageGetTopicType.PAIRS ->
+                    PAIRS ->
                         WebSockets.sendText(
-                                jsonSerializer.writeValueAsString(
-                                        tradesBroadcastersIndex.broadcastersGetAllPairs()),
-                                wsChannel,null)
-                    IncomingMessageGetTopicType.EXCHANGES ->
+                                jsonSerializer.writeValueAsString(tradesBroadcastersIndex.getAllPairs()),
+                                wsChannel,null
+                        )
+                    EXCHANGES ->
                         WebSockets.sendText(
-                                jsonSerializer.writeValueAsString(
-                                        tradesBroadcastersIndex.broadcastersGetExchangesTree()),
-                                wsChannel, null)
+                                jsonSerializer.writeValueAsString(tradesBroadcastersIndex.getAllExchangesWithPairs()),
+                                wsChannel, null
+                        )
                 }
             }
             is TradeChannelSubscriptionCommand -> {
-                filterSubscriptionBroadcast(command)?.forEach { broadcaster ->
-                    broadcaster.registerChannel(wsChannel)
+                tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
+                        ?.forEach { broadcaster -> broadcaster.registerChannel(wsChannel)
                 }
             }
         }
@@ -48,12 +48,4 @@ class IncomingMessagesHandler(
         super.onClose(webSocketChannel, channel)
     }
 
-    private fun filterSubscriptionBroadcast(command: TradeChannelSubscriptionCommand) : Collection<TokensPairTradesBroadcaster> {
-        return when {
-            command.pairs!=null && command.exchanges!=null -> tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
-            command.pairs!= null -> tradesBroadcastersIndex.broadcastersForPairs(command.pairs)
-            command.exchanges!=null -> tradesBroadcastersIndex.broadcastersForExchanges(command.exchanges)
-            else -> tradesBroadcastersIndex.broadcastersForAll()
-        }
-    }
 }
