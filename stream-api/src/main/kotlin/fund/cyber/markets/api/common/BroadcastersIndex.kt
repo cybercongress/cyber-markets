@@ -51,20 +51,14 @@ abstract class BroadcastersIndex<T> : ChannelsIndexUpdateListener<T> {
         return index.keys
     }
 
-    fun getAllExchangesWithPairs(): MutableMap<String, List<TokensPair>> {
-        val resultMap: HashMap<String, List<TokensPair>> = hashMapOf()
-        val flatMap = index.flatMap { (_, pairIndex) -> pairIndex.entries }
-        flatMap.forEach { exc -> resultMap.put(exc.key, getAllPairsForExchange(exc.key)) }
-        return resultMap
+    fun getAllExchangesWithPairs(): Map<String, List<TokensPair>> {
+        return index
+                .flatMap {(_, pairIndex) -> pairIndex.entries }
+                .map { c -> c.key to getAllPairsForExchange(c.key) }
+                .toMap()
     }
 
-    private fun getAllPairsForExchange(exchange: String): MutableList<TokensPair> {
-        val resultPairsList: LinkedList<TokensPair> = LinkedList()
-        for (el in index) {
-            if (el.value.keys.contains(exchange)) {
-                resultPairsList.add(el.key)
-            }
-        }
-        return resultPairsList
+    private fun getAllPairsForExchange(exchange: String): List<TokensPair> {
+        return index.filter { el -> el.value.keys.contains(exchange) }.map { el -> el.key }
     }
 }
