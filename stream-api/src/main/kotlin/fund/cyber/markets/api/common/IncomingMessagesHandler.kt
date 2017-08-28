@@ -41,14 +41,18 @@ class IncomingMessagesHandler(
             is TradeChannelSubscriptionCommand -> {
                 val broadcasters = tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
                 val result : LinkedList<Trade> = LinkedList()
-                while(result.size < 10 ) {
+                var attemptCounter = 0
+                while(result.size < 10 && attemptCounter<30 ) {
                     val randomTrade = broadcasters.toMutableList()[Int.rand(0, broadcasters.size)]
                             .getRandomTradeFromBroadcaster()
-                    val unique = result.none { it.tradeId == randomTrade.tradeId }
-                    if (unique) { result.add(randomTrade) }
+                    if(randomTrade!=null){
+                        val unique = result.none { it.tradeId == randomTrade.tradeId }
+                        if (unique) { result.add(randomTrade) }
+                    }
+                    attemptCounter++
                 }
                 WebSockets.sendText(jsonSerializer.writeValueAsString(result), wsChannel, null)
-                broadcasters?.forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
+                broadcasters.forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
             }
         }
     }
@@ -56,8 +60,6 @@ class IncomingMessagesHandler(
     override fun onClose(webSocketChannel: WebSocketChannel, channel: StreamSourceFrameChannel) {
         super.onClose(webSocketChannel, channel)
     }
-
-
 
 }
 

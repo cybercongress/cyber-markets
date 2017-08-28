@@ -13,7 +13,9 @@ public class CircularQueue<T> {
     public CircularQueue(int maxSize) {
         this.maxSize = maxSize;
         elements = (T[]) new Object[maxSize];
+
     }
+
 
     public void addNext(T element) {
 
@@ -29,7 +31,16 @@ public class CircularQueue<T> {
         return elements;
     }
 
-    public T getElement(Integer index) {
-        return elements[index];
+    public T getElement(int indexInQueue) {
+        if (start + indexInQueue < 10) {
+            return elements[start+indexInQueue];
+        } else {
+            return elements[start+indexInQueue-10];
+        }
     }
+
+    public boolean isFull() {
+        return isFull;
+    }
+
 }

@@ -54,7 +54,9 @@ class TokensPairTradesBroadcaster(
         }
     }
 
-    fun getRandomTradeFromBroadcaster() : Trade = lastTrades.getElement(Int.rand(0, lastTrades.elements.size))
+    fun getRandomTradeFromBroadcaster() : Trade? {
+        return lastTrades.getElement(Int.rand(0, lastTrades.elements.size))?:null
+    }
 
     fun unregisterChannel(channel: WebSocketChannel) {
         launch(applicationSingleThreadContext) {
