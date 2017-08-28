@@ -1,6 +1,7 @@
 package fund.cyber.markets.api.trades
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fund.cyber.markets.api.common.rand
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.applicationSingleThreadContext
 import fund.cyber.markets.common.CircularQueue
@@ -22,6 +23,7 @@ class TokensPairTradesBroadcaster(
 
     init {
         launch(applicationSingleThreadContext) {
+
             for (trade in newTradesChannel) {
                 handleNewTrade(trade)
             }
@@ -48,11 +50,11 @@ class TokensPairTradesBroadcaster(
     fun registerChannel(channel: WebSocketChannel) {
 
         launch(applicationSingleThreadContext) {
-            val lastTradesAsJson = jsonSerializer.writeValueAsString(lastTrades.elements)
-            WebSockets.sendText(lastTradesAsJson, channel, null)
             registeredChannels.add(channel)
         }
     }
+
+    fun getRandomTradeFromBroadcaster() : Trade = lastTrades.elements.toMutableList()[Int.rand(0, lastTrades.elements.size)]
 
     fun unregisterChannel(channel: WebSocketChannel) {
         launch(applicationSingleThreadContext) {

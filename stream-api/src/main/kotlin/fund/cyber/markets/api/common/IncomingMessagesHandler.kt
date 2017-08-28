@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.api.trades.TradesBroadcastersIndex
+import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
 import io.undertow.websockets.core.StreamSourceFrameChannel
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
+import java.util.LinkedList
 
 class IncomingMessagesHandler(
         private val tradesBroadcastersIndex: TradesBroadcastersIndex,
@@ -37,9 +39,16 @@ class IncomingMessagesHandler(
                 }
             }
             is TradeChannelSubscriptionCommand -> {
-                tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
-                        ?.forEach { broadcaster -> broadcaster.registerChannel(wsChannel)
+                val broadcasters = tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
+                val result : LinkedList<Trade> = LinkedList()
+                while(result.size < 10 ) {
+                    val randomTrade = broadcasters.toMutableList()[Int.rand(0, broadcasters.size)]
+                            .getRandomTradeFromBroadcaster()
+                    val unique = result.none { it.tradeId == randomTrade.tradeId }
+                    if (unique) { result.add(randomTrade) }
                 }
+                WebSockets.sendText(jsonSerializer.writeValueAsString(result), wsChannel, null)
+                broadcasters?.forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
             }
         }
     }
@@ -48,4 +57,8 @@ class IncomingMessagesHandler(
         super.onClose(webSocketChannel, channel)
     }
 
+
+
 }
+
+fun Int.Companion.rand(from: Int, to: Int) = (Math.random() * (to - from) + from).toInt()
