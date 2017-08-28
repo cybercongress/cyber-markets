@@ -32,10 +32,10 @@ public class CircularQueue<T> {
     }
 
     public T getElement(int indexInQueue) {
-        if (start + indexInQueue < 10) {
+        if (start + indexInQueue < maxSize) {
             return elements[start+indexInQueue];
         } else {
-            return elements[start+indexInQueue-10];
+            return elements[start+indexInQueue-maxSize];
         }
     }
 

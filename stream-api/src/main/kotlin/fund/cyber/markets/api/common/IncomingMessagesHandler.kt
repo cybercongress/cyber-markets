@@ -23,13 +23,14 @@ class IncomingMessagesHandler(
     override fun onFullTextMessage(wsChannel: WebSocketChannel, bufferedMessage: BufferedTextMessage) {
         val command = commandsParser.parseMessage(bufferedMessage.data)
         when (command) {
-            is UnknownCommand -> {}
+            is UnknownCommand -> {
+            }
             is TradeChannelInfoCommand -> {
                 when (command.type) {
                     PAIRS ->
                         WebSockets.sendText(
                                 jsonSerializer.writeValueAsString(tradesBroadcastersIndex.getAllPairs()),
-                                wsChannel,null
+                                wsChannel, null
                         )
                     EXCHANGES ->
                         WebSockets.sendText(
@@ -40,14 +41,16 @@ class IncomingMessagesHandler(
             }
             is TradeChannelSubscriptionCommand -> {
                 val broadcasters = tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
-                val result : LinkedList<Trade> = LinkedList()
+                val result: LinkedList<Trade> = LinkedList()
                 var attemptCounter = 0
-                while(result.size < 10 && attemptCounter<30 ) {
-                    val randomTrade = broadcasters.toMutableList()[Int.rand(0, broadcasters.size)]
+                while (result.size < 10 && attemptCounter < 30) {
+                    val randomTrade = broadcasters.elementAt(Int.rand(0, broadcasters.size))
                             .getRandomTradeFromBroadcaster()
-                    if(randomTrade!=null){
+                    if (randomTrade != null) {
                         val unique = result.none { it.tradeId == randomTrade.tradeId }
-                        if (unique) { result.add(randomTrade) }
+                        if (unique) {
+                            result.add(randomTrade)
+                        }
                     }
                     attemptCounter++
                 }
