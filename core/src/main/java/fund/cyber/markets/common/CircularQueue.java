@@ -39,8 +39,4 @@ public class CircularQueue<T> {
         }
     }
 
-    public boolean isFull() {
-        return isFull;
-    }
-
 }
