@@ -28,4 +28,8 @@ public class CircularQueue<T> {
     public T[] getElements() {
         return elements;
     }
+
+    public T getElement(Integer index) {
+        return elements[index];
+    }
 }
