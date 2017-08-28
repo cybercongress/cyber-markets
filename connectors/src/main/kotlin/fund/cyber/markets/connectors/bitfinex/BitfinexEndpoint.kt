@@ -3,7 +3,6 @@ package fund.cyber.markets.connectors.bitfinex
 import fund.cyber.markets.connectors.common.BITFINEX_WS_ENDPOINT
 import fund.cyber.markets.connectors.common.ExchangeMessage
 import fund.cyber.markets.connectors.common.PairsProvider
-import fund.cyber.markets.connectors.common.ws.ExchangeMessageParser
 import fund.cyber.markets.connectors.common.ws.OrdersWsEndpoint
 import fund.cyber.markets.connectors.common.ws.TradesWsEndpoint
 import fund.cyber.markets.model.TokensPair

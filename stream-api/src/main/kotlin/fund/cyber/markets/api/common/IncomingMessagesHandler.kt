@@ -2,8 +2,8 @@ package fund.cyber.markets.api.common
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
+import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.api.trades.TradesBroadcastersIndex
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
 import io.undertow.websockets.core.StreamSourceFrameChannel
@@ -12,6 +12,7 @@ import io.undertow.websockets.core.WebSockets
 
 class IncomingMessagesHandler(
         private val tradesBroadcastersIndex: TradesBroadcastersIndex,
+        private val ordersBroadcastersIndex: OrdersBroadcastersIndex,
         private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 ) : AbstractReceiveListener() {
 
@@ -22,7 +23,7 @@ class IncomingMessagesHandler(
         val command = commandsParser.parseMessage(bufferedMessage.data)
         when (command) {
             is UnknownCommand -> {}
-            is TradeChannelInfoCommand -> {
+            is InfoCommand -> {
                 when (command.type) {
                     PAIRS ->
                         WebSockets.sendText(
@@ -36,9 +37,12 @@ class IncomingMessagesHandler(
                         )
                 }
             }
-            is TradeChannelSubscriptionCommand -> {
-                tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
-                        ?.forEach { broadcaster -> broadcaster.registerChannel(wsChannel)
+            is ChannelSubscriptionCommand -> {
+                when(command.type) {
+                    TRADES -> tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
+                            .forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
+                    ORDERS -> ordersBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
+                            .forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
                 }
             }
         }

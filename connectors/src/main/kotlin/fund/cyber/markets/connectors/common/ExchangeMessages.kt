@@ -1,6 +1,7 @@
 package fund.cyber.markets.connectors.common
 
 import fund.cyber.markets.model.Order
+import fund.cyber.markets.model.OrdersBatch
 import fund.cyber.markets.model.Trade
 
 
@@ -43,4 +44,7 @@ data class OrdersUpdatesMessage(
         val exchange: String,
         val quoteToken: String,
         val orders: List<Order> = ArrayList()
-) : ExchangeMessage()
+) : ExchangeMessage() {
+    val ordersBatch: OrdersBatch
+        get() = OrdersBatch(baseToken, exchange, quoteToken, orders)
+}

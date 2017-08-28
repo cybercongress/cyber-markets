@@ -38,3 +38,10 @@ data class Order (
         val spotPrice: BigDecimal,
         val amount: BigDecimal
 )
+
+data class OrdersBatch (
+        val baseToken: String,
+        val exchange: String,
+        val quoteToken: String,
+        val orders: List<Order> = ArrayList()
+)
