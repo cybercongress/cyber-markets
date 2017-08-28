@@ -100,7 +100,7 @@ project(":stream-api") {
         compile("io.undertow:undertow-core:$undertowVersion")
     }
 
-    mainClassName = "fund.cyber.markets.StreamApiApplicationKt"
+    mainClassName = "fund.cyber.markets.StreamApiApplication"
 }
 
 project(":stream-processing") {

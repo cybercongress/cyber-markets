@@ -13,6 +13,7 @@ import io.undertow.Handlers
 import io.undertow.Handlers.path
 import io.undertow.Undertow
 import kotlinx.coroutines.experimental.newSingleThreadContext
+import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -20,47 +21,53 @@ import java.util.concurrent.TimeUnit
 val tradesSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool For Trades")
 val ordersSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool For Orders")
 
-fun main(args: Array<String>) {
-    val tradesBroadcastersIndex = TradesBroadcastersIndex()
-    val tradesChannelIndex = ChannelsIndex<Trade>()
-    tradesChannelIndex.addChannelsListener(tradesBroadcastersIndex)
+object StreamApiApplication {
+    private val LOGGER = LoggerFactory.getLogger(StreamApiApplication::class.java)!!
 
-    val ordersBroadcastersIndex = OrdersBroadcastersIndex()
-    val ordersChannelIndex = ChannelsIndex<List<Order>>()
-    ordersChannelIndex.addChannelsListener(ordersBroadcastersIndex)
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val tradesBroadcastersIndex = TradesBroadcastersIndex()
+        val tradesChannelIndex = ChannelsIndex<Trade>()
+        tradesChannelIndex.addChannelsListener(tradesBroadcastersIndex)
 
-    val consumers = listOf(OrdersBatchConsumer(ordersChannelIndex), TradesConsumer(tradesChannelIndex))
+        val ordersBroadcastersIndex = OrdersBroadcastersIndex()
+        val ordersChannelIndex = ChannelsIndex<List<Order>>()
+        ordersChannelIndex.addChannelsListener(ordersBroadcastersIndex)
 
-    val messageHandler = IncomingMessagesHandler(tradesBroadcastersIndex, ordersBroadcastersIndex)
-    val rootWebSocketHandler = RootWebSocketHandler(messageHandler)
+        val consumers = listOf(OrdersBatchConsumer(ordersChannelIndex), TradesConsumer(tradesChannelIndex))
 
-    val server = Undertow.builder()
-            .addHttpListener(8082, "0.0.0.0")
-            .setHandler(path()
-                    .addPrefixPath("/", Handlers.websocket(rootWebSocketHandler))
-            )
-            .build()
-    server.start()
+        val messageHandler = IncomingMessagesHandler(tradesBroadcastersIndex, ordersBroadcastersIndex)
+        val rootWebSocketHandler = RootWebSocketHandler(messageHandler)
 
-    val executor = Executors.newFixedThreadPool(consumers.size)
-    consumers.forEach { consumer ->
-        executor.submit(consumer)
-    }
+        val server = Undertow.builder()
+                .addHttpListener(8082, "0.0.0.0")
+                .setHandler(path()
+                        .addPrefixPath("/", Handlers.websocket(rootWebSocketHandler))
+                )
+                .build()
+        server.start()
 
-    Runtime.getRuntime().addShutdownHook(object: Thread() {
-        override fun run() {
-            consumers.forEach {
-                it.shutdown()
-            }
-            executor.shutdown()
-            try {
-                executor.awaitTermination(5000 , TimeUnit.MILLISECONDS)
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
+        val executor = Executors.newFixedThreadPool(consumers.size)
+        consumers.forEach { consumer ->
+            executor.submit(consumer)
         }
-    })
+
+        Runtime.getRuntime().addShutdownHook(object: Thread() {
+            override fun run() {
+                consumers.forEach {
+                    it.shutdown()
+                }
+                executor.shutdown()
+                try {
+                    executor.awaitTermination(5000 , TimeUnit.MILLISECONDS)
+                } catch (e: InterruptedException) {
+                    LOGGER.error(e.message, e)
+                }
+            }
+        })
+    }
 }
+
 
 
 
