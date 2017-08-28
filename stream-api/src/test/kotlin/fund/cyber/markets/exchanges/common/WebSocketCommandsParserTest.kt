@@ -1,6 +1,7 @@
 package fund.cyber.markets.exchanges.common
 
-import fund.cyber.markets.api.common.TradeChannelSubscriptionCommand
+import fund.cyber.markets.api.common.ChannelSubscriptionCommand
+import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType
 import fund.cyber.markets.api.common.UnknownCommand
 import fund.cyber.markets.api.common.WebSocketCommandsParser
 import fund.cyber.markets.model.TokensPair
@@ -38,8 +39,9 @@ class WebSocketCommandsParserTest {
         val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}"""
         val command = commandsParser.parseMessage(message)
 
-        Assertions.assertTrue(command is TradeChannelSubscriptionCommand)
-        command as TradeChannelSubscriptionCommand
+        Assertions.assertTrue(command is ChannelSubscriptionCommand)
+        command as ChannelSubscriptionCommand
+        Assertions.assertEquals(IncomingMessageSubscribeTopicType.TRADES, command.type)
         Assertions.assertArrayEquals(pairs.toTypedArray(), command.pairs?.toTypedArray())
     }
 }
