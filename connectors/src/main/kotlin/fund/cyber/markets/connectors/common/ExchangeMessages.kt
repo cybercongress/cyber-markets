@@ -45,6 +45,5 @@ data class OrdersUpdatesMessage(
         val quoteToken: String,
         val orders: List<Order> = ArrayList()
 ) : ExchangeMessage() {
-    val ordersBatch: OrdersBatch
-        get() = OrdersBatch(baseToken, exchange, quoteToken, orders)
+    val ordersBatch = OrdersBatch(baseToken, exchange, quoteToken, orders)
 }
