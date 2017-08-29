@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.api.trades.TradesBroadcastersIndex
+import fund.cyber.markets.helpers.*
 import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
@@ -41,10 +42,10 @@ class IncomingMessagesHandler(
             }
             is TradeChannelSubscriptionCommand -> {
                 val broadcasters = tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
-                val result: LinkedList<Trade> = LinkedList()
+                val result = LinkedList<Trade>()
                 var attemptCounter = 0
                 while (result.size < 10 && attemptCounter < 30) {
-                    val randomTrade = broadcasters.elementAt(Int.rand(0, broadcasters.size))
+                    val randomTrade = broadcasters.elementAt(rand(0, broadcasters.size))
                             .getRandomTradeFromBroadcaster()
                     if (randomTrade != null) {
                         val unique = result.none { it.tradeId == randomTrade.tradeId }
@@ -65,5 +66,3 @@ class IncomingMessagesHandler(
     }
 
 }
-
-fun Int.Companion.rand(from: Int, to: Int) = (Math.random() * (to - from) + from).toInt()

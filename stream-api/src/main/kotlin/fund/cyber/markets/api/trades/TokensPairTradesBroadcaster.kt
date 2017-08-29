@@ -1,10 +1,10 @@
 package fund.cyber.markets.api.trades
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.api.common.rand
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.applicationSingleThreadContext
 import fund.cyber.markets.common.CircularQueue
+import fund.cyber.markets.helpers.rand
 import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
@@ -55,7 +55,7 @@ class TokensPairTradesBroadcaster(
     }
 
     fun getRandomTradeFromBroadcaster() : Trade? {
-        return lastTrades.getElement(Int.rand(0, lastTrades.elements.size))?:null
+        return lastTrades.getElement(rand(0, lastTrades.elements.size))?:null
     }
 
     fun unregisterChannel(channel: WebSocketChannel) {
