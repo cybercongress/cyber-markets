@@ -6,28 +6,27 @@ import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import kotlinx.coroutines.experimental.channels.Channel
-import java.util.LinkedList
 import java.util.concurrent.ConcurrentHashMap
 
-class TradesBroadcastersIndex : BroadcastersIndex<Trade>() {
+class TradesBroadcastersIndex : BroadcastersIndex<Trade, TradesBroadcaster>() {
     override fun newChannel(exchange: String, pair: TokensPair, channel: Channel<Trade>) {
         val broadcaster = TradesBroadcaster(channel)
         index.getOrPut(pair, { ConcurrentHashMap() }).put(exchange, broadcaster)
     }
 }
 
-class OrdersBroadcastersIndex : BroadcastersIndex<List<Order>>() {
+class OrdersBroadcastersIndex : BroadcastersIndex<List<Order>, OrdersBroadcaster>() {
     override fun newChannel(exchange: String, pair: TokensPair, channel: Channel<List<Order>>) {
         val broadcaster = OrdersBroadcaster(channel)
         index.getOrPut(pair, { ConcurrentHashMap() }).put(exchange, broadcaster)
     }
 }
 
-abstract class BroadcastersIndex<T> : ChannelsIndexUpdateListener<T> {
+abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListener<T> {
 
-    protected val index: MutableMap<TokensPair, MutableMap<String, Broadcaster>> = ConcurrentHashMap()
+    protected val index: MutableMap<TokensPair, MutableMap<String, B>> = ConcurrentHashMap()
 
-    fun broadcastersFor(pairs: List<TokensPair>, exchanges: List<String>): Collection<Broadcaster> {
+    fun broadcastersFor(pairs: List<TokensPair>, exchanges: List<String>): Collection<B> {
         return when {
             !pairs.isEmpty() && !exchanges.isEmpty() -> index
                     .filter { (pair, _) -> pairs.contains(pair) }

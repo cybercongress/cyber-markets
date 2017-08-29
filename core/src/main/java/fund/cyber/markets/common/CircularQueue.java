@@ -13,7 +13,9 @@ public class CircularQueue<T> {
     public CircularQueue(int maxSize) {
         this.maxSize = maxSize;
         elements = (T[]) new Object[maxSize];
+
     }
+
 
     public void addNext(T element) {
 
@@ -28,4 +30,13 @@ public class CircularQueue<T> {
     public T[] getElements() {
         return elements;
     }
+
+    public T getElement(int indexInQueue) {
+        if (start + indexInQueue < maxSize) {
+            return elements[start+indexInQueue];
+        } else {
+            return elements[start+indexInQueue-maxSize];
+        }
+    }
+
 }

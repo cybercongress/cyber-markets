@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.Broadcaster
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.common.CircularQueue
+import fund.cyber.markets.helpers.rand
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tradesSingleThreadContext
 import io.undertow.websockets.core.WebSocketChannel
@@ -48,10 +49,12 @@ class TradesBroadcaster(
 
     override fun registerChannel(channel: WebSocketChannel) {
         launch(tradesSingleThreadContext) {
-            val lastTradesAsJson = jsonSerializer.writeValueAsString(lastTrades.elements)
-            WebSockets.sendText(lastTradesAsJson, channel, null)
             registeredChannels.add(channel)
         }
+    }
+
+    fun getRandomTradeFromBroadcaster() : Trade? {
+        return lastTrades.getElement(rand(0, lastTrades.elements.size))?:null
     }
 
     override fun unregisterChannel(channel: WebSocketChannel) {
