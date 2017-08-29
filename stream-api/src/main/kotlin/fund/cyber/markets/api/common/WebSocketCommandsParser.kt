@@ -67,6 +67,7 @@ class WebSocketCommandsParser(
     }
 
     private fun parsePairs(jsonMessage: JsonNode): List<TokensPair> {
-        return jsonMessage["pairs"]?.map { pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") } ?: emptyList()
+        return jsonMessage["pairs"]?.map {
+            pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") }?.distinct() ?: emptyList()
     }
 }

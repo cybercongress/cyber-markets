@@ -1,9 +1,20 @@
 package fund.cyber.markets.model
 
-open class TokensPair(
-        val base: String,
-        val quote: String
-) {
+open class TokensPair(firstCurrency: String, secondCurrency: String) {
+
+    val base: String
+    val quote: String
+
+    init {
+        if(firstCurrency.compareTo(secondCurrency,true) < 0) {
+            this.base = firstCurrency
+            this.quote = secondCurrency
+        } else {
+            this.base = secondCurrency
+            this.quote = firstCurrency
+        }
+    }
+
     fun label(delimiter: String = "/"): String {
         return base + delimiter + quote
     }
@@ -31,4 +42,5 @@ open class TokensPair(
             return TokensPair(label.substringBefore(delimiter), label.substringAfter(delimiter))
         }
     }
+
 }
