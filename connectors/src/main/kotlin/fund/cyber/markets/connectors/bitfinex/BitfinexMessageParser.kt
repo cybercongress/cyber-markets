@@ -93,8 +93,13 @@ class BitfinexOrdersMessageParser(
     // Order node - [price, count, amount]
     // sign of base amount determines trade type ( - sell | + buy)
     private fun parseOrder(jsonNode: JsonNode, tokensPair: TokensPair): Order {
-        val amount = BigDecimal(jsonNode[2].asText())
+        val count = jsonNode[1].asInt()
+        var amount = BigDecimal(jsonNode[2].asText())
         val orderType = if (amount.signum() > 0) OrderType.SELL else OrderType.BUY
+        //when count = 0 then you have to delete the price level.
+        //    if amount = 1 then remove from bids
+        //    if amount = -1 then remove from asks
+        amount = if (count > 0) amount.abs() else BigDecimal.ZERO
         return Order(
                 type = orderType,
                 exchange = Exchanges.bitfinex,

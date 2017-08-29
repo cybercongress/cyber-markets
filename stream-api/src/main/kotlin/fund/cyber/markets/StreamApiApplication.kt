@@ -1,74 +1,73 @@
 package fund.cyber.markets
 
 import fund.cyber.markets.api.common.IncomingMessagesHandler
+import fund.cyber.markets.api.common.OrdersBatchConsumer
 import fund.cyber.markets.api.common.RootWebSocketHandler
-import fund.cyber.markets.api.configuration.KafkaConfiguration
-import fund.cyber.markets.api.trades.TradesBroadcastersIndex
-import fund.cyber.markets.api.trades.TradesChannelsIndex
-import fund.cyber.markets.kafka.JsonDeserializer
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.api.common.TradesConsumer
+import fund.cyber.markets.api.common.ChannelsIndex
+import fund.cyber.markets.api.common.OrdersBroadcastersIndex
+import fund.cyber.markets.api.common.TradesBroadcastersIndex
+import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Trade
 import io.undertow.Handlers
 import io.undertow.Handlers.path
 import io.undertow.Undertow
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.newSingleThreadContext
-import org.apache.kafka.clients.consumer.ConsumerRecords
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
-import org.apache.kafka.common.serialization.StringDeserializer
+import org.slf4j.LoggerFactory
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 
-val applicationSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool")
+val tradesSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool For Trades")
+val ordersSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool For Orders")
 
-fun main(args: Array<String>) {
+object StreamApiApplication {
+    private val LOGGER = LoggerFactory.getLogger(StreamApiApplication::class.java)!!
 
-    val broadcastersIndex = TradesBroadcastersIndex()
-    val tradesChannelIndex = TradesChannelsIndex()
-    tradesChannelIndex.addTradesChannelsListener(broadcastersIndex)
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val tradesBroadcastersIndex = TradesBroadcastersIndex()
+        val tradesChannelIndex = ChannelsIndex<Trade>()
+        tradesChannelIndex.addChannelsListener(tradesBroadcastersIndex)
 
-    val messageHandler = IncomingMessagesHandler(broadcastersIndex)
-    val rootWebSocketHandler = RootWebSocketHandler(messageHandler)
+        val ordersBroadcastersIndex = OrdersBroadcastersIndex()
+        val ordersChannelIndex = ChannelsIndex<List<Order>>()
+        ordersChannelIndex.addChannelsListener(ordersBroadcastersIndex)
 
-    val server = Undertow.builder()
-            .addHttpListener(8082, "0.0.0.0")
-            .setHandler(path()
-                    .addPrefixPath("/", Handlers.websocket(rootWebSocketHandler))
-            )
-            .build()
-    server.start()
+        val consumers = listOf(OrdersBatchConsumer(ordersChannelIndex), TradesConsumer(tradesChannelIndex))
 
-    initializeTradesKafkaConsumers(tradesChannelIndex)
-}
+        val messageHandler = IncomingMessagesHandler(tradesBroadcastersIndex, ordersBroadcastersIndex)
+        val rootWebSocketHandler = RootWebSocketHandler(messageHandler)
 
+        val server = Undertow.builder()
+                .addHttpListener(8082, "0.0.0.0")
+                .setHandler(path()
+                        .addPrefixPath("/", Handlers.websocket(rootWebSocketHandler))
+                )
+                .build()
+        server.start()
 
-private fun initializeTradesKafkaConsumers(tradesChannelsIndex: TradesChannelsIndex) {
-
-    val configuration = KafkaConfiguration()
-
-    //there is no key in trades topics -> faked key deserializer
-    val tradesDeserializer = JsonDeserializer(Trade::class.java)
-    val keyDeserializer = StringDeserializer()
-    val consumerProperties = configuration.tradesConsumersProperties("trades-1")
-
-
-    KafkaConsumer(consumerProperties, keyDeserializer, tradesDeserializer).use { consumer ->
-        consumer.subscribe(configuration.tradesTopicNamePattern, NoOpConsumerRebalanceListener())
-        while (true) {
-            handleNewTrades(tradesChannelsIndex, consumer.poll(configuration.tradesPoolAwaitTimeout))
+        val executor = Executors.newFixedThreadPool(consumers.size)
+        consumers.forEach { consumer ->
+            executor.submit(consumer)
         }
+
+        Runtime.getRuntime().addShutdownHook(object: Thread() {
+            override fun run() {
+                consumers.forEach {
+                    it.shutdown()
+                }
+                executor.shutdown()
+                try {
+                    executor.awaitTermination(5000 , TimeUnit.MILLISECONDS)
+                } catch (e: InterruptedException) {
+                    LOGGER.error(e.message, e)
+                }
+            }
+        })
     }
 }
 
-private fun handleNewTrades(tradesChannelsIndex: TradesChannelsIndex, records: ConsumerRecords<String, Trade>) {
-    launch(applicationSingleThreadContext) {
-        records.map { record -> record.value() }
-                .forEach { trade ->
-                    val pair = TokensPair(trade.baseToken, trade.quoteToken)
-                    tradesChannelsIndex.channelFor(trade.exchange, pair).send(trade)
-                }
-    }
-}
 
 
 

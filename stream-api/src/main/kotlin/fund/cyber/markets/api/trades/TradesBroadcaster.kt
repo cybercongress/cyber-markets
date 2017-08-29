@@ -1,11 +1,12 @@
 package fund.cyber.markets.api.trades
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fund.cyber.markets.api.common.Broadcaster
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.applicationSingleThreadContext
 import fund.cyber.markets.common.CircularQueue
 import fund.cyber.markets.helpers.rand
 import fund.cyber.markets.model.Trade
+import fund.cyber.markets.tradesSingleThreadContext
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
 import kotlinx.coroutines.experimental.channels.Channel
@@ -13,17 +14,16 @@ import kotlinx.coroutines.experimental.launch
 
 typealias TradesChannel = Channel<Trade>
 
-class TokensPairTradesBroadcaster(
+class TradesBroadcaster(
         private val newTradesChannel: TradesChannel,
         private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
-) {
+) : Broadcaster {
 
     private val lastTrades = CircularQueue<Trade>(10)
     private val registeredChannels = HashSet<WebSocketChannel>()
 
     init {
-        launch(applicationSingleThreadContext) {
-
+        launch(tradesSingleThreadContext) {
             for (trade in newTradesChannel) {
                 handleNewTrade(trade)
             }
@@ -39,7 +39,7 @@ class TokensPairTradesBroadcaster(
         }
 
         val tradeAsJson = jsonSerializer.writeValueAsString(trade)
-        launch(applicationSingleThreadContext) {
+        launch(tradesSingleThreadContext) {
             for (channel in registeredChannels) {
                 WebSockets.sendText(tradeAsJson, channel, null)
             }
@@ -47,9 +47,8 @@ class TokensPairTradesBroadcaster(
     }
 
 
-    fun registerChannel(channel: WebSocketChannel) {
-
-        launch(applicationSingleThreadContext) {
+    override fun registerChannel(channel: WebSocketChannel) {
+        launch(tradesSingleThreadContext) {
             registeredChannels.add(channel)
         }
     }
@@ -58,8 +57,8 @@ class TokensPairTradesBroadcaster(
         return lastTrades.getElement(rand(0, lastTrades.elements.size))?:null
     }
 
-    fun unregisterChannel(channel: WebSocketChannel) {
-        launch(applicationSingleThreadContext) {
+    override fun unregisterChannel(channel: WebSocketChannel) {
+        launch(tradesSingleThreadContext) {
             registeredChannels.remove(channel)
         }
     }

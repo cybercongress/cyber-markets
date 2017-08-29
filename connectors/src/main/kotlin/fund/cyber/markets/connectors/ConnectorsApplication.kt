@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connectors.bitfinex.BitfinexOrdersEndpoint
 import fund.cyber.markets.connectors.bitfinex.BitfinexTradesEndpoint
 import fund.cyber.markets.connectors.bitstamp.BitstampTradesEndpoint
-import fund.cyber.markets.connectors.common.OrdersUpdatesMessage
 import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
 import fund.cyber.markets.connectors.common.kafka.OrdersUpdateProducerRecord
 import fund.cyber.markets.connectors.common.kafka.TradeProducerRecord
@@ -13,6 +12,7 @@ import fund.cyber.markets.connectors.hitbtc.HitBtcOrdersEndpoint
 import fund.cyber.markets.connectors.hitbtc.HitBtcTradesEndpoint
 import fund.cyber.markets.connectors.poloniex.PoloniexOrdersEndpoint
 import fund.cyber.markets.connectors.poloniex.PoloniexTradesEndpoint
+import fund.cyber.markets.model.OrdersBatch
 import fund.cyber.markets.model.Trade
 import io.undertow.protocols.ssl.UndertowXnioSsl
 import io.undertow.server.DefaultByteBufferPool
@@ -57,15 +57,20 @@ val jsonParser = ObjectMapper()
 
 
 val supportedTradesEndpoints = listOf(
-        PoloniexTradesEndpoint(), BitstampTradesEndpoint(), BitfinexTradesEndpoint(), HitBtcTradesEndpoint()
+        PoloniexTradesEndpoint(),
+        BitstampTradesEndpoint(),
+        BitfinexTradesEndpoint(),
+        HitBtcTradesEndpoint()
 )
 
 val supportedOrdersEndpoints = listOf(
-        PoloniexOrdersEndpoint(), BitfinexOrdersEndpoint(), HitBtcOrdersEndpoint()
+        PoloniexOrdersEndpoint(),
+        BitfinexOrdersEndpoint(),
+        HitBtcOrdersEndpoint()
 )
 
 val tradeKafkaProducer = ConnectorKafkaProducer<Trade>()
-val orderKafkaProducer = ConnectorKafkaProducer<OrdersUpdatesMessage>()
+val orderKafkaProducer = ConnectorKafkaProducer<OrdersBatch>()
 
 
 fun main(args: Array<String>) {
@@ -91,7 +96,8 @@ fun main(args: Array<String>) {
             concurrent {
                 while (true) {
                     val message = dataChannel.receive()
-                    if (debugMode) println(message) else orderKafkaProducer.send(OrdersUpdateProducerRecord(message))
+                    if (debugMode) println(message)
+                    else orderKafkaProducer.send(OrdersUpdateProducerRecord(message.ordersBatch))
                 }
             }
         }

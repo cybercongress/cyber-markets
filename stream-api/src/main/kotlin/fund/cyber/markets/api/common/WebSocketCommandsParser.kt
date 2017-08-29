@@ -3,6 +3,7 @@ package fund.cyber.markets.api.common
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
+import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.model.TokensPair
 
@@ -11,12 +12,14 @@ sealed class WebSocketCommand
 class UnknownCommand(val message: String) : WebSocketCommand()
 
 // {"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}
-class TradeChannelSubscriptionCommand(
+// {"subscribe":"orders","pairs":["BTC_ETH","ETH_USD"]}
+class ChannelSubscriptionCommand(
+        val type: IncomingMessageSubscribeTopicType,
         val pairs: List<TokensPair>,
         val exchanges: List<String>
 ) : WebSocketCommand()
 
-class TradeChannelInfoCommand(val type: IncomingMessageGetTopicType) : WebSocketCommand()
+class InfoCommand(val type: IncomingMessageGetTopicType) : WebSocketCommand()
 
 class WebSocketCommandsParser(
         private val jsonDeserializer: ObjectMapper = AppContext.jsonDeserializer
@@ -35,25 +38,35 @@ class WebSocketCommandsParser(
         val subscribeTopic = jsonMessage["subscribe"]?.asText()
         val getTopic = jsonMessage["get"]?.asText()
         if (getTopic != null) {
-            return when (getTopic.toUpperCase()) {
-                PAIRS.name -> TradeChannelInfoCommand(PAIRS)
-                EXCHANGES.name -> TradeChannelInfoCommand(EXCHANGES)
-                else -> UnknownCommand(message)
-            }
+            return parseGetCommand(getTopic, message)
         }
-        return when (subscribeTopic) {
-            "trades" -> parseTradesSubscription(jsonMessage)
+        if (subscribeTopic != null) {
+            return parseSubscribeCommand(subscribeTopic, jsonMessage, message)
+        }
+        return UnknownCommand(message)
+    }
+
+    private fun parseGetCommand(topic: String, message: String): WebSocketCommand {
+        return when (topic.toUpperCase()) {
+            PAIRS.name -> InfoCommand(PAIRS)
+            EXCHANGES.name -> InfoCommand(EXCHANGES)
             else -> UnknownCommand(message)
         }
     }
 
-    private fun parseTradesSubscription(jsonMessage: JsonNode): WebSocketCommand {
-        val pairs = jsonMessage["pairs"]?.toList()
-                ?.map { pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") }
-                ?.toList() ?: emptyList()
-        val exchanges = jsonMessage["exchanges"]?.toList()
-                ?.map { exchange -> exchange.asText() }
-                ?.toList() ?: emptyList()
-        return TradeChannelSubscriptionCommand(pairs, exchanges)
+    private fun parseSubscribeCommand(topic: String, jsonMessage: JsonNode, message: String): WebSocketCommand {
+        return when (topic.toUpperCase()) {
+            TRADES.name -> ChannelSubscriptionCommand(TRADES, parsePairs(jsonMessage), parseExchanges(jsonMessage))
+            ORDERS.name -> ChannelSubscriptionCommand(ORDERS, parsePairs(jsonMessage), parseExchanges(jsonMessage))
+            else -> UnknownCommand(message)
+        }
+    }
+
+    private fun parseExchanges(jsonMessage: JsonNode): List<String> {
+        return jsonMessage["exchanges"]?.map { exchange -> exchange.asText() } ?: emptyList()
+    }
+
+    private fun parsePairs(jsonMessage: JsonNode): List<TokensPair> {
+        return jsonMessage["pairs"]?.map { pairLabel -> TokensPair.fromLabel(pairLabel.asText(), "_") } ?: emptyList()
     }
 }
