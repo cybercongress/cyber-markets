@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.api.trades.TradesBroadcastersIndex
 import fund.cyber.markets.helpers.*
 import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.AbstractReceiveListener
