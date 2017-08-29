@@ -44,4 +44,39 @@ class WebSocketCommandsParserTest {
         Assertions.assertEquals(IncomingMessageSubscribeTopicType.TRADES, command.type)
         Assertions.assertArrayEquals(pairs.toTypedArray(), command.pairs?.toTypedArray())
     }
+
+    @Test
+    @DisplayName("Should parse trades subscription and invert pair by alphabet if needed")
+    fun testTradeSubscriptionProvidedAndInvertIsCorrect() {
+
+        val pairs = listOf(
+                TokensPair.fromLabel("BTC_ETH", "_"),
+                TokensPair.fromLabel("AAA_BBB", "_")
+        )
+
+        val message = """{"subscribe":"trades","pairs":["BTC_ETH","BBB_AAA"]}"""
+        val command = commandsParser.parseMessage(message)
+
+        Assertions.assertTrue(command is ChannelSubscriptionCommand)
+        command as ChannelSubscriptionCommand
+        Assertions.assertEquals(IncomingMessageSubscribeTopicType.TRADES, command.type)
+        Assertions.assertArrayEquals(pairs.toTypedArray(), command.pairs?.toTypedArray())
+    }
+
+    @Test
+    @DisplayName("Should parse trades subscription, invert pair by alphabet and delete equals")
+    fun testTradeSubscriptionProvidedInvertIsCorrectAndDeleteEquals() {
+
+        val pairs = listOf(
+                TokensPair.fromLabel("BTC_ETH", "_")
+        )
+
+        val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_BTC"]}"""
+        val command = commandsParser.parseMessage(message)
+
+        Assertions.assertTrue(command is ChannelSubscriptionCommand)
+        command as ChannelSubscriptionCommand
+        Assertions.assertEquals(IncomingMessageSubscribeTopicType.TRADES, command.type)
+        Assertions.assertArrayEquals(pairs.toTypedArray(), command.pairs?.toTypedArray())
+    }
 }
