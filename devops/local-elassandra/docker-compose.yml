@@ -1,0 +1,10 @@
+---
+
+version: '3.3'
+services:
+
+  elassandra:
+    image: strapdata/elassandra:2.4.5.5
+    network_mode: host
+    volumes:
+      - /opt/cyberfund/elassandra:/var/lib/cassandra
