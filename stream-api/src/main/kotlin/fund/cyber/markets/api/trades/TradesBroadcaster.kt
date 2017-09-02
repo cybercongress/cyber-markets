@@ -15,8 +15,8 @@ import kotlinx.coroutines.experimental.launch
 typealias TradesChannel = Channel<Trade>
 
 class TradesBroadcaster(
-        private val newTradesChannel: TradesChannel,
-        private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
+    private val newTradesChannel: TradesChannel,
+    private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 ) : Broadcaster {
 
     private val lastTrades = CircularQueue<Trade>(10)
@@ -29,7 +29,6 @@ class TradesBroadcaster(
             }
         }
     }
-
 
     private fun handleNewTrade(trade: Trade) {
 
@@ -46,15 +45,14 @@ class TradesBroadcaster(
         }
     }
 
-
     override fun registerChannel(channel: WebSocketChannel) {
         launch(tradesSingleThreadContext) {
             registeredChannels.add(channel)
         }
     }
 
-    fun getRandomTradeFromBroadcaster() : Trade? {
-        return lastTrades.getElement(rand(0, lastTrades.elements.size))?:null
+    fun getRandomTradeFromBroadcaster(): Trade? {
+        return lastTrades[rand(0, lastTrades.elements.size)]
     }
 
     override fun unregisterChannel(channel: WebSocketChannel) {

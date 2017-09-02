@@ -1,10 +1,9 @@
 package fund.cyber.markets.kafka
 
-import org.apache.kafka.common.serialization.Deserializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serializer
-
 
 class JsonSerializer<T> : Serializer<T> {
     private val objectMapper = ObjectMapper()
