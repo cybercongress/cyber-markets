@@ -1,12 +1,24 @@
 CREATE KEYSPACE blockchains
   WITH REPLICATION = {
    'class' : 'NetworkTopologyStrategy',
-   'DC1' : 1
+   'PRODUCTION' : 2
   } ;
 
-CREATE TABLE blockchains.ethereum(
-     number text PRIMARY KEY,
-     hash text,
-     timestamp timestamp,
-     rawblock text
-  );
+
+CREATE TABLE blockchains.meta(
+     table_name text PRIMARY KEY,
+     granularity_type text,
+     granularity_value text
+);
+
+
+CREATE TABLE blockchains.ethereum (
+     chunk_id varint,
+     number varint,
+     rawblock text,
+     PRIMARY KEY (chunk_id, number)
+) WITH CLUSTERING ORDER BY (number ASC)
+    AND compaction = {'class': 'LeveledCompactionStrategy'};
+
+INSERT INTO blockchains.meta(table_name, granularity_type, granularity_value)
+   VALUES ('ethereum', 'chunk', '500');
