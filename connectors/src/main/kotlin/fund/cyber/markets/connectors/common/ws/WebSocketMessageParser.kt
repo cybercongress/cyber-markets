@@ -26,6 +26,7 @@ abstract class SaveExchangeMessageParser : ExchangeMessageParser {
         try {
             val jsonRoot = jsonParser.readTree(message)
             return parseMessage(jsonRoot) ?: UnknownFormatMessage(message)
+
         } catch (exception: Exception) {
             return UnknownFormatMessage(message)
         }

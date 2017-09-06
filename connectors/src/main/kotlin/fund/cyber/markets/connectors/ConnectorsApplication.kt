@@ -1,14 +1,18 @@
 package fund.cyber.markets.connectors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.connectors.bitfinex.BitfinexExchange
-import fund.cyber.markets.connectors.bitstamp.BitstampExchange
+import fund.cyber.markets.connectors.bitfinex.BitfinexOrdersEndpoint
+import fund.cyber.markets.connectors.bitfinex.BitfinexTradesEndpoint
+import fund.cyber.markets.connectors.bitstamp.BitstampTradesEndpoint
 import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
+import fund.cyber.markets.connectors.common.kafka.OrdersUpdateProducerRecord
 import fund.cyber.markets.connectors.common.kafka.TradeProducerRecord
 import fund.cyber.markets.connectors.helpers.concurrent
-import fund.cyber.markets.connectors.hitbtc.HitBtcExchange
-import fund.cyber.markets.connectors.poloniex.PoloniexExchange
-import fund.cyber.markets.helpers.env
+import fund.cyber.markets.connectors.hitbtc.HitBtcOrdersEndpoint
+import fund.cyber.markets.connectors.hitbtc.HitBtcTradesEndpoint
+import fund.cyber.markets.connectors.poloniex.PoloniexOrdersEndpoint
+import fund.cyber.markets.connectors.poloniex.PoloniexTradesEndpoint
+import fund.cyber.markets.model.OrdersBatch
 import fund.cyber.markets.model.Trade
 import io.undertow.protocols.ssl.UndertowXnioSsl
 import io.undertow.server.DefaultByteBufferPool
@@ -26,13 +30,13 @@ import org.xnio.XnioWorker
 val NO_OPTIONS: OptionMap = OptionMap.EMPTY
 
 private val xnioSettings = OptionMap.builder()
-    .set(Options.TCP_NODELAY, true)
-    .set(Options.WORKER_IO_THREADS, 2)
-    .set(Options.WORKER_TASK_CORE_THREADS, 5)
-    .set(Options.WORKER_TASK_MAX_THREADS, 5)
-    .set(Options.READ_TIMEOUT, 10 * 1000)
-    .set(Options.WRITE_TIMEOUT, 10 * 1000)
-    .getMap()
+        .set(Options.TCP_NODELAY, true)
+        .set(Options.WORKER_IO_THREADS, 2)
+        .set(Options.WORKER_TASK_CORE_THREADS, 5)
+        .set(Options.WORKER_TASK_MAX_THREADS, 5)
+        .set(Options.READ_TIMEOUT, 10 * 1000)
+        .set(Options.WRITE_TIMEOUT, 10 * 1000)
+        .getMap()
 
 val xnioWorker: XnioWorker = Xnio.getInstance().createWorker(xnioSettings)
 val xnioSsl = UndertowXnioSsl(Xnio.getInstance(), OptionMap.EMPTY)
@@ -52,32 +56,48 @@ val jsonParser = ObjectMapper()
 /*----------------------------------------------------------------------------------*/
 
 
-val supportedExchanges = listOf(
-    PoloniexExchange(),
-    BitfinexExchange(),
-    HitBtcExchange(),
-    BitstampExchange()
+val supportedTradesEndpoints = listOf(
+        PoloniexTradesEndpoint(),
+        BitstampTradesEndpoint(),
+        BitfinexTradesEndpoint(),
+        HitBtcTradesEndpoint()
 )
 
-val kafkaTradeProducer = ConnectorKafkaProducer<Trade>()
+val supportedOrdersEndpoints = listOf(
+        PoloniexOrdersEndpoint(),
+        BitfinexOrdersEndpoint(),
+        HitBtcOrdersEndpoint()
+)
+
+val tradeKafkaProducer = ConnectorKafkaProducer<Trade>()
+val orderKafkaProducer = ConnectorKafkaProducer<OrdersBatch>()
 
 
 fun main(args: Array<String>) {
-    val debugMode: Boolean = env("CONNECTORS_DEBUG", false)
+    val debugMode = System.getProperty("debug") != null
 
-    supportedExchanges.forEach { exchange ->
+    supportedTradesEndpoints.forEach { exchange ->
         concurrent {
-            val dataChannel = exchange.subscribeData()
+            val dataChannel = exchange.subscribe()
             concurrent {
                 while (true) {
-                    val tradesAndOrdersUpdatesMessage = dataChannel.receive()
-                    tradesAndOrdersUpdatesMessage.trades.forEach { trade ->
-                        if (debugMode) {
-                            println(trade)
-                        } else {
-                            kafkaTradeProducer.send(TradeProducerRecord(trade))
-                        }
+                    val message = dataChannel.receive()
+                    message.trades.forEach { trade ->
+                        if (debugMode) println(trade) else tradeKafkaProducer.send(TradeProducerRecord(trade))
                     }
+                }
+            }
+        }
+    }
+
+    supportedOrdersEndpoints.forEach { exchange ->
+        concurrent {
+            val dataChannel = exchange.subscribe()
+            concurrent {
+                while (true) {
+                    val message = dataChannel.receive()
+                    if (debugMode) println(message)
+                    else orderKafkaProducer.send(OrdersUpdateProducerRecord(message.ordersBatch))
                 }
             }
         }

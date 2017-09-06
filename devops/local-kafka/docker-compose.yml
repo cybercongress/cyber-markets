@@ -1,0 +1,36 @@
+---
+
+version: '2'
+services:
+
+  # port - 2181
+  zookeeper:
+    image: confluentinc/cp-zookeeper:3.3.0
+    network_mode: host
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+
+
+  kafka:
+    image: confluentinc/cp-kafka:3.3.0
+    network_mode: host
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 0
+      KAFKA_ZOOKEEPER_CONNECT: localhost:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 19192
+      KAFKA_JMX_HOSTNAME: localhost
+
+
+  # port - 9000
+  kafka_manager:
+    network_mode: host
+    image: sheepkiller/kafka-manager
+    environment:
+      ZK_HOSTS: localhost:2181
+      APPLICATION_SECRET: "random_secret"

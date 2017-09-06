@@ -1,8 +1,8 @@
 package fund.cyber.markets.exchanges.poloniex
 
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
-import fund.cyber.markets.connectors.common.TradesAndOrdersUpdatesMessage
-import fund.cyber.markets.connectors.poloniex.PoloniexMessageParser
+import fund.cyber.markets.connectors.common.TradesUpdatesMessage
+import fund.cyber.markets.connectors.poloniex.PoloniexTradesMessageParser
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
@@ -29,12 +29,12 @@ class PoloniexMessageParserTest {
         ]"""
 
         val tokensPair = TokensPair("BTC", "ETH")
-        val channelIdForTokensPairs = mapOf(Pair(129, tokensPair))
-        val messageParser = PoloniexMessageParser(channelIdForTokensPairs)
+        val channelIdForTokensPairs = mapOf(Pair("129", tokensPair))
+        val messageParser = PoloniexTradesMessageParser(channelIdForTokensPairs)
 
         val exchangeMessage = messageParser.parseMessage(message)
-        Assertions.assertTrue(exchangeMessage is TradesAndOrdersUpdatesMessage)
-        Assertions.assertTrue((exchangeMessage as TradesAndOrdersUpdatesMessage).trades.size == 2)
+        Assertions.assertTrue(exchangeMessage is TradesUpdatesMessage)
+        Assertions.assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 2)
 
         val firstTrade = Trade(
                 tradeId = "126320", exchange = "Poloniex", type = TradeType.BUY,
@@ -57,7 +57,7 @@ class PoloniexMessageParserTest {
     fun testParseMessageWithUnknownTokensPair() {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
-        val messageParser = PoloniexMessageParser(emptyMap())
+        val messageParser = PoloniexTradesMessageParser(emptyMap())
 
         val exchangeMessage = messageParser.parseMessage(message)
         Assertions.assertTrue(exchangeMessage is ContainingUnknownTokensPairMessage)
