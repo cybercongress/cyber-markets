@@ -14,15 +14,23 @@ curl -XPUT 'http://localhost:9200/blockchains/_mapping/ethereum' -d '{
         }
 }'
 
+curl -XPUT 'http://localhost:9200/blockchains/_mapping/bitcoin' -d '{
+        "bitcoin" : {
+            "properties" : {
+              "rawblock" : { "type" : "string", "index" : "analyzed","cql_collection" : "singleton"}
+            }
+        }
+}'
+
 
 # search
-curl -XGET 'http://localhost:9200/blockchains/ethereum/1'
+curl -XGET 'http://localhost:9200/blockchains/ethereum/1';
 curl -XGET 'http://localhost:9200/blockchains/_mapping/ethereum?pretty=true'
 
-curl -XGET 'localhost:9200/blockchains/_search?pretty'-H 'Content-Type: application/json' -d '{
+curl -XGET 'localhost:9200/blockchains/_search?pretty' -H 'Content-Type: application/json' -d '{
   "query": {
     "match": {
-      "rawblock": "0x62e4bacc5efb0941bf8784e431746b95b14a700eb7b1ecc81679e4b496b3fe3c"
+      "rawblock": "ehtereum 00000000a5ae2c2c8b85706a041592fd81b9d3f4f56e8e760999003bd1eaed93"
     }
   }
 }'
