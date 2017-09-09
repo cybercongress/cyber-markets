@@ -17,7 +17,7 @@
 version: '3.3'
 services:
 
-  elassandra-1:
+  elassandra:
     image: strapdata/elassandra:2.4.5.5
     volumes:
       - /opt/cyberfund/elassandra-1:/var/lib/cassandra
@@ -26,16 +26,5 @@ services:
         - "9200:9200"
         - "7199:7199"
     environment:
-          CASSANDRA_DC: PRODUCTION
+          CASSANDRA_DC: LOCAL_DEVELOPMENT
           CASSANDRA_CLUSTER_NAME: CYBERNODE
-
-  elassandra-2:
-    image: strapdata/elassandra:2.4.5.5
-    volumes:
-      - /opt/cyberfund/elassandra-2:/var/lib/cassandra
-    environment:
-          CASSANDRA_DC: PRODUCTION
-          CASSANDRA_CLUSTER_NAME: CYBERNODE
-          CASSANDRA_SEEDS: elassandra-1
-    links:
-      - elassandra-1
