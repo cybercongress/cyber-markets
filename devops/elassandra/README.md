@@ -29,7 +29,7 @@ nodetool status
 
 Dive into elassandra docker container shell
 ```bash
-docker exec -it elassandra_elassandra_1 bash
+docker exec -it cyber_markets_elassandra_dev bash
 ```
 
 

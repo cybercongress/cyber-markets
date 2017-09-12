@@ -18,9 +18,10 @@ version: '3.3'
 services:
 
   elassandra:
+    container_name: cyber_markets_elassandra_dev
     image: strapdata/elassandra:2.4.5.5
     volumes:
-      - /opt/cyberfund/elassandra-1:/var/lib/cassandra
+      - /opt/cyberfund/markets/elassandra:/var/lib/cassandra
     ports:
         - "9042:9042"
         - "9200:9200"
