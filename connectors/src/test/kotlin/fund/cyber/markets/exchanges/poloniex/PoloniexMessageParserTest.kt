@@ -37,16 +37,24 @@ class PoloniexMessageParserTest {
         Assertions.assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 2)
 
         val firstTrade = Trade(
-                tradeId = "126320", exchange = "Poloniex", type = TradeType.BUY,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                baseAmount = BigDecimal("399377.76875000"), quoteAmount = BigDecimal("13.2912921440000000"),
-                spotPrice = BigDecimal("0.00003328"), timestamp = 1499708547
+                tradeId = "126320",
+                exchange = "Poloniex",
+                timestamp = 1499708547,
+                type = TradeType.BUY,
+                baseAmount = BigDecimal("399377.76875000"),
+                quoteAmount = BigDecimal("13.2912921440000000"),
+                spotPrice = BigDecimal("0.00003328"),
+                tokensPair = tokensPair
         )
         val secondTrade = Trade(
-                tradeId = "126321", exchange = "Poloniex", type = TradeType.SELL,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                baseAmount = BigDecimal("2.76875000"), quoteAmount = BigDecimal("0.0006458940000000"),
-                spotPrice = BigDecimal("0.00023328"), timestamp = 1499708549
+                tradeId = "126321",
+                exchange = "Poloniex",
+                timestamp = 1499708549,
+                type = TradeType.SELL,
+                baseAmount = BigDecimal("2.76875000"),
+                quoteAmount = BigDecimal("0.0006458940000000"),
+                spotPrice = BigDecimal("0.00023328"),
+                tokensPair = tokensPair
         )
         Assertions.assertEquals(firstTrade, exchangeMessage.trades[0])
         Assertions.assertEquals(secondTrade, exchangeMessage.trades[1])

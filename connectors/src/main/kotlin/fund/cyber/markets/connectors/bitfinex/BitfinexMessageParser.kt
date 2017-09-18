@@ -52,10 +52,14 @@ class BitfinexTradesMessageParser(
         baseAmount = baseAmount.abs()
 
         val trades = Collections.singletonList(Trade(
-                tradeId = tradeNode[0].asText(), exchange = Exchanges.bitfinex,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                type = tradeType, timestamp = tradeNode[1].asLong().div(1000),
-                baseAmount = baseAmount, quoteAmount = rate * baseAmount, spotPrice = rate
+                tradeId = tradeNode[0].asText(),
+                exchange = Exchanges.bitfinex,
+                timestamp = tradeNode[1].asLong().div(1000),
+                type = tradeType,
+                baseAmount = baseAmount,
+                quoteAmount = rate * baseAmount,
+                spotPrice = rate,
+                tokensPair = tokensPair
         ))
 
         return TradesUpdatesMessage(trades)

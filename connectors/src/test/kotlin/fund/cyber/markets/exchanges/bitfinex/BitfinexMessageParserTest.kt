@@ -31,10 +31,14 @@ class BitfinexMessageParserTest {
         assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 1)
 
         val trade = Trade(
-                tradeId = "43334639", exchange = "Bitfinex", type = SELL,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                baseAmount = BigDecimal("0.01293103"), quoteAmount = BigDecimal("0.01293103") * BigDecimal("2320"),
-                spotPrice = BigDecimal("2320"), timestamp = 1499972199
+                tradeId = "43334639",
+                exchange = "Bitfinex",
+                timestamp = 1499972199,
+                type = SELL,
+                baseAmount = BigDecimal("0.01293103"),
+                quoteAmount = BigDecimal("0.01293103") * BigDecimal("2320"),
+                spotPrice = BigDecimal("2320"),
+                tokensPair = tokensPair
         )
         assertEquals(trade, exchangeMessage.trades[0])
     }

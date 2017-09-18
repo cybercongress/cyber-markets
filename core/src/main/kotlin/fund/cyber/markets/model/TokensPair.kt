@@ -4,6 +4,7 @@ open class TokensPair(firstCurrency: String, secondCurrency: String) {
 
     val base: String
     val quote: String
+    var reverted: Boolean = false
     var fiatDictionary = listOf(
             "USD", "EUR", "GBP"
     )
@@ -26,6 +27,7 @@ open class TokensPair(firstCurrency: String, secondCurrency: String) {
             if (firstImportance < secondImportance) {
                 this.base = secondCurrency
                 this.quote = firstCurrency
+                this.reverted =  true
             } else {
                 this.base = firstCurrency
                 this.quote = secondCurrency
@@ -34,6 +36,7 @@ open class TokensPair(firstCurrency: String, secondCurrency: String) {
             if (firstImportance >= 0) {
                 this.base = secondCurrency
                 this.quote = firstCurrency
+                this.reverted =  true
             } else {
                 this.base = firstCurrency
                 this.quote = secondCurrency
@@ -45,6 +48,7 @@ open class TokensPair(firstCurrency: String, secondCurrency: String) {
             } else {
                 this.base = secondCurrency
                 this.quote = firstCurrency
+                this.reverted =  true
             }
         }
     }
