@@ -31,17 +31,37 @@ class HitBtcTradesMessageParser(
 
         val trades = node["trade"].toList()
                 .map { tradeNode ->
-                    val baseAmount = BigDecimal(tradeNode["size"].asText()).multiply(tokensPair.lotSize)
-                    val spotPrice = BigDecimal(tradeNode["price"].asText())
+                    var baseAmount = BigDecimal(tradeNode["size"].asText()).multiply(tokensPair.lotSize)
+                    var spotPrice = BigDecimal(tradeNode["price"].asText())
+                    var type = TradeType.valueOf(tradeNode["side"].asText().toUpperCase())
+                    var quoteAmount = spotPrice * baseAmount
+
+                    if(tokensPair.reverted){
+                        var temporaryAmount = quoteAmount
+                        quoteAmount = baseAmount
+                        baseAmount = temporaryAmount
+                        spotPrice = quoteAmount / baseAmount
+                        type = findType(type)
+                    }
                     Trade(
                             tradeId = tradeNode["tradeId"].asText(), exchange = Exchanges.hitbtc,
                             baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                            type = TradeType.valueOf(tradeNode["side"].asText().toUpperCase()),
-                            baseAmount = baseAmount, quoteAmount = spotPrice * baseAmount,
-                            spotPrice = spotPrice, timestamp = timestamp
+                            type = type,
+                            baseAmount = baseAmount,
+                            quoteAmount = quoteAmount,
+                            spotPrice = spotPrice,
+                            timestamp = timestamp
                     )
                 }
         return TradesUpdatesMessage(trades)
+    }
+
+    private fun findType(type: TradeType) : TradeType {
+        return when (type){
+            TradeType.BUY -> TradeType.SELL
+            TradeType.SELL -> TradeType.BUY
+            else -> type
+        }
     }
 
 }

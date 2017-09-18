@@ -4,14 +4,35 @@ open class TokensPair(firstCurrency: String, secondCurrency: String) {
 
     val base: String
     val quote: String
+    var dictionary = listOf("BTC", "ETH", "XMR", "USD")
 
     init {
-        if(firstCurrency.compareTo(secondCurrency,true) < 0) {
-            this.base = firstCurrency
-            this.quote = secondCurrency
+        val firstImportance = dictionary.indexOf(firstCurrency)
+        val secondImportance = dictionary.indexOf(secondCurrency)
+        if (firstImportance >= 0 && secondImportance >= 0) {
+            if (firstImportance < secondImportance) {
+                this.base = firstCurrency
+                this.quote = secondCurrency
+            } else {
+                this.base = secondCurrency
+                this.quote = firstCurrency
+            }
+        } else if (firstImportance >= 0 || secondImportance >= 0) {
+            if (firstImportance >= 0) {
+                this.base = firstCurrency
+                this.quote = secondCurrency
+            } else {
+                this.base = secondCurrency
+                this.quote = firstCurrency
+            }
         } else {
-            this.base = secondCurrency
-            this.quote = firstCurrency
+            if (firstCurrency.compareTo(secondCurrency, true) < 0) {
+                this.base = firstCurrency
+                this.quote = secondCurrency
+            } else {
+                this.base = secondCurrency
+                this.quote = firstCurrency
+            }
         }
     }
 
