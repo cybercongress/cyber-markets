@@ -41,12 +41,17 @@ class PoloniexTradesMessageParser(
     private fun parseTrade(node: JsonNode, tokensPair: TokensPair): Trade {
         val spotPrice = BigDecimal(node[3].asText())
         val baseAmount = BigDecimal(node[4].asText())
+        val quoteAmount = spotPrice * baseAmount
+        val type = if (node[2].asInt() == 0) SELL else BUY
         return Trade (
-                tradeId = node[1].asText(), exchange = Exchanges.poloniex,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                type = if (node[2].asInt() == 0) SELL else BUY,
-                baseAmount = baseAmount, quoteAmount = spotPrice * baseAmount,
-                spotPrice = spotPrice, timestamp = node[5].asLong()
+                tradeId = node[1].asText(),
+                exchange = Exchanges.poloniex,
+                timestamp = node[5].asLong(),
+                type = type,
+                baseAmount = baseAmount,
+                quoteAmount = quoteAmount,
+                spotPrice = spotPrice,
+                tokensPair = tokensPair
         )
     }
 }

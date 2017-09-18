@@ -31,26 +31,19 @@ class HitBtcTradesMessageParser(
 
         val trades = node["trade"].toList()
                 .map { tradeNode ->
-                    var baseAmount = BigDecimal(tradeNode["size"].asText()).multiply(tokensPair.lotSize)
-                    var spotPrice = BigDecimal(tradeNode["price"].asText())
-                    var type = TradeType.valueOf(tradeNode["side"].asText().toUpperCase())
-                    var quoteAmount = spotPrice * baseAmount
-
-                    if(tokensPair.reverted){
-                        var temporaryAmount = quoteAmount
-                        quoteAmount = baseAmount
-                        baseAmount = temporaryAmount
-                        spotPrice = quoteAmount / baseAmount
-                        type = findType(type)
-                    }
+                    val baseAmount = BigDecimal(tradeNode["size"].asText()).multiply(tokensPair.lotSize)
+                    val spotPrice = BigDecimal(tradeNode["price"].asText())
+                    val type = TradeType.valueOf(tradeNode["side"].asText().toUpperCase())
+                    val quoteAmount = spotPrice * baseAmount
                     Trade(
-                            tradeId = tradeNode["tradeId"].asText(), exchange = Exchanges.hitbtc,
-                            baseToken = tokensPair.base, quoteToken = tokensPair.quote,
+                            tradeId = tradeNode["tradeId"].asText(),
+                            exchange = Exchanges.hitbtc,
+                            timestamp = timestamp,
                             type = type,
                             baseAmount = baseAmount,
                             quoteAmount = quoteAmount,
                             spotPrice = spotPrice,
-                            timestamp = timestamp
+                            tokensPair = tokensPair
                     )
                 }
         return TradesUpdatesMessage(trades)
