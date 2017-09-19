@@ -24,16 +24,12 @@ class HitBtcPairsProvider: PairsProvider {
     }
 
     private fun hitBtcTokensPair(symbolInfo: JsonNode): HitBtcTokensPair {
-        val jsonBase = symbolInfo["commodity"].asText()
-        val jsonQuote = symbolInfo["currency"].asText()
-        val tokensPair = TokensPair(jsonBase, jsonQuote)
         val result = HitBtcTokensPair(
-                base = tokensPair.base,
-                quote = tokensPair.quote,
+                base = symbolInfo["commodity"].asText(),
+                quote = symbolInfo["currency"].asText(),
                 symbol = symbolInfo["symbol"].asText(),
                 lotSize = BigDecimal(symbolInfo["lot"].asText()),
-                priceStep = BigDecimal(symbolInfo["step"].asText()),
-                reverted = tokensPair.reverted
+                priceStep = BigDecimal(symbolInfo["step"].asText())
         )
         return result
     }

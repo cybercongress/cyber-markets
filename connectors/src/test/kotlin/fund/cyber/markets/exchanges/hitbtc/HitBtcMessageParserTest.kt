@@ -51,8 +51,7 @@ class HitBtcMessageParserTest {
                 quote = "BTC",
                 symbol = "LTCBTC",
                 lotSize = BigDecimal("0.1"),
-                priceStep = BigDecimal("0.00001"),
-                reverted = false
+                priceStep = BigDecimal("0.00001")
         )
 
         val channelSymbolForTokensPair = mapOf(Pair(tokensPair.symbol, tokensPair))
