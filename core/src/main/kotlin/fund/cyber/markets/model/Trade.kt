@@ -45,4 +45,9 @@ open class Trade(
             else -> type
         }
     }
+
+    override fun toString(): String {
+        return "Trade(tradeId='$tradeId', exchange='$exchange', timestamp=$timestamp, baseToken='$baseToken', quoteToken='$quoteToken', type=$type, baseAmount=$baseAmount, quoteAmount=$quoteAmount, spotPrice=$spotPrice, reverted=$reverted)"
+    }
+
 }
