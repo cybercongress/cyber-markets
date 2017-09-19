@@ -35,7 +35,7 @@ class HitBtcTradesMessageParser(
                     val spotPrice = BigDecimal(tradeNode["price"].asText())
                     val type = TradeType.valueOf(tradeNode["side"].asText().toUpperCase())
                     val quoteAmount = spotPrice * baseAmount
-                    Trade(
+                    Trade.of(
                             tradeId = tradeNode["tradeId"].asText(),
                             exchange = Exchanges.hitbtc,
                             timestamp = timestamp,

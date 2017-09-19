@@ -62,7 +62,7 @@ class HitBtcMessageParserTest {
         Assertions.assertTrue(exchangeMessage is TradesUpdatesMessage)
         Assertions.assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 2)
 
-        val firstTrade = Trade(
+        val firstTrade = Trade.of(
                 tradeId = "12987994",
                 exchange = "HitBtc",
                 timestamp = 1500048731,
@@ -72,7 +72,7 @@ class HitBtcMessageParserTest {
                 spotPrice = BigDecimal("0.00020699"),
                 tokensPair = tokensPair
         )
-        val secondTrade = Trade(
+        val secondTrade = Trade.of(
                 tradeId = "12987997",
                 exchange = "HitBtc",
                 timestamp = 1500048731,

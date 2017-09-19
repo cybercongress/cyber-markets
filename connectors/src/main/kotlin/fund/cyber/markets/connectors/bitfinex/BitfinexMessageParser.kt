@@ -51,7 +51,7 @@ class BitfinexTradesMessageParser(
         val tradeType = if (baseAmount.signum() > 0) BUY else SELL
         baseAmount = baseAmount.abs()
 
-        val trades = Collections.singletonList(Trade(
+        val trades = Collections.singletonList(Trade.of(
                 tradeId = tradeNode[0].asText(),
                 exchange = Exchanges.bitfinex,
                 timestamp = tradeNode[1].asLong().div(1000),

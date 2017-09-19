@@ -43,7 +43,7 @@ class PoloniexTradesMessageParser(
         val baseAmount = BigDecimal(node[4].asText())
         val quoteAmount = spotPrice * baseAmount
         val type = if (node[2].asInt() == 0) SELL else BUY
-        return Trade (
+        return Trade.of(
                 tradeId = node[1].asText(),
                 exchange = Exchanges.poloniex,
                 timestamp = node[5].asLong(),
