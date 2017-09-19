@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trades Test</title>
+    <style>
+        .error {
+            color: red
+        }
+    </style>
+    <script type="text/javascript">
+        let websockets;
+
+        window.onload = function () {
+            websockets = new WebSocket("ws://localhost:8082/");
+
+            websockets.onmessage = function (event) {
+                document.body.innerHTML += `<div>${event.data}</div>`;
+                window.scrollTo(0, document.body.scrollHeight);
+            };
+
+            websockets.onclose = function (event) {
+                let message = event.code;
+                if (event.code === 1006) {
+                    message = "The connection was closed abnormally, e.g., without sending or receiving a Close control frame"
+                }
+                document.body.innerHTML += `<div class="error">Error: ${message}</div>`;
+            };
+        };
+
+        function send() {
+            websockets.send(`{"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}`);
+        }
+        function send1() {
+            websockets.send(`{"subscribe":"trades","exchanges":["Poloniex","HitBtc"]}`);
+        }
+        function send2() {
+            websockets.send(`{"subscribe":"trades","exchanges":["Poloniex","HitBtc"],"pairs":["BTC_ETH","ETH_USD"]}`);
+        }
+        function send3() {
+            websockets.send(`{"subscribe":"trades"}`);
+        }
+        function send4() {
+            websockets.send(`{"get":"pairs"}`);
+        }
+        function send5() {
+            websockets.send(`{"get":"exchanges"}`);
+        }
+    </script>
+</head>
+<body>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe pairs" onclick="send()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe exchanges" onclick="send1()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe pairs & exchencges" onclick="send2()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe all" onclick="send3()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Get pairs" onclick="send4()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Get exchanges with pairs" onclick="send5()"/>
+</form>
+</body>
+</html>

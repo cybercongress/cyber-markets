@@ -1,9 +1,58 @@
 package fund.cyber.markets.model
 
-open class TokensPair(
-        val base: String,
-        val quote: String
-) {
+open class TokensPair(firstCurrency: String, secondCurrency: String) {
+
+    val base: String
+    val quote: String
+    var reverted: Boolean = false
+    var fiatDictionary = listOf(
+            "USD", "EUR", "GBP"
+    )
+    var backedCryptoDictionary = listOf(
+            "USDT"
+    )
+    var cryptoDictionary = listOf(
+            "BTC", "ETH", "XMR"
+    )
+
+    init {
+        val fullDictionary = ArrayList(fiatDictionary)
+        fullDictionary.addAll(backedCryptoDictionary)
+        fullDictionary.addAll(cryptoDictionary)
+
+        val firstImportance = fullDictionary.indexOf(firstCurrency)
+        val secondImportance = fullDictionary.indexOf(secondCurrency)
+
+        if (firstImportance >= 0 && secondImportance >= 0) {
+            if (firstImportance < secondImportance) {
+                this.base = secondCurrency
+                this.quote = firstCurrency
+                this.reverted =  true
+            } else {
+                this.base = firstCurrency
+                this.quote = secondCurrency
+            }
+        } else if (firstImportance >= 0 || secondImportance >= 0) {
+            if (firstImportance >= 0) {
+                this.base = secondCurrency
+                this.quote = firstCurrency
+                this.reverted =  true
+            } else {
+                this.base = firstCurrency
+                this.quote = secondCurrency
+            }
+        } else {
+            if (firstCurrency.compareTo(secondCurrency, true) < 0) {
+                this.base = firstCurrency
+                this.quote = secondCurrency
+            } else {
+                this.base = secondCurrency
+                this.quote = firstCurrency
+                this.reverted =  true
+            }
+        }
+    }
+
     fun label(delimiter: String = "/"): String {
         return base + delimiter + quote
     }
@@ -31,4 +80,5 @@ open class TokensPair(
             return TokensPair(label.substringBefore(delimiter), label.substringAfter(delimiter))
         }
     }
+
 }

@@ -8,6 +8,13 @@ defaults:
     docker:
       - image: circleci/openjdk:8-jdk
 
+  release_filter: &release_filter
+    filters:
+      tags:
+        only: /^release-.*/
+      branches:
+        ignore: /.*/
+
 
 jobs:
 
@@ -31,8 +38,7 @@ jobs:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
 
-
-  build_streams-api:
+  build_stream-api:
     <<: *default_container
     steps:
       - checkout
@@ -44,14 +50,13 @@ jobs:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
       - run:
-          name: Test and build streams-api project
-          command: ./gradlew -p ./client-api clean build
+          name: Test and build stream-api project
+          command: ./gradlew -p ./stream-api clean build
       - save_cache:
           key: api-dependencies-{{ checksum "build.gradle" }}
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
-
 
   deploy_connectors_image:
      <<: *default_container
@@ -69,24 +74,44 @@ jobs:
              docker tag build/cm-connectors cybernode/cm-connectors:latest
              docker push cybernode/cm-connectors:latest
 
+  deploy_stream-api_image:
+     <<: *default_container
+     steps:
+       - checkout
+       - setup_remote_docker:
+           version: 17.05.0-ce
+       - run:
+           name: Build stream-api docker image
+           command: |
+             docker build -t build/cm-stream-api -f ./devops/stream-api/Dockerfile ./
+             docker login -u $DOCKER_USER -p $DOCKER_PASS
+             docker tag build/cm-stream-api cybernode/cm-stream-api:$CIRCLE_TAG
+             docker push cybernode/cm-stream-api:$CIRCLE_TAG
+             docker tag build/cm-stream-api cybernode/cm-stream-api:latest
+             docker push cybernode/cm-stream-api:latest
+
 
 workflows:
   version: 2
+
   connectors_build:
     jobs:
       - build_connectors:
           filters:
             tags:
               only: /.*/
-      - approve_deploy_docker_image:
-          type: approval
-          filters:
-            tags:
-              only: /^release-.*/
-            branches:
-              ignore: /.*/
+      - deploy_connectors_image:
+          <<: *release_filter
           requires:
             - build_connectors
-      - deploy_connectors_image:
+
+  stream-api_build:
+    jobs:
+      - build_stream-api:
+          filters:
+            tags:
+              only: /.*/
+      - deploy_stream-api_image:
+          <<: *release_filter
           requires:
-            - approve_deploy_docker_image
+            - build_stream-api

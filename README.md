@@ -1,4 +1,5 @@
-# Cyber Markets [![Travis CI Build Status Badge](https://api.travis-ci.org/cyberFund/cyber-markets.svg?branch=development)](https://travis-ci.org/cyberFund/cyber-markets)
+# Cyber Markets [![CircleCI](https://img.shields.io/circleci/project/github/cyberFund/cyber-markets.svg)](https://circleci.com/gh/cyberFund/cyber-markets)
+
 🚀 [KR] Crawler for cryptoasset's markets
 
 ## Quick Start

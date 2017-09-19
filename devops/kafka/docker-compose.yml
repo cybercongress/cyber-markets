@@ -1,0 +1,58 @@
+---
+
+version: '3.3'
+services:
+
+
+  zoo:
+    container_name: cyber_markets_zoo_dev
+    image: confluentinc/cp-zookeeper:3.3.0
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_CLIENT_PORT: 2181
+      KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
+    volumes:
+      - /opt/cyberfund/markets/zoo/data:/var/lib/zookeeper/data
+      - /opt/cyberfund/markets/zoo/log:/var/lib/zookeeper/log
+
+
+  kafka:
+    container_name: cyber_markets_kafka_dev
+    image: confluentinc/cp-kafka:3.3.0
+    ports:
+      - "9092:9092"
+      - "1099:1099"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zoo:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_JMX_PORT: 1099
+      KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
+    volumes:
+      - /opt/cyberfund/markets/kafka/data:/var/lib/kafka/data
+
+
+  kafka_manager:
+    container_name: cyber_markets_kafka_manager
+    image: hlebalbau/kafka-manager:1.3.3.13
+    ports:
+      - "9000:9000"
+    environment:
+      ZK_HOSTS: "zoo:2181"
+      APPLICATION_SECRET: "random-secret"
+    command: -Dpidfile.path=/dev/null
+
+
+  fast-data-dev:
+    container_name: cyber_markets_fast_data_dev
+    image: landoop/fast-data-dev:cp3.3.0
+    ports:
+      - "3030:3030"
+    environment:
+       WEB_ONLY: 1
+       RUNTESTS: 0
+       SAMPLEDATA: 0
+       FORWARDLOGS: 0

@@ -1,0 +1,1 @@
+CREATE KEYSPACE markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','LOCAL_DEVELOPMENT' : 1};

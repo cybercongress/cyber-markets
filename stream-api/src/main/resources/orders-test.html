@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Orders Test</title>
+    <style>
+        .error {
+            color: red
+        }
+    </style>
+    <script type="text/javascript">
+        let websockets;
+
+        window.onload = function () {
+            websockets = new WebSocket("ws://localhost:8082/");
+
+            websockets.onmessage = function (event) {
+                let parsedData = JSON.parse(event.data);
+                parsedData.forEach(function (item) {
+                    let price = item["spotPrice"];
+                    let amount = item["amount"];
+                    let exchange = item["exchange"];
+                    if(amount !== 0) {
+                        let elem = document.getElementById(price);
+                        if(elem) {
+                            elem.innerHTML = `<div id="${exchange}-${price}">${exchange}-${price}-${amount}</div>`
+                        } else {
+                            document.body.innerHTML += `<div id="${exchange}-${price}">${exchange}-${price}-${amount}</div>`;
+                        }
+                    } else {
+                        let elem = document.getElementById(`${exchange}-${price}`);
+                        if(elem) {
+                            elem.innerHTML = ''
+                        }
+                    }
+                });
+                window.scrollTo(0, document.body.scrollHeight);
+            };
+
+            websockets.onclose = function (event) {
+                let message = event.code;
+                if (event.code === 1006) {
+                    message = "The connection was closed abnormally, e.g., without sending or receiving a Close control frame"
+                }
+                document.body.innerHTML += `<div class="error">Error: ${message}</div>`;
+            };
+        };
+
+        function send() {
+            websockets.send(`{"subscribe":"orders","pairs":["BTC_ETH","ETH_BTC"]}`);
+        }
+    </script>
+</head>
+<body>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe pairs" onclick="send()"/>
+</form>
+</body>
+</html>

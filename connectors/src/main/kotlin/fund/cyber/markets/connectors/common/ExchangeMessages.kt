@@ -1,5 +1,7 @@
 package fund.cyber.markets.connectors.common
 
+import fund.cyber.markets.model.Order
+import fund.cyber.markets.model.OrdersBatch
 import fund.cyber.markets.model.Trade
 
 
@@ -28,8 +30,20 @@ open class ContainingUnknownTokensPairMessage(
 /**
  * Represents trades and orders updates received from exchange.
  */
-data class TradesAndOrdersUpdatesMessage(
+data class TradesUpdatesMessage(
         val trades: List<Trade> = ArrayList()
 ) : ExchangeMessage()
 
+enum class OrdersUpdateType {
+    FULL_ORDER_BOOK, COMMON
+}
 
+data class OrdersUpdatesMessage(
+        val type: OrdersUpdateType,
+        val baseToken: String,
+        val exchange: String,
+        val quoteToken: String,
+        val orders: List<Order> = ArrayList()
+) : ExchangeMessage() {
+    val ordersBatch = OrdersBatch(baseToken, exchange, quoteToken, orders)
+}

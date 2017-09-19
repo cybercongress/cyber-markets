@@ -26,3 +26,5 @@ inline fun <reified T : Any> env(name: String, default: T): T =
         Boolean::class, Boolean::class.javaPrimitiveType -> (System.getenv(name).toBoolean()) as T
         else -> default
     }
+
+fun rand(from: Int, to: Int) = (Math.random() * (to - from) + from).toInt()

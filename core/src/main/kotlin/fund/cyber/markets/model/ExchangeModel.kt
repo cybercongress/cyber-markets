@@ -10,16 +10,24 @@ enum class TradeType {
     UNKNOWN
 }
 
-data class Trade (
+enum class OrderType {
+    SELL,
+    BUY,
+    UNKNOWN
+}
 
-        //some markets get crazy id (ex: kraken - 1499515072.2199)
-        val tradeId: String,
+data class Order (
+        val type: OrderType,
         val exchange: String,
-        val timestamp: Long,
-        val type: TradeType,
         val baseToken: String,
         val quoteToken: String,
-        val baseAmount: BigDecimal,
-        val quoteAmount: BigDecimal,
-        val spotPrice: BigDecimal
+        val spotPrice: BigDecimal,
+        val amount: BigDecimal
+)
+
+data class OrdersBatch (
+        val baseToken: String,
+        val exchange: String,
+        val quoteToken: String,
+        val orders: List<Order> = ArrayList()
 )
