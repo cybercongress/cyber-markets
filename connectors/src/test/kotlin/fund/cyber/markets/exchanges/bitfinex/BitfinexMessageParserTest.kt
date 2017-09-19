@@ -30,7 +30,7 @@ class BitfinexMessageParserTest {
         assertTrue(exchangeMessage is TradesUpdatesMessage)
         assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 1)
 
-        val trade = Trade(
+        val trade = Trade.of(
                 tradeId = "43334639",
                 exchange = "Bitfinex",
                 timestamp = 1499972199,

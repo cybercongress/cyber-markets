@@ -36,7 +36,7 @@ class PoloniexMessageParserTest {
         Assertions.assertTrue(exchangeMessage is TradesUpdatesMessage)
         Assertions.assertTrue((exchangeMessage as TradesUpdatesMessage).trades.size == 2)
 
-        val firstTrade = Trade(
+        val firstTrade = Trade.of(
                 tradeId = "126320",
                 exchange = "Poloniex",
                 timestamp = 1499708547,
@@ -46,7 +46,7 @@ class PoloniexMessageParserTest {
                 spotPrice = BigDecimal("0.00003328"),
                 tokensPair = tokensPair
         )
-        val secondTrade = Trade(
+        val secondTrade = Trade.of(
                 tradeId = "126321",
                 exchange = "Poloniex",
                 timestamp = 1499708549,

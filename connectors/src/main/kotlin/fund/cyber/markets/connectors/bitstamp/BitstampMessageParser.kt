@@ -28,7 +28,7 @@ class BitstampTradesMessageParser(
         val rate = BigDecimal(tradeNode["price"].asText())
         val baseAmount = BigDecimal(tradeNode["amount"].asText())
         val tradeType = if (tradeNode["type"].asInt() == 0) TradeType.BUY else TradeType.SELL
-        return Trade(
+        return Trade.of(
                 tradeId = tradeNode["id"].asText(),
                 exchange = Exchanges.bitstamp,
                 timestamp = tradeNode["timestamp"].asLong() / 1000,
