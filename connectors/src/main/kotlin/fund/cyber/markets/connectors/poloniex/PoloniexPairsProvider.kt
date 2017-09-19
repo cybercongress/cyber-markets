@@ -8,7 +8,7 @@ import fund.cyber.markets.model.TokensPair
 import okhttp3.Request
 
 
-class PoloniexPairsProvider: PairsProvider {
+class PoloniexPairsProvider : PairsProvider {
 
     private val tickerRequest = Request.Builder().url("https://poloniex.com/public?command=returnTicker").build()!!
 
@@ -19,7 +19,8 @@ class PoloniexPairsProvider: PairsProvider {
         val pairsTickers = jsonParser.readTree(response.body()?.string())
 
         pairsTickers.fields().forEach { pairTicker ->
-            result.put(pairTicker.value["id"].asText(), TokensPair.fromLabel(pairTicker.key, "_"))
+            val tokensPair = TokensPair.fromLabel(pairTicker.key, "_")
+            result.put(pairTicker.value["id"].asText(), TokensPair(tokensPair.base, tokensPair.quote))
         }
 
         return result
