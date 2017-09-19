@@ -26,3 +26,8 @@ Read logs:
 
     kubectl logs <podname>
 
+---
+
+Untested. Update to new version. Update image version tag and run:
+
+    kubectl apply -f cybermarkets.yaml
