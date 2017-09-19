@@ -2,12 +2,11 @@
 
 🚀 [KR] Crawler for cryptoasset's markets
 
-## Quick Start
-To build and run Cyber Markets from sources run following commands:
+## Quick Run
+To run Cyber Markets in console mode run following commands:
 ```bash
-git clone https://github.com/cyberFund/cyber-markets.git
-cd cyber-markets/
-./gradlew bootRun
+docker pull cybernode/cm-connectors
+docker run -e CONNECTORS_DEBUG='true' --rm cybernode/cm-connectors
 ```
 ## Wiki
 
