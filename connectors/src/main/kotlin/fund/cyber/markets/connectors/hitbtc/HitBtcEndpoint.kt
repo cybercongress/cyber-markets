@@ -10,7 +10,6 @@ class HitBtcTokensPair(
         val symbol: String,
         val lotSize: BigDecimal,
         val priceStep: BigDecimal,
-        reverted: Boolean,
         base: String,
         quote: String
 ) : TokensPair(base, quote)

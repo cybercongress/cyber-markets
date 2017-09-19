@@ -49,14 +49,6 @@ class HitBtcTradesMessageParser(
         return TradesUpdatesMessage(trades)
     }
 
-    private fun findType(type: TradeType) : TradeType {
-        return when (type){
-            TradeType.BUY -> TradeType.SELL
-            TradeType.SELL -> TradeType.BUY
-            else -> type
-        }
-    }
-
 }
 
 class HitBtcOrdersMessageParser(
