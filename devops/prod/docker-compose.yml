@@ -1,6 +1,6 @@
 ---
 
-version: '3.3'
+version: '3'
 services:
 
 
@@ -30,7 +30,7 @@ services:
       KAFKA_JMX_PORT: 1099
       KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
     volumes:
-      - /opt/cyberfund/markets/kafka/data:/var/lib/kafka/data
+      - /opt/cyberfund/markets/kafka:/var/lib/kafka
 
 
   cn-exchange-connectors:
