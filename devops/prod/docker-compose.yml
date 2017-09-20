@@ -34,14 +34,16 @@ services:
 
 
   cn-exchange-connectors:
-    image: cybernode/cm-connectors:release-0.2.3
+    image: cybernode/cm-connectors:release-0.3.0
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
 
   cn-exchange-stream-api:
-    image: cybernode/cm-stream-api:release-0.2.3
+    image: cybernode/cm-stream-api:release-0.3.0
     ports:
       - "8082:8082"
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
+    links:
+      - cn-kafka
