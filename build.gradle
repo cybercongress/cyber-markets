@@ -151,6 +151,6 @@ project(":stream-processing") {
 
         compileOnly("org.apache.kafka:kafka_2.11:$kafkaVersion")
         compileOnly("org.apache.spark:spark-streaming-kafka-0-10_2.11:$sparkVersion")
-        compileOnly("org.apache.spark:spark-sql-kafka-0-10_2.11:$sparkVersion")
+        compile("org.apache.spark:spark-sql-kafka-0-10_2.11:$sparkVersion")
     }
 }
