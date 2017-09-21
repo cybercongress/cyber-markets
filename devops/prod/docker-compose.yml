@@ -47,3 +47,6 @@ services:
       KAFKA_CONNECTION: cn-kafka:9092
     links:
       - cn-kafka
+    labels:
+      kompose.service.type: loadbalancer
+

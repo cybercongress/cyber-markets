@@ -25,6 +25,7 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.service.type: loadbalancer
       kompose.version: 1.1.0 (36652f6)
     creationTimestamp: null
     labels:
@@ -35,9 +36,9 @@ items:
     - name: "8082"
       port: 8082
       targetPort: 8082
-    type: LoadBalancer
     selector:
       io.kompose.service: cn-exchange-stream-api
+    type: LoadBalancer
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -104,7 +105,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors:release-0.2.3
+          image: cybernode/cm-connectors:release-0.3.0
           name: cn-exchange-connectors
           resources: {}
         restartPolicy: Always
@@ -114,6 +115,7 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.service.type: loadbalancer
       kompose.version: 1.1.0 (36652f6)
     creationTimestamp: null
     labels:
@@ -132,7 +134,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-stream-api:release-0.2.3
+          image: cybernode/cm-stream-api:release-0.3.0
           name: cn-exchange-stream-api
           ports:
           - containerPort: 8082
