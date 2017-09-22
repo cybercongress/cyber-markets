@@ -25,7 +25,7 @@ services:
       - "9092:9092"
       - "1099:1099"
     environment:
-      KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_ID: 0
       KAFKA_ZOOKEEPER_CONNECT: zoo:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
@@ -46,13 +46,51 @@ services:
     command: -Dpidfile.path=/dev/null
 
 
-  fast-data-dev:
-    container_name: cyber_markets_fast_data_dev
-    image: landoop/fast-data-dev:cp3.3.0
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:3.3.0
     ports:
-      - "3030:3030"
+      - "8083:8083"
     environment:
-       WEB_ONLY: 1
-       RUNTESTS: 0
-       SAMPLEDATA: 0
-       FORWARDLOGS: 0
+
+      CONNECT_REST_ADVERTISED_HOST_NAME: "localhost"
+      CONNECT_REST_ADVERTISED_PORT: "8083"
+      CONNECT_REST_PORT: 8083
+
+
+      CONNECT_PLUGIN_PATH: /etc/kafka-connect/custom-plugins
+
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_ZOOKEEPER_CONNECT: zoo:2181
+
+      CONNECT_GROUP_ID: "cybernode"
+      CONNECT_CONFIG_STORAGE_TOPIC: "cybernode.config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "cybernode.offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "cybernode.status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 5000
+
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+
+      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
+      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
+
+      CONNECT_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+      CONNECT_ACCESS_CONTROL_ALLOW_METHODS: 'GET,OPTIONS,HEAD,POST,PUT,DELETE'
+    volumes:
+      - /opt/cyberfund/markets/connect/plugins:/etc/kafka-connect/custom-plugins
+
+  kafka-connect-ui:
+    image: landoop/kafka-connect-ui
+    ports:
+      - "8000:8000"
+    links:
+      - kafka-connect
+    environment:
+      CONNECT_URL: "http://kafka-connect:8083"
+      PROXY: "true"

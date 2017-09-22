@@ -1,0 +1,16 @@
+connector.class=com.datamountaineer.streamreactor.connect.cassandra.sink.CassandraSinkConnector
+connect.cassandra.key.space=blockchains,markets
+topics=ethereum-source,bitcoin-source,TRADES-Poloniex
+tasks.max=1
+connect.cassandra.kcql=INSERT INTO blockchains.ethereum SELECT * FROM ethereum-source;INSERT INTO blockshains.bitcoin SELECT * FROM bitcoin-source;INSERT INTO markets.test SELECT exchange FROM TRADES-Poloniex
+connect.cassandra.fetch.size=5000
+connect.cassandra.max.retries=20
+connect.progress.enabled=false
+connect.cassandra.error.policy=noop
+connect.cassandra.contact.points=localhost
+connect.cassandra.port=9042
+connect.cassandra.threadpool.size=10
+name=CassandraSinkConnector
+connect.cassandra.retry.interval=30000
+connect.progress.enabled=true
+connect.cassandra.consistency.level=LOCAL_ONE
