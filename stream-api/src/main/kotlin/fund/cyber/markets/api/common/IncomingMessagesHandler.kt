@@ -70,6 +70,10 @@ class IncomingMessagesHandler(
 
     override fun onClose(webSocketChannel: WebSocketChannel, channel: StreamSourceFrameChannel) {
         super.onClose(webSocketChannel, channel)
+        tradesBroadcastersIndex.broadcastersFor(emptyList(), emptyList())
+                .forEach { broadcaster -> broadcaster.unregisterChannel(webSocketChannel) }
+        ordersBroadcastersIndex.broadcastersFor(emptyList(), emptyList())
+                .forEach { broadcaster -> broadcaster.unregisterChannel(webSocketChannel) }
     }
 
 }
