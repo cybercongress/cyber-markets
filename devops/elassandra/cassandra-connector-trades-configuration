@@ -1,8 +1,8 @@
 connector.class=com.datamountaineer.streamreactor.connect.cassandra.sink.CassandraSinkConnector
 connect.cassandra.key.space=markets
-topics=TRADES-Poloniex
+topics=TRADES-Poloniex,TRADES-HitBtc,TRADES-Bitfinex,TRADES-Bitstamp
 tasks.max=1
-connect.cassandra.kcql=INSERT INTO trade SELECT * FROM TRADES-Poloniex
+connect.cassandra.kcql=INSERT INTO trade SELECT * FROM TRADES-Poloniex;INSERT INTO trade SELECT * FROM TRADES-HitBtc;INSERT INTO trade SELECT * FROM TRADES-Bitfinex;INSERT INTO trade SELECT * FROM TRADES-Bitstamp
 connect.cassandra.fetch.size=5000
 connect.cassandra.max.retries=20
 connect.progress.enabled=false
