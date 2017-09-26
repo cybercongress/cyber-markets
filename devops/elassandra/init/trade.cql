@@ -1,18 +1,19 @@
 CREATE TYPE IF NOT EXISTS markets.tokenpair (
-    baseToken text,
-    quoteToken text
+    base text,
+    quote text
 );
 
 CREATE TABLE markets.trade (
     epoch_h int,
     tradeId text,
     exchange text,
-    date timestamp,
-    tradeType text,
+    timestamp timestamp,
+    type text,
     pair frozen<tokenpair>,
     baseAmount decimal,
     quoteAmount decimal,
     spotPrice decimal,
+    reverted boolean,
     PRIMARY KEY ( epoch_h, exchange, pair, tradeId)
 )
 WITH CLUSTERING ORDER BY (

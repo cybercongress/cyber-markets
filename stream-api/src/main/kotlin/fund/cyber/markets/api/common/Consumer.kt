@@ -53,7 +53,7 @@ class OrdersBatchConsumer(
             records.map { record -> record.value() }
                     .forEach { ordersBatch ->
                         val pair = TokensPair(ordersBatch.baseToken, ordersBatch.quoteToken)
-                        channelsIndex.channelFor(ordersBatch.exchange, pair).send(ordersBatch.orders)
+//                        channelsIndex.channelFor(ordersBatch.exchange, pair).send(ordersBatch.orders)
                     }
         }
     }
@@ -70,7 +70,7 @@ class TradesConsumer(
         launch(tradesSingleThreadContext) {
             records.map { record -> record.value() }
                     .forEach { trade ->
-                        val pair = TokensPair(trade.baseToken, trade.quoteToken)
+                        val pair = TokensPair(trade.pair.base, trade.pair.quote)
                         channelsIndex.channelFor(trade.exchange, pair).send(trade)
                     }
         }
