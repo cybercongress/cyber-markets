@@ -31,7 +31,7 @@ class BitstampTradesMessageParser(
         return Trade.of(
                 tradeId = tradeNode["id"].asText(),
                 exchange = Exchanges.bitstamp,
-                timestamp = tradeNode["timestamp"].asLong() / 1000,
+                timestamp = tradeNode["timestamp"].asLong(),
                 type = tradeType,
                 baseAmount = baseAmount,
                 quoteAmount = rate * baseAmount,
