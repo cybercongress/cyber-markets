@@ -19,6 +19,7 @@ class KafkaConfiguration(
             put("bootstrap.servers", kafkaServers)
             put("group.id", groupId)
             put("metadata.max.age.ms", topicResubscribe)
+            put("max.request.size", 126358200)
         }
     }
 }

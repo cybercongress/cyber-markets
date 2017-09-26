@@ -1,6 +1,8 @@
 package fund.cyber.markets.model
 
+import fund.cyber.markets.dto.TokensPairDto
 import java.math.BigDecimal
+import java.time.Instant
 
 /**
  * @author mgergalov
@@ -8,14 +10,14 @@ import java.math.BigDecimal
 data class Trade(
         val tradeId: String,
         val exchange: String,
-        val timestamp: Long,
+        val timestamp: String,
         val type: TradeType,
-        val baseToken: String,
-        val quoteToken: String,
+        val pair: TokensPairDto,
         val baseAmount: BigDecimal,
         val quoteAmount: BigDecimal,
         val spotPrice: BigDecimal,
-        val reverted: Boolean
+        val reverted: Boolean,
+        val epoch_h: Long
 ) {
 
     companion object {
@@ -43,8 +45,8 @@ data class Trade(
                 resQuoteAmount = quoteAmount
                 resSpotPrice = spotPrice
             }
-            return Trade(tradeId, exchange, timestamp, type, tokensPair.base, tokensPair.quote, resBaseAmount,
-                    resQuoteAmount, resSpotPrice, tokensPair.reverted)
+            return Trade(tradeId, exchange, Instant.ofEpochSecond(timestamp).toString(), type, TokensPairDto(tokensPair.base,tokensPair.quote),
+                    resBaseAmount, resQuoteAmount, resSpotPrice, tokensPair.reverted, timestamp/60/60)
         }
 
         private fun revertType(type: TradeType): TradeType {
