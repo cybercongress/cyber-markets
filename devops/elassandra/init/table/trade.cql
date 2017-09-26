@@ -1,8 +1,3 @@
-CREATE TYPE IF NOT EXISTS markets.tokenpair (
-    base text,
-    quote text
-);
-
 CREATE TABLE markets.trade (
     epoch_h int,
     tradeId text,
