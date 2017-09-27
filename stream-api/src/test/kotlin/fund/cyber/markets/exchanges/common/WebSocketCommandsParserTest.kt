@@ -4,7 +4,7 @@ import fund.cyber.markets.api.common.ChannelSubscriptionCommand
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType
 import fund.cyber.markets.api.common.UnknownCommand
 import fund.cyber.markets.api.common.WebSocketCommandsParser
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.model.TokensPairInitializer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -32,8 +32,8 @@ class WebSocketCommandsParserTest {
     fun testTradeSubscriptionProvided() {
 
         val pairs = listOf(
-                TokensPair.fromLabel("BTC_ETH", "_"),
-                TokensPair.fromLabel("ETH_USD", "_")
+                TokensPairInitializer.fromLabel("BTC_ETH", "_"),
+                TokensPairInitializer.fromLabel("ETH_USD", "_")
         )
 
         val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}"""
@@ -50,8 +50,8 @@ class WebSocketCommandsParserTest {
     fun testTradeSubscriptionProvidedAndInvertIsCorrect() {
 
         val pairs = listOf(
-                TokensPair.fromLabel("BTC_ETH", "_"),
-                TokensPair.fromLabel("AAA_BBB", "_")
+                TokensPairInitializer.fromLabel("BTC_ETH", "_"),
+                TokensPairInitializer.fromLabel("AAA_BBB", "_")
         )
 
         val message = """{"subscribe":"trades","pairs":["BTC_ETH","BBB_AAA"]}"""
@@ -68,7 +68,7 @@ class WebSocketCommandsParserTest {
     fun testTradeSubscriptionProvidedInvertIsCorrectAndDeleteEquals() {
 
         val pairs = listOf(
-                TokensPair.fromLabel("BTC_ETH", "_")
+                TokensPairInitializer.fromLabel("BTC_ETH", "_")
         )
 
         val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_BTC"]}"""

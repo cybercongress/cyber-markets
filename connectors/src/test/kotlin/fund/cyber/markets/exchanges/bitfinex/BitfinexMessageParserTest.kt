@@ -3,7 +3,7 @@ package fund.cyber.markets.exchanges.bitfinex
 import fund.cyber.markets.connectors.bitfinex.BitfinexTradesMessageParser
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.connectors.common.TradesUpdatesMessage
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.model.TokensPairInitializer
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.SELL
 import org.junit.jupiter.api.Assertions
@@ -21,7 +21,7 @@ class BitfinexMessageParserTest {
     fun testParseTrade() {
 
         val message = """[53,"te",[43334639,1499972199000,-0.01293103,2320]]"""
-        val tokensPair = TokensPair("BTC", "ETH")
+        val tokensPair = TokensPairInitializer("BTC", "ETH")
         val tradesChannelSymbolForTokensPair = mapOf("tBTCETH" to tokensPair)
         val tradesChannelIdForTokensPair = mapOf(53 to tokensPair)
         val messageParser = BitfinexTradesMessageParser(tradesChannelSymbolForTokensPair, tradesChannelIdForTokensPair)
@@ -38,7 +38,7 @@ class BitfinexMessageParserTest {
                 baseAmount = BigDecimal("0.01293103"),
                 quoteAmount = BigDecimal("0.01293103") * BigDecimal("2320"),
                 spotPrice = BigDecimal("2320"),
-                tokensPair = tokensPair
+                tokensPairInitializer = tokensPair
         )
         assertEquals(trade, exchangeMessage.trades[0])
     }

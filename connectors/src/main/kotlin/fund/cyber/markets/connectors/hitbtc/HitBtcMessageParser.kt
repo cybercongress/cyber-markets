@@ -10,11 +10,11 @@ import java.math.BigDecimal
 /**
  * HitBtc exchange ws messages parser.
  *
- * HitBtc sends instead of trade baseamount -> number of lots. Each {@link HitBtcTokensPair} contains lot size.
+ * HitBtc sends instead of trade baseamount -> number of lots. Each {@link HitBtcTokensPairInitializer} contains lot size.
  *
  */
 class HitBtcTradesMessageParser(
-        private val channelSymbolForTokensPair: Map<String, HitBtcTokensPair>
+        private val channelSymbolForTokensPair: Map<String, HitBtcTokensPairInitializer>
 ) : SaveExchangeMessageParser() {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
@@ -43,7 +43,7 @@ class HitBtcTradesMessageParser(
                             baseAmount = baseAmount,
                             quoteAmount = quoteAmount,
                             spotPrice = spotPrice,
-                            tokensPair = tokensPair
+                            tokensPairInitializer = tokensPair
                     )
                 }
         return TradesUpdatesMessage(trades)
@@ -52,7 +52,7 @@ class HitBtcTradesMessageParser(
 }
 
 class HitBtcOrdersMessageParser(
-        private val channelSymbolForTokensPair: Map<String, HitBtcTokensPair>
+        private val channelSymbolForTokensPair: Map<String, HitBtcTokensPairInitializer>
 ) : SaveExchangeMessageParser() {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
@@ -79,17 +79,17 @@ class HitBtcOrdersMessageParser(
 
         return OrdersUpdatesMessage(
                 type = ordersUpdateType, exchange = Exchanges.hitbtc,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
+                baseToken = tokensPair.pair.base, quoteToken = tokensPair.pair.quote,
                 orders = listOf(*asks.toTypedArray(), *bids.toTypedArray())
         )
     }
 
-    private fun parseOrder(askNode: JsonNode, tokensPair: HitBtcTokensPair, orderType: OrderType): Order {
+    private fun parseOrder(askNode: JsonNode, tokensPair: HitBtcTokensPairInitializer, orderType: OrderType): Order {
         val amount = BigDecimal(askNode["size"].asText()).multiply(tokensPair.lotSize)
         val spotPrice = BigDecimal(askNode["price"].asText())
         return Order(
                 type = orderType, exchange = Exchanges.hitbtc,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote,
+                baseToken = tokensPair.pair.base, quoteToken = tokensPair.pair.quote,
                 spotPrice = spotPrice, amount = amount
         )
     }

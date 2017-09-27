@@ -3,7 +3,7 @@ package fund.cyber.markets.connectors.common.ws
 import fund.cyber.markets.connectors.common.*
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.helpers.retryUntilSuccess
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.model.TokensPairInitializer
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.delay
 import org.slf4j.LoggerFactory
@@ -20,7 +20,7 @@ abstract class ExchangeWsEndpoint<M : ExchangeMessage>(
     private val LOGGER = LoggerFactory.getLogger(ExchangeWsEndpoint::class.java)!!
 
     protected val channel = Channel<M>()
-    protected val channelSymbolForTokensPairs = hashMapOf<String, TokensPair>()
+    protected val channelSymbolForTokensPairs = hashMapOf<String, TokensPairInitializer>()
 
     protected abstract val connector: WsConnector
     protected abstract val messageParser: ExchangeMessageParser

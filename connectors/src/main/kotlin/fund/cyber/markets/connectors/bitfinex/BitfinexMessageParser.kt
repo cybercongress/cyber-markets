@@ -22,9 +22,9 @@ private val pair = "pair"
 private val trade_executed = "te"
 
 class BitfinexTradesMessageParser(
-        channelSymbolForTokensPair: Map<String, TokensPair>,
-        channelIdForTokensPair: Map<Int, TokensPair>
-) : BitfinexMessageParser(channelSymbolForTokensPair, channelIdForTokensPair) {
+        channelSymbolForTokensPairInitializer: Map<String, TokensPairInitializer>,
+        channelIdForTokensPairInitializer: Map<Int, TokensPairInitializer>
+) : BitfinexMessageParser(channelSymbolForTokensPairInitializer, channelIdForTokensPairInitializer) {
 
     override fun parseUpdateMessage(jsonRoot: JsonNode): ExchangeMessage? {
         // tu ?
@@ -42,7 +42,7 @@ class BitfinexTradesMessageParser(
     private fun parseTrade(jsonRoot: JsonNode): ExchangeMessage {
 
         val channelId = jsonRoot[0].asInt()
-        val tokensPair = channelIdForTokensPair[channelId]
+        val tokensPair = channelIdForTokensPairInitializer[channelId]
                 ?: return ContainingUnknownTokensPairMessage(channelId.toString())
 
         val tradeNode = jsonRoot[2]
@@ -59,7 +59,7 @@ class BitfinexTradesMessageParser(
                 baseAmount = baseAmount,
                 quoteAmount = rate * baseAmount,
                 spotPrice = rate,
-                tokensPair = tokensPair
+                tokensPairInitializer = tokensPair
         ))
 
         return TradesUpdatesMessage(trades)
@@ -67,13 +67,13 @@ class BitfinexTradesMessageParser(
 }
 
 class BitfinexOrdersMessageParser(
-        channelSymbolForTokensPair: Map<String, TokensPair>,
-        channelIdForTokensPair: Map<Int, TokensPair>
-) : BitfinexMessageParser(channelSymbolForTokensPair, channelIdForTokensPair) {
+        channelSymbolForTokensPairInitializer: Map<String, TokensPairInitializer>,
+        channelIdForTokensPairInitializer: Map<Int, TokensPairInitializer>
+) : BitfinexMessageParser(channelSymbolForTokensPairInitializer, channelIdForTokensPairInitializer) {
 
     override fun parseUpdateMessage(jsonRoot: JsonNode): ExchangeMessage? {
         val channelId = jsonRoot[0].asInt()
-        val tokensPair = channelIdForTokensPair[channelId]
+        val tokensPair = channelIdForTokensPairInitializer[channelId]
                 ?: return ContainingUnknownTokensPairMessage(channelId.toString())
 
         val orders = mutableListOf<Order>()
@@ -91,12 +91,12 @@ class BitfinexOrdersMessageParser(
         }
 
         return OrdersUpdatesMessage(type = ordersUpdateMessageType, exchange = Exchanges.bitfinex,
-                baseToken = tokensPair.base, quoteToken = tokensPair.quote, orders = orders)
+                baseToken = tokensPair.pair.base, quoteToken = tokensPair.pair.quote, orders = orders)
     }
 
     // Order node - [price, count, amount]
     // sign of base amount determines trade type ( - sell | + buy)
-    private fun parseOrder(jsonNode: JsonNode, tokensPair: TokensPair): Order {
+    private fun parseOrder(jsonNode: JsonNode, tokensPairInitializer: TokensPairInitializer): Order {
         val count = jsonNode[1].asInt()
         var amount = BigDecimal(jsonNode[2].asText())
         val orderType = if (amount.signum() > 0) OrderType.SELL else OrderType.BUY
@@ -107,8 +107,8 @@ class BitfinexOrdersMessageParser(
         return Order(
                 type = orderType,
                 exchange = Exchanges.bitfinex,
-                baseToken = tokensPair.base,
-                quoteToken = tokensPair.quote,
+                baseToken = tokensPairInitializer.pair.base,
+                quoteToken = tokensPairInitializer.pair.quote,
                 spotPrice = BigDecimal(jsonNode[0].asText()),
                 amount = amount
         )
@@ -122,8 +122,8 @@ class BitfinexOrdersMessageParser(
  *  @author hleb.albau@gmail.com
  */
 abstract class BitfinexMessageParser(
-        protected val channelSymbolForTokensPair: Map<String, TokensPair>,
-        protected val channelIdForTokensPair: Map<Int, TokensPair>
+        protected val channelSymbolForTokensPairInitializer: Map<String, TokensPairInitializer>,
+        protected val channelIdForTokensPairInitializer: Map<Int, TokensPairInitializer>
 
 ) : SaveExchangeMessageParser() {
 
@@ -160,7 +160,7 @@ abstract class BitfinexMessageParser(
     private fun parseChannelSubscribed(jsonNode: JsonNode): ExchangeMessage {
         val channelId = jsonNode[channel_id].asInt()
         val channelSymbol = jsonNode[pair].asText()
-        val tokensPair = channelSymbolForTokensPair[channelSymbol]
+        val tokensPair = channelSymbolForTokensPairInitializer[channelSymbol]
                 ?: return ContainingUnknownTokensPairMessage(channelSymbol)
 
         return ChannelSubscribed(channelId, tokensPair)

@@ -4,14 +4,14 @@ CREATE TABLE markets.trade (
     exchange text,
     timestamp timestamp,
     type text,
-    pair frozen<tokenpair>,
+    pairInitializer frozen<tokenpair>,
     baseAmount decimal,
     quoteAmount decimal,
     spotPrice decimal,
     reverted boolean,
-    PRIMARY KEY ( epoch_h, exchange, pair, tradeId)
+    PRIMARY KEY ( epoch_h, exchange, pairInitializer, tradeId)
 )
 WITH CLUSTERING ORDER BY (
   exchange ASC,
-  pair ASC
+  pairInitializer ASC
 );
