@@ -2,7 +2,7 @@ package fund.cyber.markets.exchanges.hitbtc
 
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.connectors.common.TradesUpdatesMessage
-import fund.cyber.markets.connectors.hitbtc.HitBtcTokensPair
+import fund.cyber.markets.connectors.hitbtc.HitBtcTokensPairInitializer
 import fund.cyber.markets.connectors.hitbtc.HitBtcTradesMessageParser
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
@@ -46,7 +46,7 @@ class HitBtcMessageParserTest {
     @DisplayName("Should parse two ok trades")
     fun testParseOkTrade() {
 
-        val tokensPair = HitBtcTokensPair(
+        val tokensPair = HitBtcTokensPairInitializer(
                 base = "LTC",
                 quote = "BTC",
                 symbol = "LTCBTC",
@@ -69,7 +69,7 @@ class HitBtcMessageParserTest {
                 baseAmount = BigDecimal("1.2"),
                 quoteAmount = BigDecimal("0.000248388"),
                 spotPrice = BigDecimal("0.00020699"),
-                tokensPair = tokensPair
+                tokensPairInitializer = tokensPair
         )
         val secondTrade = Trade.of(
                 tradeId = "12987997",
@@ -79,7 +79,7 @@ class HitBtcMessageParserTest {
                 baseAmount = BigDecimal("0.2"),
                 quoteAmount = BigDecimal("0.000267398"),
                 spotPrice = BigDecimal("0.00133699"),
-                tokensPair = tokensPair
+                tokensPairInitializer = tokensPair
         )
         Assertions.assertEquals(firstTrade, exchangeMessage.trades[0])
         Assertions.assertEquals(secondTrade, exchangeMessage.trades[1])

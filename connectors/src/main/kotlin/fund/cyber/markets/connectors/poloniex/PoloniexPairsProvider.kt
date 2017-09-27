@@ -4,7 +4,7 @@ import fund.cyber.markets.connectors.common.PairsProvider
 import fund.cyber.markets.connectors.httpClient
 import fund.cyber.markets.connectors.jsonParser
 import fund.cyber.markets.helpers.await
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.model.TokensPairInitializer
 import okhttp3.Request
 
 
@@ -12,15 +12,15 @@ class PoloniexPairsProvider : PairsProvider {
 
     private val tickerRequest = Request.Builder().url("https://poloniex.com/public?command=returnTicker").build()!!
 
-    suspend override fun getPairs(): Map<String, TokensPair> {
-        val result = hashMapOf<String, TokensPair>()
+    suspend override fun getPairs(): Map<String, TokensPairInitializer> {
+        val result = hashMapOf<String, TokensPairInitializer>()
 
         val response = httpClient.newCall(tickerRequest).await()
         val pairsTickers = jsonParser.readTree(response.body()?.string())
 
         pairsTickers.fields().forEach { pairTicker ->
-            val tokensPair = TokensPair.fromLabel(pairTicker.key, "_")
-            result.put(pairTicker.value["id"].asText(), TokensPair(tokensPair.base, tokensPair.quote))
+            val tokensPair = TokensPairInitializer.fromLabel(pairTicker.key, "_")
+            result.put(pairTicker.value["id"].asText(), TokensPairInitializer(tokensPair.pair.base, tokensPair.pair.quote))
         }
 
         return result

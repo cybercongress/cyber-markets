@@ -12,19 +12,19 @@ private val event_type_trade = "trade"
 private val event_type_orders = "data"
 
 class BitstampTradesMessageParser(
-        channelIdForTokensPairs: Map<String, TokensPair>
-) : BitstampMessageParser(channelIdForTokensPairs) {
+        channelIdForTokensPairsInitializer: Map<String, TokensPairInitializer>
+) : BitstampMessageParser(channelIdForTokensPairsInitializer) {
 
-    override fun parseMessage(jsonDataString: String, eventType: String, tokensPair: TokensPair): ExchangeMessage? {
+    override fun parseMessage(jsonDataString: String, eventType: String, tokensPairInitializer: TokensPairInitializer): ExchangeMessage? {
         return when (eventType) {
             event_type_trade -> TradesUpdatesMessage(
-                    trades = listOf(parseTrade(jsonParser.readTree(jsonDataString), tokensPair))
+                    trades = listOf(parseTrade(jsonParser.readTree(jsonDataString), tokensPairInitializer))
             )
             else -> null
         }
     }
 
-    private fun parseTrade(tradeNode: JsonNode, tokensPair: TokensPair): Trade {
+    private fun parseTrade(tradeNode: JsonNode, tokensPairInitializer: TokensPairInitializer): Trade {
         val rate = BigDecimal(tradeNode["price"].asText())
         val baseAmount = BigDecimal(tradeNode["amount"].asText())
         val tradeType = if (tradeNode["type"].asInt() == 0) TradeType.BUY else TradeType.SELL
@@ -36,38 +36,38 @@ class BitstampTradesMessageParser(
                 baseAmount = baseAmount,
                 quoteAmount = rate * baseAmount,
                 spotPrice = rate,
-                tokensPair = tokensPair
+                tokensPairInitializer = tokensPairInitializer
         )
     }
 }
 
 
 class BitstampOrdersMessageParser(
-        channelIdForTokensPairs: Map<String, TokensPair>
-) : BitstampMessageParser(channelIdForTokensPairs) {
+        channelIdForTokensPairsInitializer: Map<String, TokensPairInitializer>
+) : BitstampMessageParser(channelIdForTokensPairsInitializer) {
 
     // {"timestamp": "1503225757", "bids": [["0.01084003", "54.57032311"], ["0.01084001", "0"]], "asks": [["0.01088822", "230.92310228"], ["0.01088825", "0"], ["0.01110160", "0"]]}
-    override fun parseMessage(jsonDataString: String, eventType: String, tokensPair: TokensPair): ExchangeMessage? {
+    override fun parseMessage(jsonDataString: String, eventType: String, tokensPairInitializer: TokensPairInitializer): ExchangeMessage? {
         return when (eventType) {
             event_type_orders -> OrdersUpdatesMessage(
                     type = OrdersUpdateType.COMMON, exchange = Exchanges.bitstamp,
-                    baseToken = tokensPair.base, quoteToken = tokensPair.quote,
-                    orders = parseOrders(jsonParser.readTree(jsonDataString), tokensPair)
+                    baseToken = tokensPairInitializer.pair.base, quoteToken = tokensPairInitializer.pair.quote,
+                    orders = parseOrders(jsonParser.readTree(jsonDataString), tokensPairInitializer)
             )
             else -> null
         }
     }
 
 
-    private fun parseOrders(orderNode: JsonNode, tokensPair: TokensPair): List<Order> {
+    private fun parseOrders(orderNode: JsonNode, tokensPairInitializer: TokensPairInitializer): List<Order> {
         val orders = mutableListOf<Order>()
         orderNode["bids"].forEach { entry ->
             orders.add(
                     Order(
                             type = OrderType.SELL,
                             exchange = Exchanges.bitstamp,
-                            baseToken = tokensPair.base,
-                            quoteToken = tokensPair.quote,
+                            baseToken = tokensPairInitializer.pair.base,
+                            quoteToken = tokensPairInitializer.pair.quote,
                             spotPrice = BigDecimal(entry[0].asText()),
                             amount = BigDecimal(entry[1].asText())
                     )
@@ -78,8 +78,8 @@ class BitstampOrdersMessageParser(
                     Order(
                             type = OrderType.BUY,
                             exchange = Exchanges.bitstamp,
-                            baseToken = tokensPair.base,
-                            quoteToken = tokensPair.quote,
+                            baseToken = tokensPairInitializer.pair.base,
+                            quoteToken = tokensPairInitializer.pair.quote,
                             spotPrice = BigDecimal(entry[0].asText()),
                             amount = BigDecimal(entry[1].asText())
                     )
@@ -91,7 +91,7 @@ class BitstampOrdersMessageParser(
 }
 
 abstract class BitstampMessageParser(
-        private val channelIdForTokensPairs: Map<String, TokensPair>
+        private val channelIdForTokensPairsInitializer: Map<String, TokensPairInitializer>
 ): SaveExchangeMessageParser() {
 
     override fun parseMessage(jsonRoot: JsonNode): ExchangeMessage? {
@@ -104,11 +104,11 @@ abstract class BitstampMessageParser(
 
         val channelId = jsonRoot["channel"].asText()
         val pairName = channelId.substringAfterLast("_")
-        val tokensPair = channelIdForTokensPairs[pairName] ?: return ContainingUnknownTokensPairMessage(channelId)
+        val tokensPair = channelIdForTokensPairsInitializer[pairName] ?: return ContainingUnknownTokensPairMessage(channelId)
 
         return parseMessage(jsonRoot["data"].asText(), eventType, tokensPair)
     }
 
-    protected abstract fun parseMessage(jsonDataString: String, eventType: String, tokensPair: TokensPair) : ExchangeMessage?
+    protected abstract fun parseMessage(jsonDataString: String, eventType: String, tokensPairInitializer: TokensPairInitializer) : ExchangeMessage?
 
 }

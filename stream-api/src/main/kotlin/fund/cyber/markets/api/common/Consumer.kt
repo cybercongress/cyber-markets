@@ -5,7 +5,7 @@ import fund.cyber.markets.api.configuration.ordersTopicNamePattern
 import fund.cyber.markets.kafka.JsonDeserializer
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.OrdersBatch
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.model.TokensPairInitializer
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.ordersSingleThreadContext
 import fund.cyber.markets.tradesSingleThreadContext
@@ -52,8 +52,8 @@ class OrdersBatchConsumer(
         launch(ordersSingleThreadContext) {
             records.map { record -> record.value() }
                     .forEach { ordersBatch ->
-                        val pair = TokensPair(ordersBatch.baseToken, ordersBatch.quoteToken)
-//                        channelsIndex.channelFor(ordersBatch.exchange, pair).send(ordersBatch.orders)
+                        val pair = TokensPairInitializer(ordersBatch.baseToken, ordersBatch.quoteToken)
+                        channelsIndex.channelFor(ordersBatch.exchange, pair).send(ordersBatch.orders)
                     }
         }
     }
@@ -70,7 +70,7 @@ class TradesConsumer(
         launch(tradesSingleThreadContext) {
             records.map { record -> record.value() }
                     .forEach { trade ->
-                        val pair = TokensPair(trade.pair.base, trade.pair.quote)
+                        val pair = TokensPairInitializer(trade.pair.base, trade.pair.quote)
                         channelsIndex.channelFor(trade.exchange, pair).send(trade)
                     }
         }

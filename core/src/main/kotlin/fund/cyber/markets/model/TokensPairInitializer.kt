@@ -1,9 +1,10 @@
 package fund.cyber.markets.model
 
-open class TokensPair(firstCurrency: String, secondCurrency: String) {
+import fund.cyber.markets.dto.TokensPair
 
-    val base: String
-    val quote: String
+open class TokensPairInitializer(firstCurrency: String, secondCurrency: String) {
+
+    val pair: TokensPair
     var reverted: Boolean = false
     var fiatDictionary = listOf(
             "USD", "EUR", "GBP"
@@ -25,41 +26,35 @@ open class TokensPair(firstCurrency: String, secondCurrency: String) {
 
         if (firstImportance >= 0 && secondImportance >= 0) {
             if (firstImportance < secondImportance) {
-                this.base = secondCurrency
-                this.quote = firstCurrency
+                this.pair = TokensPair(secondCurrency, firstCurrency)
                 this.reverted =  true
             } else {
-                this.base = firstCurrency
-                this.quote = secondCurrency
+                this.pair = TokensPair(firstCurrency, secondCurrency)
             }
         } else if (firstImportance >= 0 || secondImportance >= 0) {
             if (firstImportance >= 0) {
-                this.base = secondCurrency
-                this.quote = firstCurrency
+                this.pair = TokensPair(secondCurrency, firstCurrency)
                 this.reverted =  true
             } else {
-                this.base = firstCurrency
-                this.quote = secondCurrency
+                this.pair = TokensPair(firstCurrency, secondCurrency)
             }
         } else {
             if (firstCurrency.compareTo(secondCurrency, true) < 0) {
-                this.base = firstCurrency
-                this.quote = secondCurrency
+                this.pair = TokensPair(firstCurrency, secondCurrency)
             } else {
-                this.base = secondCurrency
-                this.quote = firstCurrency
+                this.pair = TokensPair(secondCurrency, firstCurrency)
                 this.reverted =  true
             }
         }
     }
 
     fun label(delimiter: String = "/"): String {
-        return base + delimiter + quote
+        return pair.base + delimiter + pair.quote
     }
 
     override fun hashCode(): Int {
-        var result = base.hashCode()
-        result = 31 * result + quote.hashCode()
+        var result = pair.base.hashCode()
+        result = 31 * result + pair.quote.hashCode()
         return result
     }
 
@@ -67,17 +62,17 @@ open class TokensPair(firstCurrency: String, secondCurrency: String) {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
 
-        other as TokensPair
+        other as TokensPairInitializer
 
-        if (base != other.base) return false
-        if (quote != other.quote) return false
+        if (pair.base != other.pair.base) return false
+        if (pair.quote != other.pair.quote) return false
 
         return true
     }
 
     companion object {
-        fun fromLabel(label: String, delimiter: String = "/"): TokensPair {
-            return TokensPair(label.substringBefore(delimiter), label.substringAfter(delimiter))
+        fun fromLabel(label: String, delimiter: String = "/"): TokensPairInitializer {
+            return TokensPairInitializer(label.substringBefore(delimiter), label.substringAfter(delimiter))
         }
     }
 

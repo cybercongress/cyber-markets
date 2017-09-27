@@ -3,7 +3,7 @@ package fund.cyber.markets.exchanges.poloniex
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.connectors.poloniex.PoloniexTradesMessageParser
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.model.TokensPairInitializer
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import org.junit.jupiter.api.Assertions
@@ -28,7 +28,7 @@ class PoloniexMessageParserTest {
           ]
         ]"""
 
-        val tokensPair = TokensPair("BTC", "ETH")
+        val tokensPair = TokensPairInitializer("BTC", "ETH")
         val channelIdForTokensPairs = mapOf(Pair("129", tokensPair))
         val messageParser = PoloniexTradesMessageParser(channelIdForTokensPairs)
 
@@ -44,7 +44,7 @@ class PoloniexMessageParserTest {
                 baseAmount = BigDecimal("399377.76875000"),
                 quoteAmount = BigDecimal("13.2912921440000000"),
                 spotPrice = BigDecimal("0.00003328"),
-                tokensPair = tokensPair
+                tokensPairInitializer = tokensPair
         )
         val secondTrade = Trade.of(
                 tradeId = "126321",
@@ -54,7 +54,7 @@ class PoloniexMessageParserTest {
                 baseAmount = BigDecimal("2.76875000"),
                 quoteAmount = BigDecimal("0.0006458940000000"),
                 spotPrice = BigDecimal("0.00023328"),
-                tokensPair = tokensPair
+                tokensPairInitializer = tokensPair
         )
         Assertions.assertEquals(firstTrade, exchangeMessage.trades[0])
         Assertions.assertEquals(secondTrade, exchangeMessage.trades[1])

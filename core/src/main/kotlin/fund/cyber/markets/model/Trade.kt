@@ -1,6 +1,6 @@
 package fund.cyber.markets.model
 
-import fund.cyber.markets.dto.TokensPairDto
+import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -12,7 +12,7 @@ data class Trade(
         val exchange: String,
         val timestamp: String,
         val type: TradeType,
-        val pair: TokensPairDto,
+        val pair: TokensPair,
         val baseAmount: BigDecimal,
         val quoteAmount: BigDecimal,
         val spotPrice: BigDecimal,
@@ -28,13 +28,13 @@ data class Trade(
                baseAmount: BigDecimal,
                quoteAmount: BigDecimal,
                spotPrice: BigDecimal,
-               tokensPair: TokensPair
+               tokensPairInitializer: TokensPairInitializer
         ): Trade {
             val resType: TradeType
             val resBaseAmount: BigDecimal
             val resQuoteAmount: BigDecimal
             val resSpotPrice: BigDecimal
-            if (tokensPair.reverted) {
+            if (tokensPairInitializer.reverted) {
                 resType = revertType(type)
                 resBaseAmount = quoteAmount
                 resQuoteAmount = baseAmount
@@ -45,8 +45,8 @@ data class Trade(
                 resQuoteAmount = quoteAmount
                 resSpotPrice = spotPrice
             }
-            return Trade(tradeId, exchange, Instant.ofEpochSecond(timestamp).toString(), type, TokensPairDto(tokensPair.base,tokensPair.quote),
-                    resBaseAmount, resQuoteAmount, resSpotPrice, tokensPair.reverted, timestamp/60/60)
+            return Trade(tradeId, exchange, Instant.ofEpochSecond(timestamp).toString(), type, TokensPair(tokensPairInitializer.pair.base, tokensPairInitializer.pair.quote),
+                    resBaseAmount, resQuoteAmount, resSpotPrice, tokensPairInitializer.reverted, timestamp/60/60)
         }
 
         private fun revertType(type: TradeType): TradeType {
