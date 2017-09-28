@@ -40,7 +40,7 @@ object StreamApiApplication {
         val rootWebSocketHandler = RootWebSocketHandler(messageHandler)
 
         val server = Undertow.builder()
-                .addHttpListener(8082, "0.0.0.0")
+                .addHttpListener(18080, "0.0.0.0")
                 .setHandler(path()
                         .addPrefixPath("/", Handlers.websocket(rootWebSocketHandler))
                 )
