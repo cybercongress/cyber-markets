@@ -12,7 +12,7 @@
         let websockets;
 
         window.onload = function () {
-            websockets = new WebSocket("ws://localhost:8082/");
+            websockets = new WebSocket("ws://localhost:18080/");
 
             websockets.onmessage = function (event) {
                 document.body.innerHTML += `<div>${event.data}</div>`;
