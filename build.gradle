@@ -1,7 +1,7 @@
 /* Gradle plugins part */
 buildscript {
     ext {
-        kotlinVersion = "1.1.4-3"
+        kotlinVersion = "1.1.51"
         kotlinCoroutinesVersion = "0.18"
         jacksonVersion = "2.8.9"
         okhttpVersion = "3.8.1"
@@ -13,8 +13,8 @@ buildscript {
         shadowPluginVersion = "2.0.1"
 
         // tests
-        junitVersion = "5.0.0-RC3"
-        junitPlatformVersion = "1.0.0-RC3"
+        junitVersion = "5.0.1"
+        junitPlatformVersion = "1.0.1"
         mockitoVersion = "2.1.0"
         mockitoKotlinVersion = "0.7.0"
 
@@ -34,6 +34,11 @@ buildscript {
         classpath("org.junit.platform:junit-platform-gradle-plugin:$junitPlatformVersion")
         classpath("com.github.jengelman.gradle.plugins:shadow:$shadowPluginVersion")
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.3.1'
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 

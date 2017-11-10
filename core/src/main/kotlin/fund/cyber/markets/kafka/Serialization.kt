@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serializer
+import org.slf4j.LoggerFactory
 
 class JsonSerializer<T> : Serializer<T> {
     private val objectMapper = ObjectMapper()
@@ -18,9 +19,16 @@ class JsonSerializer<T> : Serializer<T> {
 
 class JsonDeserializer<T>(private val type: Class<T>) : Deserializer<T> {
     private val objectMapper = ObjectMapper().registerKotlinModule()
+    private val LOGGER = LoggerFactory.getLogger(JsonDeserializer::class.java)!!
 
     override fun deserialize(topic: String, data: ByteArray): T {
-        return objectMapper.readValue(data, type)
+        try {
+            return objectMapper.readValue(data, type)
+        } catch (e: Exception) {
+            //kafka consumer just suppress exception without logging
+            LOGGER.error("Exception during deserialization '$topic' topics entity", e)
+            throw RuntimeException("Exception during deserialization '$topic' topics entity")
+        }
     }
 
     override fun configure(configs: MutableMap<String, *>, isKey: Boolean) {}

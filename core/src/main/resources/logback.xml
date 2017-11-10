@@ -2,29 +2,18 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %logger{35} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>/cyberdata/cm-connector.log.txt</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>log-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
-            <maxHistory>30</maxHistory> <!-- max 30 days-->
-            <totalSizeCap>1GB</totalSizeCap> <!-- max 1GB-->
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %logger{35} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %level %logger{35} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <logger name="io.undertow.websockets.core.request" level="ERROR"/>
-    <!--<logger name="org.apache.kafka" level="ERROR"/>-->
+    <logger name="org.apache.http" level="ERROR"/>
+    <logger name="org.apache.kafka" level="ERROR"/>
+    <logger name="com.datastax.driver.core" level="ERROR"/>
+    <logger name="io.netty.util.internal" level="ERROR"/>
+    <logger name="org.ehcache.core" level="ERROR"/>
 
-    <root level="debug">
+    <root level="${CS_LOG_LEVEL:-INFO}">
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE"/>
     </root>
-
 </configuration>
