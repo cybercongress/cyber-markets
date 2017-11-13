@@ -159,3 +159,15 @@ project(":stream-processing") {
         compileOnly("org.apache.spark:spark-sql-kafka-0-10_2.11:$sparkVersion")
     }
 }
+
+project(":tickers") {
+    apply plugin: "application"
+
+    dependencies {
+        compile(project(":core"))
+
+        compile("org.apache.kafka:kafka-streams:$kafkaVersion")
+    }
+
+    mainClassName = "fund.cyber.markets.TickersApplication"
+}
