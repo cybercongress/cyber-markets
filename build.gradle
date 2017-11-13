@@ -82,6 +82,7 @@ subprojects {
             dependency("org.mockito:mockito-core:$mockitoVersion")
             dependency("com.nhaarman:mockito-kotlin:$mockitoKotlinVersion")
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+            dependency("org.apache.kafka:kafka-streams:$kafkaVersion")
         }
     }
 
@@ -166,7 +167,7 @@ project(":tickers") {
     dependencies {
         compile(project(":core"))
 
-        compile("org.apache.kafka:kafka-streams:$kafkaVersion")
+        compile("org.apache.kafka:kafka-streams")
     }
 
     mainClassName = "fund.cyber.markets.TickersApplication"

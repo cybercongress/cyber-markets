@@ -6,26 +6,22 @@ import java.math.BigDecimal
 
 class WindowStats {
 
-    var tokensPair: TokensPair?
-    var baseAmount: BigDecimal
-    var quoteAmount: BigDecimal
-    var price: BigDecimal
-    var minPrice: BigDecimal?
-    var maxPrice: BigDecimal?
-
-    init {
-        tokensPair = null
-        baseAmount = BigDecimal.ZERO
-        quoteAmount = BigDecimal.ZERO
-        price = BigDecimal.ZERO
-        minPrice = null
-        maxPrice = null
-    }
+    var exchange: String? = null
+    var tokensPair: TokensPair? = null
+    var baseAmount: BigDecimal = BigDecimal.ZERO
+    var quoteAmount: BigDecimal = BigDecimal.ZERO
+    var price: BigDecimal = BigDecimal.ZERO
+    var minPrice: BigDecimal? = null
+    var maxPrice: BigDecimal? = null
 
     fun add(trade: Trade): WindowStats {
 
         if (trade.baseAmount == null || trade.quoteAmount == null || trade.pair == null)
             return this
+
+        if (this.exchange == null) {
+            this.exchange = trade.exchange
+        }
 
         if (this.tokensPair == null) {
             this.tokensPair = trade.pair
