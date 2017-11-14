@@ -53,4 +53,10 @@ class WindowStats {
         return this
     }
 
+    fun setExchangeString(exchange: String) : WindowStats {
+        this.exchange = exchange
+
+        return this
+    }
+
 }

@@ -52,9 +52,14 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                             "grouped-by-tokens-pair-store"
                     )
                     .toStream({
-                            key, windowStats -> WindowKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
+                        key, windowStats -> WindowKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
                     })
-                    .mapValues({stats -> stats.calcPrice()})
+                    .mapValues({ windowStats ->
+                        windowStats.calcPrice()
+                    })
+                    .mapValues({windowStats ->
+                        windowStats.setExchangeString("ALL")
+                    })
 
     val groupedByPairAndExchangeStream: KStream<WindowKey, WindowStats> =
             stream
@@ -71,9 +76,11 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                             "grouped-by-tokens-pair-and-exchange-store"
                     )
                     .toStream({
-                        key, windowStats -> WindowKey(windowStats.exchange!!, windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
+                        key, windowStats -> WindowKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
                     })
-                    .mapValues({stats -> stats.calcPrice()})
+                    .mapValues({
+                        windowStats -> windowStats.calcPrice()
+                    })
 
     groupedByPairStream.to(JsonSerde(WindowKey::class.java), JsonSerde(WindowStats::class.java), Constants.WINDOW_TATS_TOPIC_NAME)
     groupedByPairAndExchangeStream.to(JsonSerde(WindowKey::class.java), JsonSerde(WindowStats::class.java), Constants.WINDOW_TATS_TOPIC_NAME)
