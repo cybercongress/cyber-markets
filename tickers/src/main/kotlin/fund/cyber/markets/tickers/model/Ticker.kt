@@ -8,13 +8,14 @@ class Ticker {
 
     var exchange: String? = null
     var tokensPair: TokensPair? = null
+    var windowDuration: Long? = null
     var baseAmount: BigDecimal = BigDecimal.ZERO
     var quoteAmount: BigDecimal = BigDecimal.ZERO
     var price: BigDecimal = BigDecimal.ZERO
     var minPrice: BigDecimal? = null
     var maxPrice: BigDecimal? = null
 
-    fun add(trade: Trade): Ticker {
+    fun add(trade: Trade, windowDuration: Long): Ticker {
 
         if (trade.baseAmount == null || trade.quoteAmount == null || trade.pair == null)
             return this
@@ -25,6 +26,10 @@ class Ticker {
 
         if (this.tokensPair == null) {
             this.tokensPair = trade.pair
+        }
+
+        if (this.windowDuration == null) {
+            this.windowDuration = windowDuration
         }
 
         quoteAmount = quoteAmount.plus(trade.quoteAmount)

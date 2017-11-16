@@ -46,20 +46,19 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                     )
                     .aggregate(
                             { Ticker() },
-                            { aggKey, newValue, aggValue -> aggValue.add(newValue) },
+                            { aggKey, newValue, aggValue -> aggValue.add(newValue, windowDuration) },
                             TimeWindows.of(windowDuration).advanceBy(windowHop),
                             JsonSerde(Ticker::class.java),
                             "grouped-by-tokens-pair-" +windowDuration+ "ms-store"
                     )
-                    .toStream({
-                        key, windowStats ->
-                        TickerKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
+                    .toStream({ key, ticker ->
+                        TickerKey(ticker.tokensPair!!, windowDuration, Timestamp(key.window().start()))
                     })
-                    .mapValues({ windowStats ->
-                        windowStats.calcPrice()
+                    .mapValues({ ticker ->
+                        ticker.calcPrice()
                     })
-                    .mapValues({windowStats ->
-                        windowStats.setExchangeString("ALL")
+                    .mapValues({ ticker ->
+                        ticker.setExchangeString("ALL")
                     })
 
     val groupedByPairAndExchangeStream: KStream<TickerKey, Ticker> =
@@ -71,17 +70,16 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                     )
                     .aggregate(
                             { Ticker() },
-                            { aggKey, newValue, aggValue -> aggValue.add(newValue) },
+                            { aggKey, newValue, aggValue -> aggValue.add(newValue, windowDuration) },
                             TimeWindows.of(windowDuration).advanceBy(windowHop),
                             JsonSerde(Ticker::class.java),
                             "grouped-by-tokens-pair-and-exchange-"+windowDuration+"ms-store"
                     )
-                    .toStream({
-                        key, windowStats ->
-                        TickerKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
+                    .toStream({ key, ticker ->
+                        TickerKey(ticker.tokensPair!!, windowDuration, Timestamp(key.window().start()))
                     })
                     .mapValues({
-                        windowStats -> windowStats.calcPrice()
+                        ticker -> ticker.calcPrice()
                     })
 
     groupedByPairStream.to(JsonSerde(TickerKey::class.java), JsonSerde(Ticker::class.java), tickersTopicName)
