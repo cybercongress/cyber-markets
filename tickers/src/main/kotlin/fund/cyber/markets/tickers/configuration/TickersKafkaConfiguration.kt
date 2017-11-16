@@ -7,9 +7,12 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
+val tradesTopicNamePattern = Pattern.compile("TRADES-.*")
+val tickersTopicName = "TICKERS-TOPIC"
+
 class KafkaConfiguration(
         val kafkaServers: String = env(Constants.KAFKA_CONNECTION, "localhost:9092"),
-        val topicNamePattern: Pattern = Constants.TRADES_TOPIC_NAME_PATTERN,
+        val topicNamePattern: Pattern = tradesTopicNamePattern,
         val topicResubscribe: Long = TimeUnit.MINUTES.toMillis(1),
         val windowDurationsString: String = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440"),
         val windowHop: Long = env(Constants.WINDOW_HOP_SEC, 3000)

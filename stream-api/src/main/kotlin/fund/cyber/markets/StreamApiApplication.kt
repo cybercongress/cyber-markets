@@ -1,14 +1,9 @@
 package fund.cyber.markets
 
-import fund.cyber.markets.api.common.IncomingMessagesHandler
-import fund.cyber.markets.api.common.OrdersBatchConsumer
-import fund.cyber.markets.api.common.RootWebSocketHandler
-import fund.cyber.markets.api.common.TradesConsumer
-import fund.cyber.markets.api.common.ChannelsIndex
-import fund.cyber.markets.api.common.OrdersBroadcastersIndex
-import fund.cyber.markets.api.common.TradesBroadcastersIndex
+import fund.cyber.markets.api.common.*
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Trade
+import fund.cyber.markets.tickers.model.Ticker
 import io.undertow.Handlers
 import io.undertow.Handlers.path
 import io.undertow.Undertow
@@ -20,6 +15,7 @@ import java.util.concurrent.TimeUnit
 
 val tradesSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool For Trades")
 val ordersSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool For Orders")
+val tickersSingleThreadContext = newSingleThreadContext("Coroutines Single Thread Pool For Tickers")
 
 object StreamApiApplication {
     private val LOGGER = LoggerFactory.getLogger(StreamApiApplication::class.java)!!
@@ -34,9 +30,13 @@ object StreamApiApplication {
         val ordersChannelIndex = ChannelsIndex<List<Order>>()
         ordersChannelIndex.addChannelsListener(ordersBroadcastersIndex)
 
-        val consumers = listOf(OrdersBatchConsumer(ordersChannelIndex), TradesConsumer(tradesChannelIndex))
+        val tickersBroadcastersIndex = TickersBroadcastersIndex()
+        val tickersChannelIndex = ChannelsIndex<Ticker>()
+        tickersChannelIndex.addChannelsListener(tickersBroadcastersIndex)
 
-        val messageHandler = IncomingMessagesHandler(tradesBroadcastersIndex, ordersBroadcastersIndex)
+        val consumers = listOf(OrdersBatchConsumer(ordersChannelIndex), TradesConsumer(tradesChannelIndex), TickersConsumer(tickersChannelIndex))
+
+        val messageHandler = IncomingMessagesHandler(tradesBroadcastersIndex, ordersBroadcastersIndex, tickersBroadcastersIndex)
         val rootWebSocketHandler = RootWebSocketHandler(messageHandler)
 
         val server = Undertow.builder()

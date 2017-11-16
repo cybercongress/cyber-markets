@@ -1,12 +1,12 @@
 package fund.cyber.markets.tickers
 
-import fund.cyber.markets.common.Constants
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.kafka.JsonSerde
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.KafkaConfiguration
-import fund.cyber.markets.tickers.model.WindowKey
-import fund.cyber.markets.tickers.model.WindowStats
+import fund.cyber.markets.tickers.configuration.tickersTopicName
+import fund.cyber.markets.tickers.model.Ticker
+import fund.cyber.markets.tickers.model.TickerKey
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.kstream.KStream
@@ -37,7 +37,7 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                            windowDuration: Long,
                            windowHop: Long) {
 
-    val groupedByPairStream: KStream<WindowKey, WindowStats> =
+    val groupedByPairStream: KStream<TickerKey, Ticker> =
             stream
                     .groupBy(
                             { key, trade -> trade.pair },
@@ -45,14 +45,15 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                             JsonSerde(Trade::class.java)
                     )
                     .aggregate(
-                            { WindowStats() },
+                            { Ticker() },
                             { aggKey, newValue, aggValue -> aggValue.add(newValue) },
                             TimeWindows.of(windowDuration).advanceBy(windowHop),
-                            JsonSerde(WindowStats::class.java),
-                            "grouped-by-tokens-pair-store"
+                            JsonSerde(Ticker::class.java),
+                            "grouped-by-tokens-pair-" +windowDuration+ "ms-store"
                     )
                     .toStream({
-                        key, windowStats -> WindowKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
+                        key, windowStats ->
+                        TickerKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
                     })
                     .mapValues({ windowStats ->
                         windowStats.calcPrice()
@@ -61,7 +62,7 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                         windowStats.setExchangeString("ALL")
                     })
 
-    val groupedByPairAndExchangeStream: KStream<WindowKey, WindowStats> =
+    val groupedByPairAndExchangeStream: KStream<TickerKey, Ticker> =
             stream
                     .groupBy(
                             { key, trade -> trade.exchange + trade.pair.toString() },
@@ -69,19 +70,20 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                             JsonSerde(Trade::class.java)
                     )
                     .aggregate(
-                            { WindowStats() },
+                            { Ticker() },
                             { aggKey, newValue, aggValue -> aggValue.add(newValue) },
                             TimeWindows.of(windowDuration).advanceBy(windowHop),
-                            JsonSerde(WindowStats::class.java),
-                            "grouped-by-tokens-pair-and-exchange-store"
+                            JsonSerde(Ticker::class.java),
+                            "grouped-by-tokens-pair-and-exchange-"+windowDuration+"ms-store"
                     )
                     .toStream({
-                        key, windowStats -> WindowKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
+                        key, windowStats ->
+                        TickerKey(windowStats.tokensPair!!, windowDuration, Timestamp(key.window().start()))
                     })
                     .mapValues({
                         windowStats -> windowStats.calcPrice()
                     })
 
-    groupedByPairStream.to(JsonSerde(WindowKey::class.java), JsonSerde(WindowStats::class.java), Constants.WINDOW_TATS_TOPIC_NAME)
-    groupedByPairAndExchangeStream.to(JsonSerde(WindowKey::class.java), JsonSerde(WindowStats::class.java), Constants.WINDOW_TATS_TOPIC_NAME)
+    groupedByPairStream.to(JsonSerde(TickerKey::class.java), JsonSerde(Ticker::class.java), tickersTopicName)
+    groupedByPairAndExchangeStream.to(JsonSerde(TickerKey::class.java), JsonSerde(Ticker::class.java), tickersTopicName)
 }

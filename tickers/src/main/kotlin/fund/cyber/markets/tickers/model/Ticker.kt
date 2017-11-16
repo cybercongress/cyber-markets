@@ -4,7 +4,7 @@ import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Trade
 import java.math.BigDecimal
 
-class WindowStats {
+class Ticker {
 
     var exchange: String? = null
     var tokensPair: TokensPair? = null
@@ -14,7 +14,7 @@ class WindowStats {
     var minPrice: BigDecimal? = null
     var maxPrice: BigDecimal? = null
 
-    fun add(trade: Trade): WindowStats {
+    fun add(trade: Trade): Ticker {
 
         if (trade.baseAmount == null || trade.quoteAmount == null || trade.pair == null)
             return this
@@ -45,7 +45,7 @@ class WindowStats {
         return this
     }
 
-    fun calcPrice(): WindowStats {
+    fun calcPrice(): Ticker {
         if (quoteAmount != BigDecimal.ZERO && baseAmount != BigDecimal.ZERO) {
             price = quoteAmount.div(baseAmount)
         }
@@ -53,7 +53,7 @@ class WindowStats {
         return this
     }
 
-    fun setExchangeString(exchange: String) : WindowStats {
+    fun setExchangeString(exchange: String) : Ticker {
         this.exchange = exchange
 
         return this

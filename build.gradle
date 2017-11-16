@@ -134,6 +134,7 @@ project(":stream-api") {
 
     dependencies {
         compile(project(":core"))
+        compile(project(":tickers"))
         compile("io.undertow:undertow-core")
     }
 

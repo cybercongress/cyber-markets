@@ -16,7 +16,8 @@ class UnknownCommand(val message: String) : WebSocketCommand()
 class ChannelSubscriptionCommand(
         val type: IncomingMessageSubscribeTopicType,
         val pairs: List<TokensPairInitializer>,
-        val exchanges: List<String>
+        val exchanges: List<String>,
+        val windowDurations: List<Long> = emptyList()
 ) : WebSocketCommand()
 
 class InfoCommand(val type: IncomingMessageGetTopicType) : WebSocketCommand()
@@ -58,6 +59,7 @@ class WebSocketCommandsParser(
         return when (topic.toUpperCase()) {
             TRADES.name -> ChannelSubscriptionCommand(TRADES, parsePairs(jsonMessage), parseExchanges(jsonMessage))
             ORDERS.name -> ChannelSubscriptionCommand(ORDERS, parsePairs(jsonMessage), parseExchanges(jsonMessage))
+            TICKERS.name -> ChannelSubscriptionCommand(TICKERS, parsePairs(jsonMessage), parseExchanges(jsonMessage), parseWindowDurations(jsonMessage))
             else -> UnknownCommand(message)
         }
     }
@@ -69,5 +71,11 @@ class WebSocketCommandsParser(
     private fun parsePairs(jsonMessage: JsonNode): List<TokensPairInitializer> {
         return jsonMessage["pairs"]?.map {
             pairLabel -> TokensPairInitializer.fromLabel(pairLabel.asText(), "_") }?.distinct() ?: emptyList()
+    }
+
+    private fun parseWindowDurations(jsonMessage: JsonNode) : List<Long> {
+        return jsonMessage["window_durations"]?.map {
+            windowDuration -> windowDuration.asLong()
+        } ?: emptyList()
     }
 }
