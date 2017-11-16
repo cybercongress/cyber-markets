@@ -15,7 +15,7 @@ class KafkaConfiguration(
         val topicNamePattern: Pattern = tradesTopicNamePattern,
         val topicResubscribe: Long = TimeUnit.MINUTES.toMillis(1),
         val windowDurationsString: String = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440"),
-        val windowHop: Long = env(Constants.WINDOW_HOP_SEC, 3000)
+        val windowHop: Long = env(Constants.WINDOW_HOP_SEC, 3)*1000L
 ) {
 
     fun windowDurations() : List<Long> {
