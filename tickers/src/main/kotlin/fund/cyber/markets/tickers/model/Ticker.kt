@@ -4,7 +4,7 @@ import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Trade
 import java.math.BigDecimal
 
-class Ticker {
+class Ticker(windowDuration: Long? = null) {
 
     var exchange: String? = null
     var tokensPair: TokensPair? = null
@@ -15,7 +15,11 @@ class Ticker {
     var minPrice: BigDecimal? = null
     var maxPrice: BigDecimal? = null
 
-    fun add(trade: Trade, windowDuration: Long): Ticker {
+    init {
+        this.windowDuration = windowDuration
+    }
+
+    fun add(trade: Trade): Ticker {
 
         if (trade.baseAmount == null || trade.quoteAmount == null || trade.pair == null)
             return this
@@ -26,10 +30,6 @@ class Ticker {
 
         if (this.tokensPair == null) {
             this.tokensPair = trade.pair
-        }
-
-        if (this.windowDuration == null) {
-            this.windowDuration = windowDuration
         }
 
         quoteAmount = quoteAmount.plus(trade.quoteAmount)

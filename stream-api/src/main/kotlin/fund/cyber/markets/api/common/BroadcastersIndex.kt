@@ -41,20 +41,12 @@ abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListen
 
     fun broadcastersFor(pairInitializers: List<TokensPairInitializer>, exchanges: List<String>, windowDurations: List<Long> = emptyList()): Collection<B> {
 
-        var broadcasters : MutableMap<BroadcasterDefinition, B> = ConcurrentHashMap(index)
-        when {
-            !pairInitializers.isEmpty() -> broadcasters = broadcasters.filter {
-                (definition, _) -> pairInitializers.contains(definition.tokensPair)
-            }.toMutableMap()
-            !exchanges.isEmpty() -> broadcasters = broadcasters.filter {
-                (definition, _) -> exchanges.contains(definition.exchange)
-            }.toMutableMap()
-            !windowDurations.isEmpty() -> broadcasters = broadcasters.filter {
-                (definition, _) -> definition.windowDuration < 0 || windowDurations.contains(definition.windowDuration)
-            }.toMutableMap()
-        }
+        return index.filter { (definition, _) ->
+            (pairInitializers.isEmpty() || pairInitializers.contains(definition.tokensPair))
+            && (exchanges.isEmpty() || exchanges.contains(definition.exchange))
+            && (windowDurations.isEmpty() || definition.windowDuration < 0 || windowDurations.contains(definition.windowDuration))
+        }.map { (_, broadcaster) -> broadcaster }
 
-        return broadcasters.map { (_, broadcaster) -> broadcaster }
     }
 
     fun getAllPairs(): Collection<TokensPairInitializer> {

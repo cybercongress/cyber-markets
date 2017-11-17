@@ -45,8 +45,8 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                             JsonSerde(Trade::class.java)
                     )
                     .aggregate(
-                            { Ticker() },
-                            { aggKey, newValue, aggValue -> aggValue.add(newValue, windowDuration) },
+                            { Ticker(windowDuration) },
+                            { aggKey, newValue, aggValue -> aggValue.add(newValue) },
                             TimeWindows.of(windowDuration).advanceBy(windowHop),
                             JsonSerde(Ticker::class.java),
                             "grouped-by-tokens-pair-" +windowDuration+ "ms-store"
@@ -69,8 +69,8 @@ fun createWindowStatStream(stream: KStream<String, Trade>,
                             JsonSerde(Trade::class.java)
                     )
                     .aggregate(
-                            { Ticker() },
-                            { aggKey, newValue, aggValue -> aggValue.add(newValue, windowDuration) },
+                            { Ticker(windowDuration) },
+                            { aggKey, newValue, aggValue -> aggValue.add(newValue) },
                             TimeWindows.of(windowDuration).advanceBy(windowHop),
                             JsonSerde(Ticker::class.java),
                             "grouped-by-tokens-pair-and-exchange-"+windowDuration+"ms-store"
