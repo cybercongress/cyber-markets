@@ -58,26 +58,6 @@ jobs:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
 
-  build_kafka-connectors:
-      <<: *default_container
-      steps:
-        - checkout
-        - restore_cache:
-            keys:
-              - api-dependencies-{{ checksum "build.gradle" }}
-              - api-dependencies
-            paths:
-              - ~/.gradle/caches/
-              - ~/.gradle/wrapper/
-        - run:
-            name: Test and build stream-api project
-            command: ./gradlew -p ./stream-api clean build
-        - save_cache:
-            key: api-dependencies-{{ checksum "build.gradle" }}
-            paths:
-              - ~/.gradle/caches/
-              - ~/.gradle/wrapper/
-
   deploy_connectors_image:
      <<: *default_container
      steps:
@@ -110,7 +90,7 @@ jobs:
              docker tag build/cm-stream-api cybernode/cm-stream-api:latest
              docker push cybernode/cm-stream-api:latest
 
-  deploy_stream-api_image:
+  deploy_kafka-connectors_image:
        <<: *default_container
        steps:
          - checkout
@@ -119,7 +99,7 @@ jobs:
          - run:
              name: Build kafka-connectors docker image
              command: |
-               docker build -t build/cm-kafka-connectors -f ./devops/stream-api/Dockerfile ./
+               docker build -t build/cm-kafka-connectors -f ./devops/kafka-connectors/Dockerfile ./
                docker login -u $DOCKER_USER -p $DOCKER_PASS
                docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:$CIRCLE_TAG
                docker push cybernode/cm-kafka-connectors:$CIRCLE_TAG
