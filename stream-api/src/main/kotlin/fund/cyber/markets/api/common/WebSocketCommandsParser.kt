@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.*
 import fund.cyber.markets.api.configuration.AppContext
+import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.TokensPairInitializer
 
 
@@ -15,7 +16,7 @@ class UnknownCommand(val message: String) : WebSocketCommand()
 // {"subscribe":"orders","pairs":["BTC_ETH","ETH_USD"]}
 class ChannelSubscriptionCommand(
         val type: IncomingMessageSubscribeTopicType,
-        val pairs: List<TokensPairInitializer>,
+        val pairs: List<TokensPair>,
         val exchanges: List<String>
 ) : WebSocketCommand()
 
@@ -66,8 +67,8 @@ class WebSocketCommandsParser(
         return jsonMessage["exchanges"]?.map { exchange -> exchange.asText() } ?: emptyList()
     }
 
-    private fun parsePairs(jsonMessage: JsonNode): List<TokensPairInitializer> {
+    private fun parsePairs(jsonMessage: JsonNode): List<TokensPair> {
         return jsonMessage["pairs"]?.map {
-            pairLabel -> TokensPairInitializer.fromLabel(pairLabel.asText(), "_") }?.distinct() ?: emptyList()
+            pairLabel -> TokensPairInitializer.fromLabel(pairLabel.asText(), "_").pair }?.distinct() ?: emptyList()
     }
 }

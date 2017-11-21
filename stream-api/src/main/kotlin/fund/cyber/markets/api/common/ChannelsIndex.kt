@@ -1,17 +1,18 @@
 package fund.cyber.markets.api.common
 
+import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.TokensPairInitializer
 import kotlinx.coroutines.experimental.channels.Channel
 
 
 interface ChannelsIndexUpdateListener<T> {
-    fun newChannel(exchange: String, pairInitializer: TokensPairInitializer, channel: Channel<T>)
+    fun newChannel(exchange: String, pairInitializer: TokensPair, channel: Channel<T>)
 }
 
 
 class ChannelsIndex<T> {
 
-    private val index: MutableMap<String, MutableMap<TokensPairInitializer, Channel<T>>> = HashMap()
+    private val index: MutableMap<String, MutableMap<TokensPair, Channel<T>>> = HashMap()
     private val listeners = ArrayList<ChannelsIndexUpdateListener<T>>()
 
 
@@ -22,9 +23,10 @@ class ChannelsIndex<T> {
     fun channelFor(exchange: String, pairInitializer: TokensPairInitializer): Channel<T> {
 
         val pairsIndex = index[exchange]
+        val pair = pairInitializer.pair
 
         if (pairsIndex != null) {
-            val channel = pairsIndex[pairInitializer]
+            val channel = pairsIndex[pair]
             if (channel != null) {
                 return channel
             }
@@ -32,14 +34,14 @@ class ChannelsIndex<T> {
 
         val newChannel = Channel<T>()
         if (pairsIndex != null) {
-            pairsIndex.put(pairInitializer, newChannel)
+            pairsIndex.put(pair, newChannel)
         } else {
-            val newPairsIndex = HashMap<TokensPairInitializer, Channel<T>>()
-            newPairsIndex.put(pairInitializer, newChannel)
+            val newPairsIndex = HashMap<TokensPair, Channel<T>>()
+            newPairsIndex.put(pair, newChannel)
             index.put(exchange, newPairsIndex)
         }
 
-        listeners.forEach { listener -> listener.newChannel(exchange, pairInitializer, newChannel) }
+        listeners.forEach { listener -> listener.newChannel(exchange, pair, newChannel) }
         return newChannel
     }
 
