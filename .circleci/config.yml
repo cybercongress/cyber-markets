@@ -133,10 +133,6 @@ workflows:
 
   kafka-connectors_build:
     jobs:
-      - build_kafka-connectors:
-          filters:
-            tags:
-              only: /.*/
       - deploy_kafka-connectors_image:
           <<: *release_filter
           requires:
