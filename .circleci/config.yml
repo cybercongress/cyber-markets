@@ -135,5 +135,3 @@ workflows:
     jobs:
       - deploy_kafka-connectors_image:
           <<: *release_filter
-          requires:
-            - build_kafka-connectors
