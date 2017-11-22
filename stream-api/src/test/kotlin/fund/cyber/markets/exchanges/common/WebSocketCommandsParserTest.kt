@@ -32,8 +32,8 @@ class WebSocketCommandsParserTest {
     fun testTradeSubscriptionProvided() {
 
         val pairs = listOf(
-                TokensPairInitializer.fromLabel("BTC_ETH", "_"),
-                TokensPairInitializer.fromLabel("ETH_USD", "_")
+                TokensPairInitializer.fromLabel("BTC_ETH", "_").pair,
+                TokensPairInitializer.fromLabel("ETH_USD", "_").pair
         )
 
         val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}"""
@@ -50,8 +50,8 @@ class WebSocketCommandsParserTest {
     fun testTradeSubscriptionProvidedAndInvertIsCorrect() {
 
         val pairs = listOf(
-                TokensPairInitializer.fromLabel("BTC_ETH", "_"),
-                TokensPairInitializer.fromLabel("AAA_BBB", "_")
+                TokensPairInitializer.fromLabel("BTC_ETH", "_").pair,
+                TokensPairInitializer.fromLabel("AAA_BBB", "_").pair
         )
 
         val message = """{"subscribe":"trades","pairs":["BTC_ETH","BBB_AAA"]}"""
@@ -68,7 +68,7 @@ class WebSocketCommandsParserTest {
     fun testTradeSubscriptionProvidedInvertIsCorrectAndDeleteEquals() {
 
         val pairs = listOf(
-                TokensPairInitializer.fromLabel("BTC_ETH", "_")
+                TokensPairInitializer.fromLabel("BTC_ETH", "_").pair
         )
 
         val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_BTC"]}"""
