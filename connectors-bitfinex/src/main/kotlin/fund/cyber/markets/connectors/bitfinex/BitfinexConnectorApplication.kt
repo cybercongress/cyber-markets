@@ -9,8 +9,6 @@ import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.model.OrdersBatch
 import fund.cyber.markets.model.Trade
 
-/*----------------------------- Undertow ------------------------------------------*/
-/*----------------------------- Others ---------------------------------------------*/
 val supportedTradesEndpoints = listOf(
         BitfinexTradesEndpoint()
 )
