@@ -1,10 +1,10 @@
 FROM node:latest
 
 # Create app directory
-WORKDIR /app
+COPY ./connectors-etherdelta/src/main/node/fund/cyber/markets/connectors/etherdelta/ /cm
+WORKDIR /cm
 # Install app dependencies
-COPY package.json /app
 RUN npm install
-COPY . /app
+COPY . /cm
 
 CMD node etherdelta.js

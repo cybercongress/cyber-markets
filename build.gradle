@@ -101,8 +101,6 @@ project(":connectors-core") {
 
     dependencies {
         compile(project(":core"))
-        compile("io.undertow:undertow-core")
-        compile ("org.web3j:core:$web3jVersion")
         compile("khttp:khttp:$khttpVersion")
     }
 
@@ -115,11 +113,7 @@ project(":connectors-bitfinex") {
     apply plugin: "application"
 
     dependencies {
-        compile(project(":core"))
         compile(project(":connectors-core"))
-        compile("io.undertow:undertow-core")
-        compile ("org.web3j:core:$web3jVersion")
-        compile("khttp:khttp:$khttpVersion")
     }
 
     mainClassName = "fund.cyber.markets.connectors.bitfinex.BitfinexConnectorApplicationKt"
@@ -133,11 +127,7 @@ project(":connectors-bitstamp") {
     apply plugin: "application"
 
     dependencies {
-        compile(project(":core"))
         compile(project(":connectors-core"))
-        compile("io.undertow:undertow-core")
-        compile ("org.web3j:core:$web3jVersion")
-        compile("khttp:khttp:$khttpVersion")
     }
 
     mainClassName = "fund.cyber.markets.connectors.bitstamp.BitstampConnectorApplicationKt"
@@ -151,11 +141,7 @@ project(":connectors-hitbtc") {
     apply plugin: "application"
 
     dependencies {
-        compile(project(":core"))
         compile(project(":connectors-core"))
-        compile("io.undertow:undertow-core")
-        compile ("org.web3j:core:$web3jVersion")
-        compile("khttp:khttp:$khttpVersion")
     }
 
     mainClassName = "fund.cyber.markets.connectors.hitbtc.HitBtcConnectorApplicationKt"
@@ -169,11 +155,7 @@ project(":connectors-poloniex") {
     apply plugin: "application"
 
     dependencies {
-        compile(project(":core"))
         compile(project(":connectors-core"))
-        compile("io.undertow:undertow-core")
-        compile ("org.web3j:core:$web3jVersion")
-        compile("khttp:khttp:$khttpVersion")
     }
 
     mainClassName = "fund.cyber.markets.connectors.poloniex.PoloniexConnectorApplicationKt"

@@ -2,8 +2,8 @@ package fund.cyber.markets.exchanges.hitbtc
 
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.connectors.common.TradesUpdatesMessage
-import fund.cyber.markets.connectors.etherdelta.connector.HitBtcTokensPairInitializer
-import fund.cyber.markets.connectors.etherdelta.connector.HitBtcTradesMessageParser
+import fund.cyber.markets.connectors.hitbtc.connector.HitBtcTokensPairInitializer
+import fund.cyber.markets.connectors.hitbtc.connector.HitBtcTradesMessageParser
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType.BUY
 import fund.cyber.markets.model.TradeType.SELL

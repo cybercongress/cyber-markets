@@ -1,4 +1,4 @@
-package fund.cyber.markets.connectors.etherdelta.connector
+package fund.cyber.markets.connectors.hitbtc.connector
 
 import com.fasterxml.jackson.databind.JsonNode
 import fund.cyber.markets.connectors.common.*

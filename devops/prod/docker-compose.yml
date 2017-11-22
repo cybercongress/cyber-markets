@@ -48,5 +48,5 @@ services:
     links:
       - cn-kafka
     labels:
-      kompose.service.type: loadbalancercd
+      kompose.service.type: loadbalancer
 

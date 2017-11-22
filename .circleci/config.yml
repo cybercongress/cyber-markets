@@ -24,16 +24,21 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - connectors-dependencies-{{ checksum "build.gradle" }}
-            - connectors-dependencies
+            - connectors-core-dependencies-{{ checksum "build.gradle" }}
+            - connectors-core-dependencies
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
       - run:
           name: Test and build connectors project
-          command: ./gradlew -p ./connectors clean build
+          command: |
+            ./gradlew -p ./connectors-core clean build
+            ./gradlew -p ./connectors-bitfinex clean build
+            ./gradlew -p ./connectors-bitstamp clean build
+            ./gradlew -p ./connectors-hitbtc clean build
+            ./gradlew -p ./connectors-poloniex clean build
       - save_cache:
-          key: connectors-dependencies-{{ checksum "build.gradle" }}
+          key: connectors-core-dependencies-{{ checksum "build.gradle" }}
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
@@ -58,21 +63,86 @@ jobs:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
 
-  deploy_connectors_image:
+  deploy_connectors-bitfinex_image:
      <<: *default_container
      steps:
        - checkout
        - setup_remote_docker:
            version: 17.05.0-ce
        - run:
-           name: Build connectors docker image
+           name: Build connectors-bitfinex docker image
            command: |
-             docker build -t build/cm-connectors -f ./devops/connectors/Dockerfile ./
+             docker build -t build/cm-connectors-bitfinex -f ./devops/connectors/bitfinex/Dockerfile ./
              docker login -u $DOCKER_USER -p $DOCKER_PASS
-             docker tag build/cm-connectors cybernode/cm-connectors:$CIRCLE_TAG
-             docker push cybernode/cm-connectors:$CIRCLE_TAG
-             docker tag build/cm-connectors cybernode/cm-connectors:latest
-             docker push cybernode/cm-connectors:latest
+             docker tag build/cm-connectors-bitfinex cybernode/cm-connectors-bitfinex:$CIRCLE_TAG
+             docker push cybernode/cm-connectors-bitfinex:$CIRCLE_TAG
+             docker tag build/cm-connectors-bitfinex cybernode/cm-connectors-bitfinex:latest
+             docker push cybernode/cm-connectors-bitfinex:latest
+
+  deploy_connectors-bitstamp_image:
+       <<: *default_container
+       steps:
+         - checkout
+         - setup_remote_docker:
+             version: 17.05.0-ce
+         - run:
+             name: Build connectors-bitstamp docker image
+             command: |
+               docker build -t build/cm-connectors-bitstamp -f ./devops/connectors/bitstamp/Dockerfile ./
+               docker login -u $DOCKER_USER -p $DOCKER_PASS
+               docker tag build/cm-connectors-bitstamp cybernode/cm-connectors-bitstamp:$CIRCLE_TAG
+               docker push cybernode/cm-connectors-bitstamp:$CIRCLE_TAG
+               docker tag build/cm-connectors-bitstamp cybernode/cm-connectors-bitstamp:latest
+               docker push cybernode/cm-connectors-bitstamp:latest
+
+  deploy_connectors-hitbtc_image:
+         <<: *default_container
+         steps:
+           - checkout
+           - setup_remote_docker:
+               version: 17.05.0-ce
+           - run:
+               name: Build connectors-hitbtc docker image
+               command: |
+                 docker build -t build/cm-connectors-hitbtc -f ./devops/connectors/hitbtc/Dockerfile ./
+                 docker login -u $DOCKER_USER -p $DOCKER_PASS
+                 docker tag build/cm-connectors-hitbtc cybernode/cm-connectors-hitbtc:$CIRCLE_TAG
+                 docker push cybernode/cm-connectors-hitbtc:$CIRCLE_TAG
+                 docker tag build/cm-connectors-hitbtc cybernode/cm-connectors-hitbtc:latest
+                 docker push cybernode/cm-connectors-hitbtc:latest
+
+  deploy_connectors-poloniex_image:
+         <<: *default_container
+         steps:
+           - checkout
+           - setup_remote_docker:
+               version: 17.05.0-ce
+           - run:
+               name: Build connectors-poloniex docker image
+               command: |
+                 docker build -t build/cm-connectors-poloniex -f ./devops/connectors/poloniex/Dockerfile ./
+                 docker login -u $DOCKER_USER -p $DOCKER_PASS
+                 docker tag build/cm-connectors-poloniex cybernode/cm-connectors-poloniex:$CIRCLE_TAG
+                 docker push cybernode/cm-connectors-poloniex:$CIRCLE_TAG
+                 docker tag build/cm-connectors-poloniex cybernode/cm-connectors-poloniex:latest
+                 docker push cybernode/cm-connectors-poloniex:latest
+
+  deploy_connectors-etherdelta_image:
+           <<: *default_container
+           steps:
+             - checkout
+             - setup_remote_docker:
+                 version: 17.05.0-ce
+             - run:
+                 name: Build connectors-etherdelta docker image
+                 command: |
+                   docker build -t build/cm-connectors-etherdelta -f ./devops/connectors/etherdelta/Dockerfile ./
+                   docker login -u $DOCKER_USER -p $DOCKER_PASS
+                   docker tag build/cm-connectors-etherdelta cybernode/cm-connectors-etherdelta:$CIRCLE_TAG
+                   docker push cybernode/cm-connectors-etherdelta:$CIRCLE_TAG
+                   docker tag build/cm-connectors-etherdelta cybernode/cm-connectors-etherdelta:latest
+                   docker push cybernode/cm-connectors-etherdelta:latest
+
 
   deploy_stream-api_image:
      <<: *default_container
@@ -115,7 +185,23 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - deploy_connectors_image:
+      - deploy_connectors-bitfinex_image:
+          <<: *release_filter
+          requires:
+            - build_connectors
+      - deploy_connectors-bitstamp_image:
+          <<: *release_filter
+          requires:
+            - build_connectors
+      - deploy_connectors-hitbtc_image:
+          <<: *release_filter
+          requires:
+            - build_connectors
+      - deploy_connectors-poloniex_image:
+          <<: *release_filter
+          requires:
+            - build_connectors
+      - deploy_connectors-etherdelta_image:
           <<: *release_filter
           requires:
             - build_connectors

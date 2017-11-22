@@ -1,4 +1,4 @@
-package fund.cyber.markets.connectors.etherdelta.connector
+package fund.cyber.markets.connectors.hitbtc.connector
 
 import fund.cyber.markets.connectors.common.HITBTC_WS_ENDPOINT
 import fund.cyber.markets.connectors.common.ws.OrdersWsEndpoint
