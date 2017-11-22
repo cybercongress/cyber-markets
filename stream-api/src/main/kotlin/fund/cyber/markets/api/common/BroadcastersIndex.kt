@@ -4,10 +4,8 @@ import fund.cyber.markets.api.orders.OrdersBroadcaster
 import fund.cyber.markets.api.trades.TradesBroadcaster
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Order
-import fund.cyber.markets.model.TokensPairInitializer
 import fund.cyber.markets.model.Trade
 import kotlinx.coroutines.experimental.channels.Channel
-import sun.tools.jstat.Token
 import java.util.concurrent.ConcurrentHashMap
 
 class TradesBroadcastersIndex : BroadcastersIndex<Trade, TradesBroadcaster>() {
