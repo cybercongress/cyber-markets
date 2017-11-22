@@ -1,6 +1,5 @@
 package fund.cyber.markets.connectors.bitstamp.connector
 
-import fund.cyber.markets.connectors.bitfinex.connector.BitfinexOrdersEndpoint
 import fund.cyber.markets.connectors.common.BITSTAMP_WS_ENDPOINT
 import fund.cyber.markets.connectors.common.ExchangeMessage
 import fund.cyber.markets.connectors.common.ws.OrdersWsEndpoint
@@ -12,7 +11,7 @@ private val FULL_ORDER_BOOK_CHANNEL_PREFIX = "diff_order_book_"
 private val TRADES_CHANNEL_PREFIX = "live_trades_"
 
 class BitstampTradesEndpoint: TradesWsEndpoint(BITSTAMP_WS_ENDPOINT) {
-    private val LOGGER = LoggerFactory.getLogger(BitfinexOrdersEndpoint::class.java)!!
+    private val LOGGER = LoggerFactory.getLogger(BitstampTradesEndpoint::class.java)!!
 
     override val name: String = "Bitstamp Trades"
     override val messageParser = BitstampTradesMessageParser(channelSymbolForTokensPairs)
@@ -32,7 +31,7 @@ class BitstampTradesEndpoint: TradesWsEndpoint(BITSTAMP_WS_ENDPOINT) {
 }
 
 class BitstampOrdersEndpoint: OrdersWsEndpoint(BITSTAMP_WS_ENDPOINT) {
-    private val LOGGER = LoggerFactory.getLogger(BitfinexOrdersEndpoint::class.java)!!
+    private val LOGGER = LoggerFactory.getLogger(BitstampOrdersEndpoint::class.java)!!
 
     override val name: String = "Bitstamp Orders"
     override val messageParser = BitstampOrdersMessageParser(channelSymbolForTokensPairs)
