@@ -48,6 +48,7 @@ class IncomingMessagesHandler(
                         val result = LinkedList<Trade>()
                         var attemptCounter = 0
                         while (result.size < 10 && attemptCounter < 30) {
+                            //todo if array null
                             val randomTrade = broadcasters.elementAt(rand(0, broadcasters.size))
                                     .getRandomTradeFromBroadcaster()
                             if (randomTrade != null) {

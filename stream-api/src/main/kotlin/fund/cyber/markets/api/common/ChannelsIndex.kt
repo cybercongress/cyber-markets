@@ -1,11 +1,12 @@
 package fund.cyber.markets.api.common
 
+import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.TokensPairInitializer
 import kotlinx.coroutines.experimental.channels.Channel
 
 
 interface ChannelsIndexUpdateListener<T> {
-    fun newChannel(exchange: String, pairInitializer: TokensPairInitializer, windowDuration: Long, channel: Channel<T>)
+    fun newChannel(exchange: String, pairInitializer: TokensPair, windowDuration: Long, channel: Channel<T>)
 }
 
 

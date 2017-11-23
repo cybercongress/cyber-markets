@@ -7,6 +7,8 @@ buildscript {
         okhttpVersion = "3.8.1"
         undertowVersion = "1.4.18.Final"
         kafkaVersion = "0.11.0.0"
+        web3jVersion = "2.3.1"
+        khttpVersion = "0.1.0"
 
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
@@ -95,15 +97,69 @@ subprojects {
     }
 }
 
-project(":connectors") {
+project(":connectors-core") {
     apply plugin: "application"
 
     dependencies {
         compile(project(":core"))
-        compile("io.undertow:undertow-core")
+        compile("khttp:khttp:$khttpVersion")
     }
 
-    mainClassName = "fund.cyber.markets.connectors.ConnectorsApplicationKt"
+    run {
+        systemProperties System.getProperties()
+    }
+}
+
+project(":connectors-bitfinex") {
+    apply plugin: "application"
+
+    dependencies {
+        compile(project(":connectors-core"))
+    }
+
+    mainClassName = "fund.cyber.markets.connectors.bitfinex.BitfinexConnectorApplicationKt"
+
+    run {
+        systemProperties System.getProperties()
+    }
+}
+
+project(":connectors-bitstamp") {
+    apply plugin: "application"
+
+    dependencies {
+        compile(project(":connectors-core"))
+    }
+
+    mainClassName = "fund.cyber.markets.connectors.bitstamp.BitstampConnectorApplicationKt"
+
+    run {
+        systemProperties System.getProperties()
+    }
+}
+
+project(":connectors-hitbtc") {
+    apply plugin: "application"
+
+    dependencies {
+        compile(project(":connectors-core"))
+    }
+
+    mainClassName = "fund.cyber.markets.connectors.hitbtc.HitBtcConnectorApplicationKt"
+
+    run {
+        systemProperties System.getProperties()
+    }
+}
+
+project(":connectors-poloniex") {
+    apply plugin: "application"
+
+    dependencies {
+        compile(project(":connectors-core"))
+    }
+
+    mainClassName = "fund.cyber.markets.connectors.poloniex.PoloniexConnectorApplicationKt"
 
     run {
         systemProperties System.getProperties()

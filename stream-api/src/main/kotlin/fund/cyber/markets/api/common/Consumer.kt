@@ -32,7 +32,8 @@ abstract class Consumer<K, V>(
         kafkaConsumer.use {
             it.subscribe(configuration.topicNamePattern, NoOpConsumerRebalanceListener())
             while (true) {
-                handleNew(it.poll(configuration.poolAwaitTimeout))
+                val records = it.poll(configuration.poolAwaitTimeout)
+                handleNew(records)
             }
         }
     }

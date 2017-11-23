@@ -3,22 +3,22 @@ package fund.cyber.markets.api.common
 import fund.cyber.markets.api.orders.OrdersBroadcaster
 import fund.cyber.markets.api.tickers.TickersBroadcaster
 import fund.cyber.markets.api.trades.TradesBroadcaster
+import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Order
-import fund.cyber.markets.model.TokensPairInitializer
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.model.Ticker
 import kotlinx.coroutines.experimental.channels.Channel
 import java.util.concurrent.ConcurrentHashMap
 
 class TradesBroadcastersIndex : BroadcastersIndex<Trade, TradesBroadcaster>() {
-    override fun newChannel(exchange: String, pairInitializer: TokensPairInitializer, windowDuration: Long, channel: Channel<Trade>) {
+    override fun newChannel(exchange: String, pairInitializer: TokensPair, channel: Channel<Trade>) {
         val broadcaster = TradesBroadcaster(channel)
         index.put(BroadcasterDefinition(pairInitializer, exchange, windowDuration), broadcaster)
     }
 }
 
 class OrdersBroadcastersIndex : BroadcastersIndex<List<Order>, OrdersBroadcaster>() {
-    override fun newChannel(exchange: String, pairInitializer: TokensPairInitializer, windowDuration: Long, channel: Channel<List<Order>>) {
+    override fun newChannel(exchange: String, pairInitializer: TokensPair, channel: Channel<List<Order>>) {
         val broadcaster = OrdersBroadcaster(channel)
         index.put(BroadcasterDefinition(pairInitializer, exchange, windowDuration), broadcaster)
     }
@@ -53,7 +53,7 @@ abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListen
         return index.map { (definition, _) -> definition.tokensPair }
     }
 
-    fun getAllExchangesWithPairs(): Map<String, List<TokensPairInitializer>> {
+    fun getAllExchangesWithPairs(): Map<String, List<TokensPair>> {
         return index
                 .map { (definition, _) -> definition.exchange to getAllPairsForExchange(definition.exchange) }
                 .toMap()
