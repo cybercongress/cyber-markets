@@ -40,6 +40,9 @@
         function send3() {
             websockets.send(`{"subscribe":"tickers"}`);
         }
+        function send4() {
+            websockets.send(`{"subscribe":"tickers","pairs":["BTC_USD","BTC_USDT"]}`);
+        }
     </script>
 </head>
 <body>
@@ -54,6 +57,9 @@
 </form>
 <form onsubmit="return false;">
     <input type="button" value="Subscribe all tickers" onclick="send3()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe all tickers BTC_USD" onclick="send4()"/>
 </form>
 </body>
 </html>

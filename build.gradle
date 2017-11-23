@@ -126,6 +126,7 @@ project(":core") {
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
         compile("org.apache.kafka:kafka-clients")
+        compile("org.apache.kafka:kafka-streams")
     }
 }
 
@@ -167,8 +168,6 @@ project(":tickers") {
 
     dependencies {
         compile(project(":core"))
-
-        compile("org.apache.kafka:kafka-streams")
     }
 
     mainClassName = "fund.cyber.markets.TickersApplication"
