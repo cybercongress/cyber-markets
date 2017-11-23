@@ -11,27 +11,27 @@ import kotlinx.coroutines.experimental.channels.Channel
 import java.util.concurrent.ConcurrentHashMap
 
 class TradesBroadcastersIndex : BroadcastersIndex<Trade, TradesBroadcaster>() {
-    override fun newChannel(exchange: String, pairInitializer: TokensPair, channel: Channel<Trade>) {
+    override fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<Trade>) {
         val broadcaster = TradesBroadcaster(channel)
-        index.put(BroadcasterDefinition(pairInitializer, exchange, windowDuration), broadcaster)
+        index.put(BroadcasterDefinition(tokensPair, exchange, windowDuration), broadcaster)
     }
 }
 
 class OrdersBroadcastersIndex : BroadcastersIndex<List<Order>, OrdersBroadcaster>() {
-    override fun newChannel(exchange: String, pairInitializer: TokensPair, channel: Channel<List<Order>>) {
+    override fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<List<Order>>) {
         val broadcaster = OrdersBroadcaster(channel)
-        index.put(BroadcasterDefinition(pairInitializer, exchange, windowDuration), broadcaster)
+        index.put(BroadcasterDefinition(tokensPair, exchange, windowDuration), broadcaster)
     }
 }
 
 class TickersBroadcastersIndex : BroadcastersIndex<Ticker, TickersBroadcaster>() {
-    override fun newChannel(exchange: String, pairInitializer: TokensPairInitializer, windowDuration: Long, channel: Channel<Ticker>) {
+    override fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<Ticker>) {
         val broadcaster = TickersBroadcaster(channel)
-        index.put(BroadcasterDefinition(pairInitializer, exchange, windowDuration), broadcaster)
+        index.put(BroadcasterDefinition(tokensPair, exchange, windowDuration), broadcaster)
     }
 }
 
-data class BroadcasterDefinition(val tokensPair: TokensPairInitializer,
+data class BroadcasterDefinition(val tokensPair: TokensPair,
                                  val exchange: String,
                                  val windowDuration: Long)
 
@@ -39,17 +39,17 @@ abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListen
 
     protected val index: MutableMap<BroadcasterDefinition, B> = ConcurrentHashMap()
 
-    fun broadcastersFor(pairInitializers: List<TokensPairInitializer>, exchanges: List<String>, windowDurations: List<Long> = emptyList()): Collection<B> {
+    fun broadcastersFor(tokenPairs: List<TokensPair>, exchanges: List<String>, windowDurations: List<Long> = emptyList()): Collection<B> {
 
         return index.filter { (definition, _) ->
-            (pairInitializers.isEmpty() || pairInitializers.contains(definition.tokensPair))
+            (tokenPairs.isEmpty() || tokenPairs.contains(definition.tokensPair))
             && (exchanges.isEmpty() || exchanges.contains(definition.exchange))
             && (windowDurations.isEmpty() || definition.windowDuration < 0 || windowDurations.contains(definition.windowDuration))
         }.map { (_, broadcaster) -> broadcaster }
 
     }
 
-    fun getAllPairs(): Collection<TokensPairInitializer> {
+    fun getAllPairs(): Collection<TokensPair> {
         return index.map { (definition, _) -> definition.tokensPair }
     }
 
@@ -59,7 +59,7 @@ abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListen
                 .toMap()
     }
 
-    private fun getAllPairsForExchange(exchange: String): List<TokensPairInitializer> {
+    private fun getAllPairsForExchange(exchange: String): List<TokensPair> {
         return index
                 .filter { (definition, _) -> definition.exchange == exchange }
                 .map { (definition, _) -> definition.tokensPair }

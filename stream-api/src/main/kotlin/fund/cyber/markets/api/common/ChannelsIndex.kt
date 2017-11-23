@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 
 
 interface ChannelsIndexUpdateListener<T> {
-    fun newChannel(exchange: String, pairInitializer: TokensPair, windowDuration: Long, channel: Channel<T>)
+    fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<T>)
 }
 
 
@@ -14,7 +14,7 @@ class ChannelsIndex<T> {
 
     data class ChannelDefinition(
             val exchange: String,
-            val pairInitializer: TokensPairInitializer,
+            val tokensPair: TokensPair,
             val windowDuration: Long,
             val channel: Channel<*>
     )
@@ -24,14 +24,16 @@ class ChannelsIndex<T> {
 
 
     /**
-     * Returns a channel for given <exchange, pairInitializer, windowDuration>
+     * Returns a channel for given <exchange, tokensPair, windowDuration>
      * If channel doesn't exists, create new one and notify listeners
      */
     fun channelFor(exchange: String, pairInitializer: TokensPairInitializer, windowDuration: Long = -1L): Channel<T> {
 
+        val pair = pairInitializer.pair
+
         val channelDef = index.find {
             definition -> definition.exchange == exchange
-            && definition.pairInitializer == pairInitializer
+            && definition.tokensPair == pair
             && (windowDuration < 0 || definition.windowDuration == windowDuration)
         }
 
@@ -40,9 +42,9 @@ class ChannelsIndex<T> {
         }
 
         val newChannel = Channel<T>()
-        index.add(ChannelDefinition(exchange, pairInitializer, windowDuration, newChannel))
+        index.add(ChannelDefinition(exchange, pair, windowDuration, newChannel))
 
-        listeners.forEach { listener -> listener.newChannel(exchange, pairInitializer, windowDuration, newChannel) }
+        listeners.forEach { listener -> listener.newChannel(exchange, pair, windowDuration, newChannel) }
         return newChannel
     }
 
