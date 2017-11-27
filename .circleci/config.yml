@@ -62,6 +62,26 @@ jobs:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
 
+  build_tickers:
+    <<: *default_container
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - api-dependencies-{{ checksum "build.gradle" }}
+            - api-dependencies
+          paths:
+            - ~/.gradle/caches/
+            - ~/.gradle/wrapper/
+      - run:
+          name: Test and build tickers project
+          command: ./gradlew -p ./tickers clean build
+      - save_cache:
+          key: api-dependencies-{{ checksum "build.gradle" }}
+          paths:
+            - ~/.gradle/caches/
+            - ~/.gradle/wrapper/
+
   deploy_connectors-bitfinex_image:
      <<: *default_container
      steps:
@@ -175,6 +195,22 @@ jobs:
                docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:latest
                docker push cybernode/cm-kafka-connectors:latest
 
+  deploy_tickers_image:
+     <<: *default_container
+     steps:
+       - checkout
+       - setup_remote_docker:
+           version: 17.05.0-ce
+       - run:
+           name: Build tickers docker image
+           command: |
+             docker build -t build/cm-tickers -f ./devops/tickers/Dockerfile ./
+             docker login -u $DOCKER_USER -p $DOCKER_PASS
+             docker tag build/cm-tickers cybernode/cm-tickers:$CIRCLE_TAG
+             docker push cybernode/cm-tickers:$CIRCLE_TAG
+             docker tag build/cm-tickers cybernode/cm-tickers:latest
+             docker push cybernode/cm-tickers:latest
+
 workflows:
   version: 2
 
@@ -220,3 +256,14 @@ workflows:
     jobs:
       - deploy_kafka-connectors_image:
           <<: *release_filter
+
+  tickers_build:
+    jobs:
+      - build_tickers:
+          filters:
+            tags:
+              only: /.*/
+      - deploy_tickers_image:
+          <<: *release_filter
+          requires:
+            - build_tickers
