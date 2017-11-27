@@ -9,11 +9,17 @@ import fund.cyber.markets.tickers.configuration.tickersTopicName
 import fund.cyber.markets.tickers.model.Ticker
 import fund.cyber.markets.tickers.model.TickerKey
 import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.common.utils.Bytes
+import org.apache.kafka.streams.Consumed
 import org.apache.kafka.streams.KafkaStreams
+import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.kstream.KStream
-import org.apache.kafka.streams.kstream.KStreamBuilder
+import org.apache.kafka.streams.kstream.Materialized
+import org.apache.kafka.streams.kstream.Produced
+import org.apache.kafka.streams.kstream.Serialized
 import org.apache.kafka.streams.kstream.TimeWindows
 import org.apache.kafka.streams.kstream.Windowed
+import org.apache.kafka.streams.state.WindowStore
 import java.sql.Timestamp
 
 
@@ -21,8 +27,8 @@ fun main(args: Array<String>) {
 
     val configuration = KafkaConfiguration()
 
-    val builder = KStreamBuilder()
-    val tradeStream = builder.stream<String, Trade>(Serdes.String(), JsonSerde(Trade::class.java), configuration.topicNamePattern)
+    val builder = StreamsBuilder()
+    val tradeStream = builder.stream<String, Trade>(configuration.topicNamePattern, Consumed.with(Serdes.String(), JsonSerde(Trade::class.java)))
 
     val groupedByTokensPairTable = createTableGroupedByTokensPair(tradeStream, configuration.windowHop)
     val groupedByTokensPairAndExchangeTable = createTableGroupedByTokensPairAndExchange(tradeStream, configuration.windowHop)
@@ -36,7 +42,7 @@ fun main(args: Array<String>) {
         )
     }
 
-    val streams = KafkaStreams(builder, configuration.tickerStreamProperties())
+    val streams = KafkaStreams(builder.build(), configuration.tickerStreamProperties())
 
     streams.cleanUp()
     streams.start()
@@ -49,15 +55,16 @@ fun addToTickersTopic(groupedByTokensPair: KStream<Windowed<TokensPair>, Ticker>
 
     groupedByTokensPair
         .groupByKey(
-            WindowedSerde(JsonSerde(TokensPair::class.java)),
-            JsonSerde(Ticker::class.java)
+            Serialized.with(WindowedSerde(JsonSerde(TokensPair::class.java)), JsonSerde(Ticker::class.java))
         )
+        .windowedBy(TimeWindows.of(windowDuration))
         .aggregate(
             { Ticker(windowDuration) },
             { _, newValue, aggregate -> aggregate.add(newValue) },
-            TimeWindows.of(windowDuration),
-            JsonSerde(Ticker::class.java),
-            "tickers-grouped-by-pairs-" + windowDuration + "ms"
+            Materialized.`as`<Windowed<TokensPair>, Ticker, WindowStore<Bytes, ByteArray>>(
+                "tickers-grouped-by-pairs-" + windowDuration + "ms")
+                .withValueSerde( JsonSerde(Ticker::class.java)
+            )
         )
         .mapValues { ticker ->
             ticker.calcPrice()
@@ -68,19 +75,20 @@ fun addToTickersTopic(groupedByTokensPair: KStream<Windowed<TokensPair>, Ticker>
         .toStream({ key, ticker ->
             TickerKey(ticker.tokensPair!!, windowDuration, Timestamp(key.window().start()))
         })
-        .to(JsonSerde(TickerKey::class.java), JsonSerde(Ticker::class.java), topicName)
+        .to(topicName, Produced.with(JsonSerde(TickerKey::class.java), JsonSerde(Ticker::class.java)))
 
     groupedByTokensPairAndExchange
         .groupByKey(
-            WindowedSerde(Serdes.String()),
-            JsonSerde(Ticker::class.java)
+            Serialized.with(WindowedSerde(Serdes.String()), JsonSerde(Ticker::class.java))
         )
+        .windowedBy(TimeWindows.of(windowDuration))
         .aggregate(
             { Ticker(windowDuration) },
             { _, newValue, aggregate -> aggregate.add(newValue) },
-            TimeWindows.of(windowDuration),
-            JsonSerde(Ticker::class.java),
-            "tickers-grouped-by-pairs-and-exchange" + windowDuration + "ms"
+            Materialized.`as`<Windowed<String>, Ticker, WindowStore<Bytes, ByteArray>>(
+                "tickers-grouped-by-pairs-and-exchange" + windowDuration + "ms")
+                .withValueSerde(JsonSerde(Ticker::class.java)
+            )
         )
         .mapValues { ticker ->
             ticker.calcPrice()
@@ -88,21 +96,23 @@ fun addToTickersTopic(groupedByTokensPair: KStream<Windowed<TokensPair>, Ticker>
         .toStream({ key, ticker ->
             TickerKey(ticker.tokensPair!!, windowDuration, Timestamp(key.window().start()))
         })
-        .to(JsonSerde(TickerKey::class.java), JsonSerde(Ticker::class.java), topicName)
+        .to(topicName, Produced.with(JsonSerde(TickerKey::class.java), JsonSerde(Ticker::class.java)))
 }
 
 fun createTableGroupedByTokensPair(tradeStream: KStream<String, Trade>, windowHop: Long): KStream<Windowed<TokensPair>, Ticker> {
     return tradeStream
             .groupBy(
                 { _, trade -> trade.pair },
-                JsonSerde(TokensPair::class.java),
-                JsonSerde(Trade::class.java)
+                Serialized.with(JsonSerde(TokensPair::class.java), JsonSerde(Trade::class.java))
             )
+            .windowedBy(TimeWindows.of(windowHop).advanceBy(windowHop))
             .aggregate(
                 { Ticker(windowHop) },
                 { _, newValue, aggregate -> aggregate.add(newValue) },
-                TimeWindows.of(windowHop).advanceBy(windowHop),
-                JsonSerde(Ticker::class.java)
+                Materialized.`as`<TokensPair, Ticker, WindowStore<Bytes, ByteArray>>(
+                    "tickers-grouped-by-pairs-" + windowHop + "ms")
+                    .withValueSerde(JsonSerde(Ticker::class.java)
+                )
             )
             .toStream()
 }
@@ -111,14 +121,16 @@ fun createTableGroupedByTokensPairAndExchange(tradeStream: KStream<String, Trade
     return tradeStream
             .groupBy(
                 { _, trade -> trade.exchange + "_" + trade.pair.base + "_" + trade.pair.quote },
-                Serdes.String(),
-                JsonSerde(Trade::class.java)
+                Serialized.with(Serdes.String(), JsonSerde(Trade::class.java))
             )
+            .windowedBy(TimeWindows.of(windowHop).advanceBy(windowHop))
             .aggregate(
                 { Ticker(windowHop) },
                 { _, newValue, aggregate -> aggregate.add(newValue) },
-                TimeWindows.of(windowHop).advanceBy(windowHop),
-                JsonSerde(Ticker::class.java)
+                Materialized.`as`<String, Ticker, WindowStore<Bytes, ByteArray>>(
+                    "tickers-grouped-by-pairs-and-exchange" + windowHop + "ms")
+                    .withValueSerde(JsonSerde(Ticker::class.java)
+                )
             )
             .toStream()
 }
