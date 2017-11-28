@@ -68,8 +68,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - api-dependencies-{{ checksum "build.gradle" }}
-            - api-dependencies
+            - ticker-dependencies-{{ checksum "build.gradle" }}
+            - ticker-dependencies
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
@@ -77,7 +77,7 @@ jobs:
           name: Test and build tickers project
           command: ./gradlew -p ./tickers clean build
       - save_cache:
-          key: api-dependencies-{{ checksum "build.gradle" }}
+          key: ticker-{{ checksum "build.gradle" }}
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
