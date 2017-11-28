@@ -18,8 +18,8 @@ class KafkaConfiguration(
         val windowHop: Long = TimeUnit.SECONDS.toMillis(env(Constants.WINDOW_HOP_SEC, 3))
 ) {
 
-    fun getWindowDurations() : List<Long> {
-       return windowDurationsString.split(",").map { it -> it.toLong()*60*1000 }
+    fun getWindowDurations(): List<Long> {
+        return windowDurationsString.split(",").map { it -> it.toLong() * 60 * 1000 }
     }
 
     fun tickerStreamProperties(): Properties {

@@ -202,27 +202,6 @@ project(":stream-api") {
     mainClassName = "fund.cyber.markets.StreamApiApplication"
 }
 
-project(":stream-processing") {
-    apply plugin: "com.github.johnrengelman.shadow"
-
-    ext {
-        sparkVersion = "2.2.0"
-    }
-
-    dependencies {
-        // Dependencies which will be included in fatjar
-        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
-
-        // Spark dependencies. TODO: Add to version management
-        compileOnly("org.apache.spark:spark-sql_2.11:$sparkVersion")
-        compileOnly("org.apache.spark:spark-streaming_2.11:$sparkVersion")
-
-        compileOnly("org.apache.kafka:kafka_2.11:$kafkaVersion")
-        compileOnly("org.apache.spark:spark-streaming-kafka-0-10_2.11:$sparkVersion")
-        compileOnly("org.apache.spark:spark-sql-kafka-0-10_2.11:$sparkVersion")
-    }
-}
-
 project(":tickers") {
     apply plugin: "application"
 

@@ -1,6 +1,5 @@
 include("core")
 include("stream-api")
-include("stream-processing")
 include("tickers")
 include("connectors-core")
 include("connectors-bitfinex")
