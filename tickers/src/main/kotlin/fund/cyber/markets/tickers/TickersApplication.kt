@@ -5,6 +5,7 @@ import fund.cyber.markets.kafka.JsonSerde
 import fund.cyber.markets.kafka.WindowedSerde
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.KafkaConfiguration
+import fund.cyber.markets.tickers.configuration.createTickerTopic
 import fund.cyber.markets.tickers.configuration.tickersTopicName
 import fund.cyber.markets.tickers.model.Ticker
 import fund.cyber.markets.tickers.model.TickerKey
@@ -26,6 +27,7 @@ import java.sql.Timestamp
 fun main(args: Array<String>) {
 
     val configuration = KafkaConfiguration()
+    createTickerTopic(configuration.kafkaServers)
 
     val builder = StreamsBuilder()
     val tradeStream = builder.stream<String, Trade>(configuration.topicNamePattern, Consumed.with(Serdes.String(), JsonSerde(Trade::class.java)))
