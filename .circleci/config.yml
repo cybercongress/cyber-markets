@@ -179,21 +179,21 @@ jobs:
              docker tag build/cm-stream-api cybernode/cm-stream-api:latest
              docker push cybernode/cm-stream-api:latest
 
-  deploy_kafka-connectors_image:
-       <<: *default_container
-       steps:
-         - checkout
-         - setup_remote_docker:
-             version: 17.05.0-ce
-         - run:
-             name: Build kafka-connectors docker image
-             command: |
-               docker build -t build/cm-kafka-connectors -f ./devops/kafka-connectors/Dockerfile ./
-               docker login -u $DOCKER_USER -p $DOCKER_PASS
-               docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:$CIRCLE_TAG
-               docker push cybernode/cm-kafka-connectors:$CIRCLE_TAG
-               docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:latest
-               docker push cybernode/cm-kafka-connectors:latest
+#  deploy_kafka-connectors_image:
+#       <<: *default_container
+#      steps:
+#         - checkout
+#         - setup_remote_docker:
+#             version: 17.05.0-ce
+#         - run:
+#             name: Build kafka-connectors docker image
+#             command: |
+#               docker build -t build/cm-kafka-connectors -f ./devops/kafka-connectors/Dockerfile ./
+#               docker login -u $DOCKER_USER -p $DOCKER_PASS
+#               docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:$CIRCLE_TAG
+#               docker push cybernode/cm-kafka-connectors:$CIRCLE_TAG
+#               docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:latest
+#               docker push cybernode/cm-kafka-connectors:latest
 
   deploy_tickers_image:
      <<: *default_container
