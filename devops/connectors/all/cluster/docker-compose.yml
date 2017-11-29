@@ -19,26 +19,32 @@ services:
        FORWARDLOGS: 0
        ADV_HOST: 127.0.0.1
 
-#  cm-bitfinex:
-#    container_name: cm-bitfinex
-#    image: cybernode/cm-connectors-bitfinex:latest
-#    environment:
-#        KAFKA_CONNECTION: cm-fast-data-dev:9092
-#
-#  cm-bitstamp:
-#      container_name: cm-bitstamp
-#      image: cybernode/cm-connectors-bitstamp:latest
-#      environment:
-#          KAFKA_CONNECTION: cm-fast-data-dev:9092
-#
-#  cm-hitbtc:
-#      container_name: cm-hitbtc
-#      image: cybernode/cm-connectors-hitbtc:latest
-#      environment:
-#          KAFKA_CONNECTION: cm-fast-data-dev:9092
-#
-#  cm-poloniex:
-#      container_name: cm-poloniex
-#      image: cybernode/cm-connectors-poloniex:latest
-#      environment:
-#          KAFKA_CONNECTION: cm-fast-data-dev:9092
+  cm-bitfinex:
+    container_name: cm-bitfinex
+    image: cybernode/cm-connectors-bitfinex:latest
+    environment:
+        KAFKA_CONNECTION: cm-fast-data-dev:9092
+
+  cm-bitstamp:
+      container_name: cm-bitstamp
+      image: cybernode/cm-connectors-bitstamp:latest
+      environment:
+          KAFKA_CONNECTION: cm-fast-data-dev:9092
+
+  cm-hitbtc:
+      container_name: cm-hitbtc
+      image: cybernode/cm-connectors-hitbtc:latest
+      environment:
+          KAFKA_CONNECTION: cm-fast-data-dev:9092
+
+  cm-poloniex:
+      container_name: cm-poloniex
+      image: cybernode/cm-connectors-poloniex:latest
+      environment:
+          KAFKA_CONNECTION: cm-fast-data-dev:9092
+
+  cm-gdax:
+        container_name: cm-gdax
+        image: cybernode/cm-connectors-gdax:latest
+        environment:
+            KAFKA_CONNECTION: cm-fast-data-dev:9092
