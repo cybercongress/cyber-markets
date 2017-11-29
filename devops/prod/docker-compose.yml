@@ -42,9 +42,11 @@ services:
       kompose.service.type: loadbalancer
 
   cm-rest-api:
-    image: cybernode/cm-rest-api:release-5.0.2
+    image: cybernode/cm-rest-api:release-0.5.2
     ports:
       - "8085:8085"
+    labels:
+      kompose.service.type: loadbalancer
 
   cm-connector-bitstamp:
     container_name: cm-connector-bitstamp

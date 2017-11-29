@@ -85,6 +85,7 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.service.type: loadbalancer
       kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
@@ -97,6 +98,7 @@ items:
       targetPort: 8085
     selector:
       io.kompose.service: cm-rest-api
+    type: LoadBalancer
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -298,6 +300,7 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.service.type: loadbalancer
       kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
@@ -313,7 +316,7 @@ items:
           io.kompose.service: cm-rest-api
       spec:
         containers:
-        - image: cybernode/cm-rest-api:release-5.0.2
+        - image: cybernode/cm-rest-api:release-0.5.2
           name: cm-rest-api
           ports:
           - containerPort: 8085
