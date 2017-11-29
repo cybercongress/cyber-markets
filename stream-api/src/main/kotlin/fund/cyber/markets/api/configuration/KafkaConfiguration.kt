@@ -7,6 +7,7 @@ import java.util.regex.Pattern
 
 val tradesTopicNamePattern = Pattern.compile("TRADES-.*")
 val ordersTopicNamePattern = Pattern.compile("ORDERS-.*")
+val tickersTopicNamePattern = Pattern.compile("TICKERS.*")
 
 class KafkaConfiguration(
         val kafkaServers: String = env("KAFKA_CONNECTION", "localhost:9092"),

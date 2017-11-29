@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tickers Test</title>
+    <style>
+        .error {
+            color: red
+        }
+    </style>
+    <script type="text/javascript">
+        let websockets;
+
+        window.onload = function () {
+            websockets = new WebSocket("ws://localhost:18080/");
+
+            websockets.onmessage = function (event) {
+                document.body.innerHTML += `<div>${event.data}</div>`;
+                window.scrollTo(0, document.body.scrollHeight);
+            };
+
+            websockets.onclose = function (event) {
+                let message = event.code;
+                if (event.code === 1006) {
+                    message = "The connection was closed abnormally, e.g., without sending or receiving a Close control frame"
+                }
+                document.body.innerHTML += `<div class="error">Error: ${message}</div>`;
+            };
+        };
+
+        function send() {
+            websockets.send(`{"subscribe":"tickers","pairs":["BTC_USD","ETH_USD"],"window_durations":["60000"]}`);
+        }
+        function send1() {
+            websockets.send(`{"subscribe":"tickers","exchanges":["Poloniex","HitBtc"],"window_durations":["60000","300000"]}`);
+        }
+        function send2() {
+            websockets.send(`{"subscribe":"tickers","exchanges":["Poloniex","HitBtc"],"pairs":["BTC_ETH","ETH_USD"],"window_durations":["60000"]}`);
+        }
+        function send3() {
+            websockets.send(`{"subscribe":"tickers"}`);
+        }
+        function send4() {
+            websockets.send(`{"subscribe":"tickers","pairs":["BTC_USD","BTC_USDT"]}`);
+        }
+    </script>
+</head>
+<body>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe by pairs and window durations" onclick="send()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe by exchanges and window durations" onclick="send1()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe by pairs, exchanges, window durations" onclick="send2()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe all tickers" onclick="send3()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Subscribe all tickers BTC_USD" onclick="send4()"/>
+</form>
+</body>
+</html>

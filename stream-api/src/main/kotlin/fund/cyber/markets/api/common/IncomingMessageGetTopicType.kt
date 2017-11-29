@@ -8,5 +8,5 @@ enum class IncomingMessageGetTopicType {
 }
 
 enum class IncomingMessageSubscribeTopicType {
-    TRADES, ORDERS
+    TRADES, ORDERS, TICKERS
 }

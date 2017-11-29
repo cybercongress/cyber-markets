@@ -1,10 +1,9 @@
 include("core")
-include("connectors-core")
 include("stream-api")
-include("stream-processing")
+include("tickers")
+include("connectors-core")
 include("connectors-bitfinex")
 include("connectors-bitstamp")
 include("connectors-hitbtc")
 include("connectors-poloniex")
 include("connectors-etherdelta")
-

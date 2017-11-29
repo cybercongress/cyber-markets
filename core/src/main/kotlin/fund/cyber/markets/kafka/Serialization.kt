@@ -21,9 +21,12 @@ class JsonDeserializer<T>(private val type: Class<T>) : Deserializer<T> {
     private val objectMapper = ObjectMapper().registerKotlinModule()
     private val LOGGER = LoggerFactory.getLogger(JsonDeserializer::class.java)!!
 
-    override fun deserialize(topic: String, data: ByteArray): T {
+    override fun deserialize(topic: String, data: ByteArray?): T? {
         try {
-            return objectMapper.readValue(data, type)
+            return if (data == null)
+                null
+             else
+                objectMapper.readValue(data, type)
         } catch (e: Exception) {
             //kafka consumer just suppress exception without logging
             LOGGER.error("Exception during deserialization '$topic' topics entity", e)

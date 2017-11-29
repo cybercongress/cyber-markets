@@ -16,6 +16,7 @@ import java.util.LinkedList
 class IncomingMessagesHandler(
         private val tradesBroadcastersIndex: TradesBroadcastersIndex,
         private val ordersBroadcastersIndex: OrdersBroadcastersIndex,
+        private val tickersBroadcastersIndex: TickersBroadcastersIndex,
         private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 ) : AbstractReceiveListener() {
 
@@ -63,6 +64,8 @@ class IncomingMessagesHandler(
                     }
                     ORDERS -> ordersBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
                             .forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
+                    TICKERS -> tickersBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges, command.windowDurations)
+                            .forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
                 }
             }
         }
@@ -71,9 +74,11 @@ class IncomingMessagesHandler(
 
     override fun onClose(webSocketChannel: WebSocketChannel, channel: StreamSourceFrameChannel) {
         super.onClose(webSocketChannel, channel)
-        tradesBroadcastersIndex.broadcastersFor(emptyList(), emptyList())
+        tradesBroadcastersIndex.broadcastersFor(emptyList(), emptyList(), emptyList())
                 .forEach { broadcaster -> broadcaster.unregisterChannel(webSocketChannel) }
-        ordersBroadcastersIndex.broadcastersFor(emptyList(), emptyList())
+        ordersBroadcastersIndex.broadcastersFor(emptyList(), emptyList(), emptyList())
+                .forEach { broadcaster -> broadcaster.unregisterChannel(webSocketChannel) }
+        tickersBroadcastersIndex.broadcastersFor(emptyList(), emptyList(), emptyList())
                 .forEach { broadcaster -> broadcaster.unregisterChannel(webSocketChannel) }
     }
 

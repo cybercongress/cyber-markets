@@ -1,63 +1,67 @@
 package fund.cyber.markets.api.common
 
 import fund.cyber.markets.api.orders.OrdersBroadcaster
+import fund.cyber.markets.api.tickers.TickersBroadcaster
 import fund.cyber.markets.api.trades.TradesBroadcaster
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Trade
+import fund.cyber.markets.tickers.model.Ticker
 import kotlinx.coroutines.experimental.channels.Channel
 import java.util.concurrent.ConcurrentHashMap
 
 class TradesBroadcastersIndex : BroadcastersIndex<Trade, TradesBroadcaster>() {
-    override fun newChannel(exchange: String, pairInitializer: TokensPair, channel: Channel<Trade>) {
+    override fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<Trade>) {
         val broadcaster = TradesBroadcaster(channel)
-        index.getOrPut(pairInitializer, { ConcurrentHashMap() }).put(exchange, broadcaster)
+        index.put(BroadcasterDefinition(tokensPair, exchange, windowDuration), broadcaster)
     }
 }
 
 class OrdersBroadcastersIndex : BroadcastersIndex<List<Order>, OrdersBroadcaster>() {
-    override fun newChannel(exchange: String, pairInitializer: TokensPair, channel: Channel<List<Order>>) {
+    override fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<List<Order>>) {
         val broadcaster = OrdersBroadcaster(channel)
-        index.getOrPut(pairInitializer, { ConcurrentHashMap() }).put(exchange, broadcaster)
+        index.put(BroadcasterDefinition(tokensPair, exchange, windowDuration), broadcaster)
     }
 }
 
+class TickersBroadcastersIndex : BroadcastersIndex<Ticker, TickersBroadcaster>() {
+    override fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<Ticker>) {
+        val broadcaster = TickersBroadcaster(channel)
+        index.put(BroadcasterDefinition(tokensPair, exchange, windowDuration), broadcaster)
+    }
+}
+
+data class BroadcasterDefinition(val tokensPair: TokensPair,
+                                 val exchange: String,
+                                 val windowDuration: Long)
+
 abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListener<T> {
 
-    protected val index: MutableMap<TokensPair, MutableMap<String, B>> = ConcurrentHashMap()
+    protected val index: MutableMap<BroadcasterDefinition, B> = ConcurrentHashMap()
 
-    fun broadcastersFor(pairInitializers: List<TokensPair>, exchanges: List<String>): Collection<B> {
-        return when {
-            !pairInitializers.isEmpty() && !exchanges.isEmpty() -> index
-                    .filter { (pair, _) -> pairInitializers.contains(pair) }
-                    .flatMap { (_, pairIndex) -> pairIndex.entries }
-                    .filter { (exchange, _) -> exchanges.contains(exchange) }
-                    .map { (_, broadcaster) -> broadcaster }
-            !pairInitializers.isEmpty() -> index
-                    .filter { (pair, _) -> pairInitializers.contains(pair) }
-                    .flatMap { (_, pairIndex) -> pairIndex.values }
-            !exchanges.isEmpty() -> index
-                    .flatMap { (_, pairIndex) -> pairIndex.entries }
-                    .filter { (exchange, _) -> exchanges.contains(exchange) }
-                    .map { (_, broadcaster) -> broadcaster }
-            else -> index
-                    .flatMap { (_, pairIndex) -> pairIndex.entries }
-                    .map { (_, broadcaster) -> broadcaster }
-        }
+    fun broadcastersFor(tokenPairs: List<TokensPair>, exchanges: List<String>, windowDurations: List<Long> = emptyList()): Collection<B> {
+
+        return index.filter { (definition, _) ->
+            (tokenPairs.isEmpty() || tokenPairs.contains(definition.tokensPair))
+            && (exchanges.isEmpty() || exchanges.contains(definition.exchange))
+            && (windowDurations.isEmpty() || definition.windowDuration < 0 || windowDurations.contains(definition.windowDuration))
+        }.map { (_, broadcaster) -> broadcaster }
+
     }
 
     fun getAllPairs(): Collection<TokensPair> {
-        return index.keys
+        return index.map { (definition, _) -> definition.tokensPair }
     }
 
     fun getAllExchangesWithPairs(): Map<String, List<TokensPair>> {
         return index
-                .flatMap {(_, pairIndex) -> pairIndex.entries }
-                .map { c -> c.key to getAllPairsForExchange(c.key) }
+                .map { (definition, _) -> definition.exchange to getAllPairsForExchange(definition.exchange) }
                 .toMap()
     }
 
     private fun getAllPairsForExchange(exchange: String): List<TokensPair> {
-        return index.filter { el -> el.value.keys.contains(exchange) }.map { el -> el.key }
+        return index
+                .filter { (definition, _) -> definition.exchange == exchange }
+                .map { (definition, _) -> definition.tokensPair }
     }
 }

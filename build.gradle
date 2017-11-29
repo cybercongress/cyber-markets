@@ -6,9 +6,10 @@ buildscript {
         jacksonVersion = "2.8.9"
         okhttpVersion = "3.8.1"
         undertowVersion = "1.4.18.Final"
-        kafkaVersion = "0.11.0.0"
+        kafkaVersion = "1.0.0"
         web3jVersion = "2.3.1"
         khttpVersion = "0.1.0"
+        rocksDbVersion = "5.8.6"
 
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
@@ -84,6 +85,8 @@ subprojects {
             dependency("org.mockito:mockito-core:$mockitoVersion")
             dependency("com.nhaarman:mockito-kotlin:$mockitoKotlinVersion")
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+            dependency("org.apache.kafka:kafka-streams:$kafkaVersion")
+            dependency("org.rocksdb:rocksdbjni:$rocksDbVersion")
         }
     }
 
@@ -181,6 +184,9 @@ project(":core") {
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
         compile("org.apache.kafka:kafka-clients")
+        compile("org.apache.kafka:kafka-streams") {
+            exclude group: 'org.rocksdb', module: 'rocksdbjni'
+        }
     }
 }
 
@@ -189,29 +195,20 @@ project(":stream-api") {
 
     dependencies {
         compile(project(":core"))
+        compile(project(":tickers"))
         compile("io.undertow:undertow-core")
     }
 
     mainClassName = "fund.cyber.markets.StreamApiApplication"
 }
 
-project(":stream-processing") {
-    apply plugin: "com.github.johnrengelman.shadow"
-
-    ext {
-        sparkVersion = "2.2.0"
-    }
+project(":tickers") {
+    apply plugin: "application"
 
     dependencies {
-        // Dependencies which will be included in fatjar
-        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
-
-        // Spark dependencies. TODO: Add to version management
-        compileOnly("org.apache.spark:spark-sql_2.11:$sparkVersion")
-        compileOnly("org.apache.spark:spark-streaming_2.11:$sparkVersion")
-
-        compileOnly("org.apache.kafka:kafka_2.11:$kafkaVersion")
-        compileOnly("org.apache.spark:spark-streaming-kafka-0-10_2.11:$sparkVersion")
-        compileOnly("org.apache.spark:spark-sql-kafka-0-10_2.11:$sparkVersion")
+        compile(project(":core"))
+        compile("org.rocksdb:rocksdbjni")
     }
+
+    mainClassName = "fund.cyber.markets.tickers.TickersApplicationKt"
 }
