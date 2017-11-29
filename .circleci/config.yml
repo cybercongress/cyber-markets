@@ -252,10 +252,10 @@ workflows:
           requires:
             - build_stream-api
 
-  kafka-connectors_build:
-    jobs:
-      - deploy_kafka-connectors_image:
-          <<: *release_filter
+#  kafka-connectors_build:
+#    jobs:
+#      - deploy_kafka-connectors_image:
+#          <<: *release_filter
 
   tickers_build:
     jobs:

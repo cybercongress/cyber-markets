@@ -3,7 +3,6 @@
 version: '3'
 services:
 
-
   cn-zoo:
     image: confluentinc/cp-zookeeper:3.3.0
     ports:
@@ -15,7 +14,6 @@ services:
     volumes:
       - /opt/cyberfund/markets/zoo/data:/var/lib/zookeeper/data
       - /opt/cyberfund/markets/zoo/log:/var/lib/zookeeper/log
-
 
   cn-kafka:
     image: confluentinc/cp-kafka:3.3.0
@@ -32,15 +30,8 @@ services:
     volumes:
       - /opt/cyberfund/markets/kafka:/var/lib/kafka
 
-
-  cn-exchange-connectors:
-    image: cybernode/cm-connectors:release-0.3.0
-    environment:
-      KAFKA_CONNECTION: cn-kafka:9092
-
-
   cn-exchange-stream-api:
-    image: cybernode/cm-stream-api:release-0.3.0
+    image: cybernode/cm-stream-api:release-0.5.2
     ports:
       - "8082:8082"
     environment:
@@ -50,3 +41,32 @@ services:
     labels:
       kompose.service.type: loadbalancer
 
+  cm-connector-bitstamp:
+    container_name: cm-connector-bitstamp
+    image: cybernode/cm-connectors-bitstamp:release-0.5.2
+    environment:
+      KAFKA_CONNECTION: cn-kafka:9092
+
+  cm-connectors-hitbtc:
+    container_name: cm-connectors-hitbtc
+    image: cybernode/cm-connectors-hitbtc:release-0.5.2
+    environment:
+      KAFKA_CONNECTION: cn-kafka:9092
+
+  cm-connectors-poloniex:
+    container_name: cm-connectors-poloniex
+    image: cybernode/cm-connectors-poloniex:release-0.5.2
+    environment:
+      KAFKA_CONNECTION: cn-kafka:9092
+
+  cm-connectors-bitfinex:
+    container_name: cm-connectors-bitfinex
+    image: cybernode/cm-connectors-bitfinex:release-0.5.2
+    environment:
+      KAFKA_CONNECTION: cn-kafka:9092
+
+  cm-tickers:
+    container_name: cm-tickers
+    image: cybernode/cm-tickers:release-0.5.2
+    environment:
+      KAFKA_CONNECTION: cn-kafka:9092
