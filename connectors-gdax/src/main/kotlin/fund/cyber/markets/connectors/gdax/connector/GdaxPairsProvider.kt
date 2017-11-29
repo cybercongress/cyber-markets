@@ -1,4 +1,4 @@
-package fund.cyber.markets.connectors.hitbtc.connector
+package fund.cyber.markets.connectors.gdax.connector
 
 import fund.cyber.markets.connectors.common.PairsProvider
 import fund.cyber.markets.connectors.httpClient

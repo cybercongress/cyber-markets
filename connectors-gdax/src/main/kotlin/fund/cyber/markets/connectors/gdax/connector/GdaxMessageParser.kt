@@ -1,4 +1,4 @@
-package fund.cyber.markets.connectors.hitbtc.connector
+package fund.cyber.markets.connectors.gdax.connector
 
 import com.fasterxml.jackson.databind.JsonNode
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
@@ -19,9 +19,9 @@ import java.time.ZonedDateTime
 
 
 /**
- * HitBtc exchange ws messages parser.
+ * GDAX exchange ws messages parser.
  *
- * HitBtc sends instead of trade baseamount -> number of lots. Each {@link HitBtcTokensPairInitializer} contains lot size.
+ * GDAX sends instead of trade baseamount -> number of lots. Each {@link TokensPairInitializer} contains lot size.
  *
  */
 class GdaxTradesMessageParser(

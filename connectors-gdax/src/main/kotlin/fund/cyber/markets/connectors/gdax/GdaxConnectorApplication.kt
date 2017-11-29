@@ -1,10 +1,10 @@
-package fund.cyber.markets.connectors.hitbtc
+package fund.cyber.markets.connectors.gdax
 
 import fund.cyber.markets.connectors.common.kafka.ConnectorKafkaProducer
 import fund.cyber.markets.connectors.common.kafka.OrdersUpdateProducerRecord
 import fund.cyber.markets.connectors.common.kafka.TradeProducerRecord
-import fund.cyber.markets.connectors.hitbtc.connector.GdaxOrdersEndpoint
-import fund.cyber.markets.connectors.hitbtc.connector.GdaxTradesEndpoint
+import fund.cyber.markets.connectors.gdax.connector.GdaxOrdersEndpoint
+import fund.cyber.markets.connectors.gdax.connector.GdaxTradesEndpoint
 import fund.cyber.markets.connectors.helpers.concurrent
 import fund.cyber.markets.model.OrdersBatch
 import fund.cyber.markets.model.Trade

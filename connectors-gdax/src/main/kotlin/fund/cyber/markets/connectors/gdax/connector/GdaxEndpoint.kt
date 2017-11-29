@@ -1,4 +1,4 @@
-package fund.cyber.markets.connectors.hitbtc.connector
+package fund.cyber.markets.connectors.gdax.connector
 
 import fund.cyber.markets.connectors.common.ExchangeMessage
 import fund.cyber.markets.connectors.common.GDAX_WS_ENDPOINT
