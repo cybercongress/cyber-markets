@@ -33,13 +33,18 @@ services:
   cn-exchange-stream-api:
     image: cybernode/cm-stream-api:release-0.5.2
     ports:
-      - "8082:8082"
+      - "18080:18080"
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
     links:
       - cn-kafka
     labels:
       kompose.service.type: loadbalancer
+
+  cm-rest-api:
+    image: cybernode/cm-rest-api:release-5.0.2
+    ports:
+      - "8085:8085"
 
   cm-connector-bitstamp:
     container_name: cm-connector-bitstamp

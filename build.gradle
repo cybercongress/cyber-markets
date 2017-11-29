@@ -212,3 +212,14 @@ project(":tickers") {
 
     mainClassName = "fund.cyber.markets.tickers.TickersApplicationKt"
 }
+
+project(":rest-api") {
+    apply plugin: "application"
+
+    dependencies {
+        compile(project(":core"))
+        compile("io.undertow:undertow-core")
+    }
+
+    mainClassName = "fund.cyber.markets.rest.RestApiApplicationKt"
+}
