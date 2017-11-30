@@ -5,11 +5,11 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
-      io.kompose.service: cn-exchange-connectors
-    name: cn-exchange-connectors
+      io.kompose.service: cm-connector-bitstamp
+    name: cm-connector-bitstamp
   spec:
     clusterIP: None
     ports:
@@ -17,7 +17,127 @@ items:
       port: 55555
       targetPort: 0
     selector:
-      io.kompose.service: cn-exchange-connectors
+      io.kompose.service: cm-connector-bitstamp
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-bitfinex
+    name: cm-connectors-bitfinex
+  spec:
+    clusterIP: None
+    ports:
+    - name: headless
+      port: 55555
+      targetPort: 0
+    selector:
+      io.kompose.service: cm-connectors-bitfinex
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-etherdelta
+    name: cm-connectors-etherdelta
+  spec:
+    clusterIP: None
+    ports:
+    - name: headless
+      port: 55555
+      targetPort: 0
+    selector:
+      io.kompose.service: cm-connectors-etherdelta
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-gdax
+    name: cm-connectors-gdax
+  spec:
+    clusterIP: None
+    ports:
+    - name: headless
+      port: 55555
+      targetPort: 0
+    selector:
+      io.kompose.service: cm-connectors-gdax
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-hitbtc
+    name: cm-connectors-hitbtc
+  spec:
+    clusterIP: None
+    ports:
+    - name: headless
+      port: 55555
+      targetPort: 0
+    selector:
+      io.kompose.service: cm-connectors-hitbtc
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-poloniex
+    name: cm-connectors-poloniex
+  spec:
+    clusterIP: None
+    ports:
+    - name: headless
+      port: 55555
+      targetPort: 0
+    selector:
+      io.kompose.service: cm-connectors-poloniex
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-tickers
+    name: cm-tickers
+  spec:
+    clusterIP: None
+    ports:
+    - name: headless
+      port: 55555
+      targetPort: 0
+    selector:
+      io.kompose.service: cm-tickers
   status:
     loadBalancer: {}
 - apiVersion: v1
@@ -26,16 +146,16 @@ items:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
       kompose.service.type: loadbalancer
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
       io.kompose.service: cn-exchange-stream-api
     name: cn-exchange-stream-api
   spec:
     ports:
-    - name: "8082"
-      port: 8082
-      targetPort: 8082
+    - name: "18080"
+      port: 18080
+      targetPort: 18080
     selector:
       io.kompose.service: cn-exchange-stream-api
     type: LoadBalancer
@@ -46,7 +166,7 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
       io.kompose.service: cn-kafka
@@ -68,7 +188,7 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
       io.kompose.service: cn-zoo
@@ -87,11 +207,11 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
-      io.kompose.service: cn-exchange-connectors
-    name: cn-exchange-connectors
+      io.kompose.service: cm-connector-bitstamp
+    name: cm-connector-bitstamp
   spec:
     replicas: 1
     strategy: {}
@@ -99,14 +219,182 @@ items:
       metadata:
         creationTimestamp: null
         labels:
-          io.kompose.service: cn-exchange-connectors
+          io.kompose.service: cm-connector-bitstamp
       spec:
         containers:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors:release-0.3.0
-          name: cn-exchange-connectors
+          image: cybernode/cm-connectors-bitstamp:release-0.5.3
+          name: cm-connector-bitstamp
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-bitfinex
+    name: cm-connectors-bitfinex
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: cm-connectors-bitfinex
+      spec:
+        containers:
+        - env:
+          - name: KAFKA_CONNECTION
+            value: cn-kafka:9092
+          image: cybernode/cm-connectors-bitfinex:release-0.5.3
+          name: cm-connectors-bitfinex
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-etherdelta
+    name: cm-connectors-etherdelta
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: cm-connectors-etherdelta
+      spec:
+        containers:
+        - env:
+          - name: KAFKA_CONNECTION
+            value: cn-kafka:9092
+          image: cybernode/cm-connectors-etherdelta:release-0.5.3
+          name: cm-connectors-etherdelta
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-gdax
+    name: cm-connectors-gdax
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: cm-connectors-gdax
+      spec:
+        containers:
+        - env:
+          - name: KAFKA_CONNECTION
+            value: cn-kafka:9092
+          image: cybernode/cm-connectors-gdax:release-0.5.3
+          name: cm-connectors-gdax
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-hitbtc
+    name: cm-connectors-hitbtc
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: cm-connectors-hitbtc
+      spec:
+        containers:
+        - env:
+          - name: KAFKA_CONNECTION
+            value: cn-kafka:9092
+          image: cybernode/cm-connectors-hitbtc:release-0.5.3
+          name: cm-connectors-hitbtc
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-connectors-poloniex
+    name: cm-connectors-poloniex
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: cm-connectors-poloniex
+      spec:
+        containers:
+        - env:
+          - name: KAFKA_CONNECTION
+            value: cn-kafka:9092
+          image: cybernode/cm-connectors-poloniex:release-0.5.3
+          name: cm-connectors-poloniex
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cm-tickers
+    name: cm-tickers
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: cm-tickers
+      spec:
+        containers:
+        - env:
+          - name: KAFKA_CONNECTION
+            value: cn-kafka:9092
+          image: cybernode/cm-tickers:release-0.5.3
+          name: cm-tickers
           resources: {}
         restartPolicy: Always
   status: {}
@@ -116,7 +404,7 @@ items:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
       kompose.service.type: loadbalancer
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
       io.kompose.service: cn-exchange-stream-api
@@ -134,10 +422,10 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-stream-api:release-0.3.0
+          image: cybernode/cm-stream-api:release-0.5.3
           name: cn-exchange-stream-api
           ports:
-          - containerPort: 8082
+          - containerPort: 18080
           resources: {}
         restartPolicy: Always
   status: {}
@@ -146,7 +434,7 @@ items:
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
       io.kompose.service: cn-kafka
@@ -175,7 +463,7 @@ items:
             value: "1"
           - name: KAFKA_ZOOKEEPER_CONNECT
             value: cn-zoo:2181
-          image: confluentinc/cp-kafka:3.3.0
+          image: confluentinc/cp-kafka:4.0.0
           name: cn-kafka
           ports:
           - containerPort: 9092
@@ -202,14 +490,14 @@ items:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 100Mi
+        storage: 20Gi
   status: {}
 - apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
     annotations:
       kompose.cmd: kompose convert -o cybermarkets.yaml
-      kompose.version: 1.1.0 (36652f6)
+      kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
       io.kompose.service: cn-zoo
@@ -232,7 +520,7 @@ items:
             value: "2181"
           - name: ZOOKEEPER_TICK_TIME
             value: "2000"
-          image: confluentinc/cp-zookeeper:3.3.0
+          image: confluentinc/cp-zookeeper:4.0.0
           name: cn-zoo
           ports:
           - containerPort: 2181
