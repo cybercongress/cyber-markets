@@ -168,6 +168,20 @@ project(":connectors-poloniex") {
     }
 }
 
+project(":connectors-gdax") {
+    apply plugin: "application"
+
+    dependencies {
+        compile(project(":connectors-core"))
+    }
+
+    mainClassName = "fund.cyber.markets.connectors.gdax.GdaxConnectorApplicationKt"
+
+    run {
+        systemProperties System.getProperties()
+    }
+}
+
 project(":core") {
     dependencies {
         compile("org.slf4j:slf4j-api")

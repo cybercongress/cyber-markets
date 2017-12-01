@@ -7,3 +7,5 @@ include("connectors-bitstamp")
 include("connectors-hitbtc")
 include("connectors-poloniex")
 include("connectors-etherdelta")
+include("connectors-gdax")
+

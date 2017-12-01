@@ -17,7 +17,7 @@ services:
        RUNTESTS: 0
        SAMPLEDATA: 0
        FORWARDLOGS: 0
-       ADV_HOST: cm-fast-data-dev
+       ADV_HOST: 127.0.0.1
 
   cm-bitfinex:
     container_name: cm-bitfinex
@@ -42,3 +42,9 @@ services:
       image: cybernode/cm-connectors-poloniex:latest
       environment:
           KAFKA_CONNECTION: cm-fast-data-dev:9092
+
+  cm-gdax:
+        container_name: cm-gdax
+        image: cybernode/cm-connectors-gdax:latest
+        environment:
+            KAFKA_CONNECTION: cm-fast-data-dev:9092
