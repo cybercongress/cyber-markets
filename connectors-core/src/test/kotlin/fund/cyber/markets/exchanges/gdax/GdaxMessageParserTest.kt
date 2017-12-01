@@ -1,6 +1,5 @@
-package fund.cyber.markets.exchanges.bitfinex
+package fund.cyber.markets.exchanges.gdax
 
-import fund.cyber.markets.connectors.bitfinex.connector.BitfinexTradesMessageParser
 import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
 import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.connectors.gdax.connector.GdaxTradesMessageParser

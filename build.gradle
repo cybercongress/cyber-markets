@@ -175,7 +175,7 @@ project(":connectors-gdax") {
         compile(project(":connectors-core"))
     }
 
-    mainClassName = "fund.cyber.markets.connectors.poloniex.GdaxConnectorApplicationKt"
+    mainClassName = "fund.cyber.markets.connectors.gdax.GdaxConnectorApplicationKt"
 
     run {
         systemProperties System.getProperties()
