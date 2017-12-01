@@ -98,7 +98,7 @@ class TickersConsumer(
             records.map { record -> record.value() }
                     .forEach { ticker ->
                         val pair = TokensPairInitializer(ticker.tokensPair!!.base, ticker.tokensPair!!.quote)
-                        channelsIndex.channelFor(ticker.exchange!!, pair).send(ticker)
+                        channelsIndex.channelFor(ticker.exchange!!, pair, ticker.windowDuration).send(ticker)
                     }
         }
     }
