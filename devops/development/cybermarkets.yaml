@@ -8,6 +8,25 @@ items:
       kompose.version: 1.5.0 (999278f)
     creationTimestamp: null
     labels:
+      io.kompose.service: chaingear-api
+    name: chaingear-api
+  spec:
+    ports:
+    - name: "8090"
+      port: 8090
+      targetPort: 8090
+    selector:
+      io.kompose.service: chaingear-api
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
       io.kompose.service: cm-connector-bitstamp
     name: cm-connector-bitstamp
   spec:
@@ -202,6 +221,55 @@ items:
       io.kompose.service: cn-zoo
   status:
     loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cyber-ui
+    name: cyber-ui
+  spec:
+    ports:
+    - name: "7000"
+      port: 7000
+      targetPort: 80
+    selector:
+      io.kompose.service: cyber-ui
+  status:
+    loadBalancer: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: chaingear-api
+    name: chaingear-api
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: chaingear-api
+      spec:
+        containers:
+        - env:
+          - name: ADV_HOST
+            value: chaingear-api
+          image: cybernode/chaingear-api:latest
+          name: chaingear-api
+          ports:
+          - containerPort: 8090
+          resources: {}
+        restartPolicy: Always
+  status: {}
 - apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
@@ -490,7 +558,7 @@ items:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 20Gi
+        storage: 100Mi
   status: {}
 - apiVersion: extensions/v1beta1
   kind: Deployment
@@ -566,6 +634,40 @@ items:
     resources:
       requests:
         storage: 100Mi
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o cybermarkets.yaml
+      kompose.version: 1.5.0 (999278f)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: cyber-ui
+    name: cyber-ui
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: cyber-ui
+      spec:
+        containers:
+        - env:
+          - name: CYBER_CHAINGEAR_API
+            value: http://chaingear-api:8090
+          - name: CYBER_MARKETS_API
+            value: http://35.198.187.186:8085
+          - name: CYBER_SEARCH_API
+            value: http://chaingear-api:8090
+          image: cybernode/cui-browser:latest
+          name: cyber-ui
+          ports:
+          - containerPort: 80
+          resources: {}
+        restartPolicy: Always
   status: {}
 kind: List
 metadata: {}

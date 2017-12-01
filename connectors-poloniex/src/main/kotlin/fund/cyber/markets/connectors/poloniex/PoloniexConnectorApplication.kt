@@ -27,8 +27,8 @@ fun main(args: Array<String>) {
                 while (true) {
                     val message = dataChannel.receive()
                     message.trades.forEach { trade ->
-                        println(trade)
-                        if (debugMode) println(trade) else tradeKafkaProducer.send(TradeProducerRecord(trade))
+                        if (debugMode) println(trade)
+                        else tradeKafkaProducer.send(TradeProducerRecord(trade))
                     }
                 }
             }
