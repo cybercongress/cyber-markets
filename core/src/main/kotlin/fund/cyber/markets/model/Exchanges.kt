@@ -6,4 +6,5 @@ object Exchanges {
     const val bitfinex = "Bitfinex"
     const val hitbtc = "HitBtc"
     const val bitstamp = "Bitstamp"
+    const val gdax = "GDAX"
 }

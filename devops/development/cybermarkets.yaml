@@ -293,7 +293,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors-bitstamp:release-0.5.3
+          image: cybernode/cm-connectors-bitstamp:latest
           name: cm-connector-bitstamp
           resources: {}
         restartPolicy: Always
@@ -321,7 +321,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors-bitfinex:release-0.5.3
+          image: cybernode/cm-connectors-bitfinex:latest
           name: cm-connectors-bitfinex
           resources: {}
         restartPolicy: Always
@@ -349,7 +349,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors-etherdelta:release-0.5.3
+          image: cybernode/cm-connectors-etherdelta:latest
           name: cm-connectors-etherdelta
           resources: {}
         restartPolicy: Always
@@ -377,7 +377,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors-gdax:release-0.5.3
+          image: cybernode/cm-connectors-gdax:latest
           name: cm-connectors-gdax
           resources: {}
         restartPolicy: Always
@@ -405,7 +405,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors-hitbtc:release-0.5.3
+          image: cybernode/cm-connectors-hitbtc:latest
           name: cm-connectors-hitbtc
           resources: {}
         restartPolicy: Always
@@ -433,7 +433,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-connectors-poloniex:release-0.5.3
+          image: cybernode/cm-connectors-poloniex:latest
           name: cm-connectors-poloniex
           resources: {}
         restartPolicy: Always
@@ -461,7 +461,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-tickers:release-0.5.3
+          image: cybernode/cm-tickers:latest
           name: cm-tickers
           resources: {}
         restartPolicy: Always
@@ -490,7 +490,7 @@ items:
         - env:
           - name: KAFKA_CONNECTION
             value: cn-kafka:9092
-          image: cybernode/cm-stream-api:release-0.5.3
+          image: cybernode/cm-stream-api:latest
           name: cn-exchange-stream-api
           ports:
           - containerPort: 18080
@@ -558,7 +558,7 @@ items:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 100Mi
+        storage: 20Gi
   status: {}
 - apiVersion: extensions/v1beta1
   kind: Deployment
