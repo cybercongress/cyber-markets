@@ -20,7 +20,7 @@ class KafkaConfiguration(
         val topicResubscribe: Long = TimeUnit.MINUTES.toMillis(1),
         val windowDurationsString: String = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440"),
         val windowHop: Long = TimeUnit.SECONDS.toMillis(env(Constants.WINDOW_HOP_SEC, 3)),
-        val streamCacheSizeMb: Long = env(Constants.CACHE_MAX_SIZE_MB, 200)
+        val streamCacheSizeMb: Long = env(Constants.CACHE_MAX_SIZE_MB, 2048)
 ) {
 
     fun getWindowDurations(): List<Long> {
@@ -33,7 +33,9 @@ class KafkaConfiguration(
             put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers)
             put(StreamsConfig.METADATA_MAX_AGE_CONFIG, topicResubscribe)
             put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, streamCacheSizeMb * 1024 * 1024L)
-            put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, windowHop)
+            put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, TimeUnit.SECONDS.toMillis(1))
+            put(StreamsConfig.topicPrefix(TopicConfig.RETENTION_MS_CONFIG), TimeUnit.DAYS.toMillis(1).toString())
+            put(StreamsConfig.topicPrefix(TopicConfig.CLEANUP_POLICY_CONFIG), TopicConfig.CLEANUP_POLICY_DELETE)
         }
     }
 }
