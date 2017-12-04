@@ -4,7 +4,7 @@ version: '3'
 services:
 
   cn-zoo:
-    image: confluentinc/cp-zookeeper:3.3.0
+    image: confluentinc/cp-zookeeper:4.0.0
     ports:
       - "2181:2181"
     environment:
@@ -16,7 +16,7 @@ services:
       - /opt/cyberfund/markets/zoo/log:/var/lib/zookeeper/log
 
   cn-kafka:
-    image: confluentinc/cp-kafka:3.3.0
+    image: confluentinc/cp-kafka:4.0.0
     ports:
       - "9092:9092"
       - "1099:1099"
@@ -69,6 +69,12 @@ services:
   cm-connectors-bitfinex:
     container_name: cm-connectors-bitfinex
     image: cybernode/cm-connectors-bitfinex:release-0.5.2
+    environment:
+      KAFKA_CONNECTION: cn-kafka:9092
+
+  cm-connectors-etherdelta:
+    container_name: cm-connectors-etherdelta
+    image: cybernode/cm-connectors-etherdelta:release-0.5.2
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
