@@ -10,7 +10,7 @@ CREATE TABLE markets.ticker (
   price decimal,
   minPrice decimal,
   maxPrice decimal,
-  tradeCount bigint
+  tradeCount bigint,
 
   PRIMARY KEY ((tokensPair, windowDuration), exchange, timestampTo)
 )

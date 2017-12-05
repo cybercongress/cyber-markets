@@ -57,3 +57,9 @@ fun createTickerTopic(kafkaServers: String) {
     newTopic.configs(configs)
     adminClient.createTopics(listOf(newTopic))
 }
+
+fun cassandraConfiguration(): Properties {
+    return Properties().apply {
+        put("cassandraHost", env("CASSANDRA_HOST_CONNECTION", "localhost"))
+    }
+}
