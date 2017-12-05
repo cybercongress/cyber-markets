@@ -36,6 +36,7 @@ jobs:
             ./gradlew -p ./connectors-bitstamp clean build
             ./gradlew -p ./connectors-hitbtc clean build
             ./gradlew -p ./connectors-poloniex clean build
+            ./gradlew -p ./connectors-gdax clean build
       - save_cache:
           key: connectors-core-dependencies-{{ checksum "build.gradle" }}
           paths:
@@ -125,7 +126,7 @@ jobs:
          - setup_remote_docker:
              version: 17.05.0-ce
          - run:
-             name: Build connectors-bitstamp docker image
+             name: Build and deploy connectors-bitstamp docker image
              command: |
                docker build -t build/cm-connectors-bitstamp -f ./devops/connectors/bitstamp/Dockerfile ./
                docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -141,7 +142,7 @@ jobs:
            - setup_remote_docker:
                version: 17.05.0-ce
            - run:
-               name: Build connectors-hitbtc docker image
+               name: Build and deploy connectors-hitbtc docker image
                command: |
                  docker build -t build/cm-connectors-hitbtc -f ./devops/connectors/hitbtc/Dockerfile ./
                  docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -157,7 +158,7 @@ jobs:
            - setup_remote_docker:
                version: 17.05.0-ce
            - run:
-               name: Build connectors-poloniex docker image
+               name: Build and deploy connectors-poloniex docker image
                command: |
                  docker build -t build/cm-connectors-poloniex -f ./devops/connectors/poloniex/Dockerfile ./
                  docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -173,7 +174,7 @@ jobs:
              - setup_remote_docker:
                  version: 17.05.0-ce
              - run:
-                 name: Build connectors-etherdelta docker image
+                 name: Build and deploy connectors-etherdelta docker image
                  command: |
                    docker build -t build/cm-connectors-etherdelta -f ./devops/connectors/etherdelta/Dockerfile ./
                    docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -181,6 +182,22 @@ jobs:
                    docker push cybernode/cm-connectors-etherdelta:$CIRCLE_TAG
                    docker tag build/cm-connectors-etherdelta cybernode/cm-connectors-etherdelta:latest
                    docker push cybernode/cm-connectors-etherdelta:latest
+
+  deploy_connectors-gdax_image:
+           <<: *default_container
+           steps:
+             - checkout
+             - setup_remote_docker:
+                 version: 17.05.0-ce
+             - run:
+                 name: Build and deploy connectors-gdax docker image
+                 command: |
+                   docker build -t build/cm-connectors-gdax -f ./devops/connectors/gdax/Dockerfile ./
+                   docker login -u $DOCKER_USER -p $DOCKER_PASS
+                   docker tag build/cm-connectors-gdax cybernode/cm-connectors-gdax:$CIRCLE_TAG
+                   docker push cybernode/cm-connectors-gdax:$CIRCLE_TAG
+                   docker tag build/cm-connectors-gdax cybernode/cm-connectors-gdax:latest
+                   docker push cybernode/cm-connectors-gdax:latest
 
 
   deploy_stream-api_image:
@@ -272,6 +289,10 @@ workflows:
           <<: *release_filter
           requires:
             - build_connectors
+      - deploy_connectors-gdax_image:
+                <<: *release_filter
+                requires:
+                  - build_connectors
       - deploy_connectors-etherdelta_image:
           <<: *release_filter
           requires:

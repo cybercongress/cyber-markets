@@ -9,3 +9,5 @@ include("connectors-poloniex")
 include("connectors-etherdelta")
 include("rest-api")
 include("dao")
+include("connectors-gdax")
+

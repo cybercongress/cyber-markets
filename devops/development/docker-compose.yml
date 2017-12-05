@@ -31,7 +31,7 @@ services:
       - /opt/cyberfund/markets/kafka:/var/lib/kafka
 
   cn-exchange-stream-api:
-    image: cybernode/cm-stream-api:release-0.5.3
+    image: cybernode/cm-stream-api:latest
     ports:
       - "18080:18080"
     environment:
@@ -41,63 +41,56 @@ services:
     labels:
       kompose.service.type: loadbalancer
 
-  cm-rest-api:
-    image: cybernode/cm-rest-api:release-0.5.2
-    ports:
-      - "8085:8085"
-    labels:
-      kompose.service.type: loadbalancer
-
   cm-connector-bitstamp:
     container_name: cm-connector-bitstamp
-    image: cybernode/cm-connectors-bitstamp:release-0.5.3
+    image: cybernode/cm-connectors-bitstamp:latest
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
   cm-connectors-hitbtc:
     container_name: cm-connectors-hitbtc
-    image: cybernode/cm-connectors-hitbtc:release-0.5.3
+    image: cybernode/cm-connectors-hitbtc:latest
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
   cm-connectors-poloniex:
     container_name: cm-connectors-poloniex
-    image: cybernode/cm-connectors-poloniex:release-0.5.3
+    image: cybernode/cm-connectors-poloniex:latest
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
   cm-connectors-bitfinex:
     container_name: cm-connectors-bitfinex
-    image: cybernode/cm-connectors-bitfinex:release-0.5.3
+    image: cybernode/cm-connectors-bitfinex:latest
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
   cm-connectors-etherdelta:
     container_name: cm-connectors-etherdelta
-    image: cybernode/cm-connectors-etherdelta:release-0.5.3
+    image: cybernode/cm-connectors-etherdelta:latest
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
   cm-connectors-gdax:
       container_name: cm-connectors-gdax
-      image: cybernode/cm-connectors-gdax:release-0.5.3
+      image: cybernode/cm-connectors-gdax:latest
       environment:
         KAFKA_CONNECTION: cn-kafka:9092
 
   cm-tickers:
     container_name: cm-tickers
-    image: cybernode/cm-tickers:release-0.5.3
+    image: cybernode/cm-tickers:latest
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
 
   cyber-ui:
-      image: cybernode/cui-browser:latest
-      ports:
-        - 7000:80
-      environment:
-         CYBER_CHAINGEAR_API: http://chaingear-api:8090
-         CYBER_SEARCH_API: http://chaingear-api:8090
-         CYBER_MARKETS_API: http://35.198.187.186:8085
+    image: cybernode/cui-browser:latest
+    ports:
+      - 7000:80
+    environment:
+       CYBER_CHAINGEAR_API: http://chaingear-api:8090
+       CYBER_SEARCH_API: http://chaingear-api:8090
+       CYBER_MARKETS_API: http://35.198.187.186:8085
 
   chaingear-api:
       container_name: chaingear-api
