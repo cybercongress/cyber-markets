@@ -37,7 +37,6 @@ class TokenStatsHandler : HttpHandler {
             data.add(graphData)
         }
 
-        exchange.setAccessHeaders()
         exchange.responseHeaders.put(Headers.CONTENT_TYPE, "application/json")
         exchange.responseSender.send(mapper.writeValueAsString(data))
     }

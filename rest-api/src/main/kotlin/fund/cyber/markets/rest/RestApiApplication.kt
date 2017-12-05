@@ -1,6 +1,8 @@
 package fund.cyber.markets.rest
 
+import fund.cyber.markets.rest.configuration.RestApiConfiguration
 import fund.cyber.markets.rest.handler.PingPongHandler
+import fund.cyber.markets.rest.handler.SetCorsHeadersHandler
 import fund.cyber.markets.rest.handler.TokenStatsHandler
 import io.undertow.Handlers
 import io.undertow.Undertow
@@ -11,8 +13,10 @@ fun main(args: Array<String>) {
             .get("/tokenstats", TokenStatsHandler())
             .get("/ping", PingPongHandler())
 
+    val setCorsHeaderHandler = SetCorsHeadersHandler(httpHandler, RestApiConfiguration.allowedCORS)
+
     Undertow.builder()
             .addHttpListener(8085, "0.0.0.0")
-            .setHandler(httpHandler)
+            .setHandler(setCorsHeaderHandler)
             .build().start()
 }

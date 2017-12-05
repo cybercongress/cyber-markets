@@ -6,7 +6,6 @@ import io.undertow.server.HttpServerExchange
 class PingPongHandler : HttpHandler {
 
     override fun handleRequest(exchange: HttpServerExchange) {
-        exchange.setAccessHeaders()
         exchange.statusCode = 200
     }
 

@@ -240,6 +240,7 @@ project(":rest-api") {
 
     dependencies {
         compile(project(":core"))
+        compile(project(":dao"))
         compile("io.undertow:undertow-core")
     }
 
