@@ -3,12 +3,12 @@ package fund.cyber.markets.tickers
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.kafka.JsonSerde
 import fund.cyber.markets.kafka.WindowedSerde
+import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TickerKey
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.KafkaConfiguration
 import fund.cyber.markets.tickers.configuration.createTickerTopic
 import fund.cyber.markets.tickers.configuration.tickersTopicName
-import fund.cyber.markets.tickers.model.Ticker
-import fund.cyber.markets.tickers.model.TickerKey
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams.Consumed

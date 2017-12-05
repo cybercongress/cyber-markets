@@ -1,4 +1,4 @@
-package fund.cyber.markets.tickers.model
+package fund.cyber.markets.model
 
 import fund.cyber.markets.dto.TokensPair
 import java.sql.Timestamp

@@ -1,7 +1,6 @@
-package fund.cyber.markets.tickers.model
+package fund.cyber.markets.model
 
 import fund.cyber.markets.dto.TokensPair
-import fund.cyber.markets.model.Trade
 import java.math.BigDecimal
 
 data class Ticker(
