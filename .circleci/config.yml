@@ -260,7 +260,7 @@ workflows:
       - deploy_connectors-etherdelta_image:
           <<: *release_filter
           requires:
-            - build_connectorss
+            - build_connectors
 
   stream-api_build:
     jobs:
