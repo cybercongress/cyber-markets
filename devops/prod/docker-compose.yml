@@ -44,7 +44,7 @@ services:
   cm-rest-api:
     image: cybernode/cm-rest-api:release-0.5.3
     ports:
-      - "8085:8085"
+      - "18085:8085"
     labels:
       kompose.service.type: loadbalancer
 
