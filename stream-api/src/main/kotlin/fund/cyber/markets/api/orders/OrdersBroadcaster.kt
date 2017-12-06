@@ -36,7 +36,8 @@ class OrdersBroadcaster(
             return
         }
 
-        val ordersAsJson = jsonSerializer.writeValueAsString(orders)
+        val ordersAsJson = jsonSerializer.writeValueAsString(
+                StreamApiResponseMessage("orders", orders))
         launch(ordersSingleThreadContext) {
             for (channel in registeredChannels) {
                 WebSockets.sendText(ordersAsJson, channel, null)
