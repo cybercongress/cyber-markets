@@ -2,6 +2,7 @@ package fund.cyber.markets.api.tickers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.Broadcaster
+import fund.cyber.markets.api.common.StreamApiResponseMessage
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.tickers.model.Ticker
 import fund.cyber.markets.tickersSingleThreadContext
@@ -45,7 +46,9 @@ class TickersBroadcaster(
 
     override fun registerChannel(channel: WebSocketChannel) {
         launch(tickersSingleThreadContext) {
-            val tickerAsJson = jsonSerializer.writeValueAsString(lastTicker)
+            val tickerAsJson = jsonSerializer.writeValueAsString(
+                    StreamApiResponseMessage("tickers", lastTicker)
+            )
             WebSockets.sendText(tickerAsJson, channel, null)
             registeredChannels.add(channel)
         }
