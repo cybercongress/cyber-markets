@@ -41,6 +41,13 @@ services:
     labels:
       kompose.service.type: loadbalancer
 
+  cm-rest-api:
+    image: cybernode/cm-rest-api:release-0.5.3
+    ports:
+      - "8085:8085"
+    labels:
+      kompose.service.type: loadbalancer
+
   cm-connector-bitstamp:
     container_name: cm-connector-bitstamp
     image: cybernode/cm-connectors-bitstamp:release-0.5.3
@@ -82,20 +89,3 @@ services:
     image: cybernode/cm-tickers:release-0.5.3
     environment:
       KAFKA_CONNECTION: cn-kafka:9092
-
-  cyber-ui:
-      image: cybernode/cui-browser:latest
-      ports:
-        - 7000:80
-      environment:
-         CYBER_CHAINGEAR_API: http://chaingear-api:8090
-         CYBER_SEARCH_API: http://chaingear-api:8090
-         CYBER_MARKETS_API: http://35.198.187.186:8085
-
-  chaingear-api:
-      container_name: chaingear-api
-      image: cybernode/chaingear-api:latest
-      ports:
-        - 8090:8090
-      environment:
-        ADV_HOST: chaingear-api
