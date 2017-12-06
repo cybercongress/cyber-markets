@@ -2,6 +2,7 @@ package fund.cyber.markets.api.orders
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.Broadcaster
+import fund.cyber.markets.api.common.StreamApiResponseMessage
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.ordersSingleThreadContext
@@ -54,7 +55,9 @@ class OrdersBroadcaster(
 
     override fun registerChannel(channel: WebSocketChannel) {
         launch(ordersSingleThreadContext) {
-            val orderBookAsJson = jsonSerializer.writeValueAsString(orderBook.values)
+            val orderBookAsJson = jsonSerializer.writeValueAsString(
+                    StreamApiResponseMessage("orders", orderBook.values)
+            )
             WebSockets.sendText(orderBookAsJson, channel, null)
             registeredChannels.add(channel)
         }
