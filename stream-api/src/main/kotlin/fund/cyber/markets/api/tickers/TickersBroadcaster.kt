@@ -36,7 +36,8 @@ class TickersBroadcaster(
             return
         }
 
-        val tickerAsJson = jsonSerializer.writeValueAsString(ticker)
+        val tickerAsJson = jsonSerializer.writeValueAsString(
+                StreamApiResponseMessage("tickers", ticker))
         launch(tickersSingleThreadContext) {
             for (channel in registeredChannels) {
                 WebSockets.sendText(tickerAsJson, channel, null)
