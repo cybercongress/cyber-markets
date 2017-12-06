@@ -16,8 +16,8 @@ import kotlinx.coroutines.experimental.launch
 typealias TradesChannel = Channel<Trade>
 
 class TradesBroadcaster(
-    private val newTradesChannel: TradesChannel,
-    private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
+        private val newTradesChannel: TradesChannel,
+        private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 ) : Broadcaster {
 
     private val lastTrades = CircularQueue<Trade>(10)
@@ -39,7 +39,7 @@ class TradesBroadcaster(
         }
 
         val tradeAsJson = jsonSerializer.writeValueAsString(
-                StreamApiResponseMessage("tickers",trade))
+                StreamApiResponseMessage("trades", trade))
         launch(tradesSingleThreadContext) {
             for (channel in registeredChannels) {
                 WebSockets.sendText(tradeAsJson, channel, null)
