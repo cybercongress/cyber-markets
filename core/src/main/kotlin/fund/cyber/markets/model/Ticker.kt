@@ -37,6 +37,7 @@ data class Ticker(
 ) {
 
     constructor(windowDuration: Long) : this(null, null, null, null, windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
+    constructor() : this(-1L)
 
     fun add(trade: Trade): Ticker {
 
