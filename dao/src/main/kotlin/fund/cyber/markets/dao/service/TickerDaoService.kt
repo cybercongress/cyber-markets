@@ -20,7 +20,7 @@ class TickerDaoService(cassandra: Cluster) {
         tickerMapper!!.saveAsync(ticker)
     }
 
-    fun getTickers(tokensPair: TokensPair, windowDuration: Int, exchange: String, timestamp: Long, limit: Int): List<Ticker> {
+    fun getTickers(tokensPair: TokensPair, windowDuration: Long, exchange: String, timestamp: Long, limit: Int): List<Ticker> {
 
         val resultSet = session.execute("SELECT * FROM ticker WHERE " +
                 "tokensPair={base:'${tokensPair.base}',quote:'${tokensPair.quote}'} " +

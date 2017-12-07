@@ -15,12 +15,12 @@ import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.Headers
 
-class HistoMinuteHandler(
-        private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService,
-        private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
-) : HttpHandler {
+private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService
+private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 
-    val MINUTE_DURATION = 60 * 1000
+class HistoHandler(
+    private val duration: Long
+) : HttpHandler {
 
     override fun handleRequest(httpExchange: HttpServerExchange) {
 
@@ -45,10 +45,10 @@ class HistoMinuteHandler(
             limit = 1440
         }
         if (timestamp == null) {
-            timestamp = System.currentTimeMillis() / MINUTE_DURATION * MINUTE_DURATION - MINUTE_DURATION
+            timestamp = System.currentTimeMillis() / duration * duration - duration
         }
 
-        val tickers = tickerDaoService.getTickers(TokensPair(base, quote), MINUTE_DURATION, exchange, timestamp, limit)
+        val tickers = tickerDaoService.getTickers(TokensPair(base, quote), duration, exchange, timestamp, limit)
 
         val data = mutableListOf<TickerData>()
         tickers.forEach { ticker ->
