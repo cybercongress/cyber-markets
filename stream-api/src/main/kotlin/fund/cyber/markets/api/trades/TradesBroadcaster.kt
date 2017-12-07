@@ -2,6 +2,7 @@ package fund.cyber.markets.api.trades
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.Broadcaster
+import fund.cyber.markets.api.common.StreamApiResponseMessage
 import fund.cyber.markets.api.configuration.AppContext
 import fund.cyber.markets.common.CircularQueue
 import fund.cyber.markets.helpers.rand
@@ -15,8 +16,8 @@ import kotlinx.coroutines.experimental.launch
 typealias TradesChannel = Channel<Trade>
 
 class TradesBroadcaster(
-    private val newTradesChannel: TradesChannel,
-    private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
+        private val newTradesChannel: TradesChannel,
+        private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 ) : Broadcaster {
 
     private val lastTrades = CircularQueue<Trade>(10)
@@ -37,7 +38,8 @@ class TradesBroadcaster(
             return
         }
 
-        val tradeAsJson = jsonSerializer.writeValueAsString(trade)
+        val tradeAsJson = jsonSerializer.writeValueAsString(
+                StreamApiResponseMessage("trades", trade))
         launch(tradesSingleThreadContext) {
             for (channel in registeredChannels) {
                 WebSockets.sendText(tradeAsJson, channel, null)

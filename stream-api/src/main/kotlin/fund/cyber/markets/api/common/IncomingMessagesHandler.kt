@@ -1,10 +1,13 @@
 package fund.cyber.markets.api.common
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.api.common.IncomingMessageGetTopicType.*
-import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.*
+import fund.cyber.markets.api.common.IncomingMessageGetTopicType.EXCHANGES
+import fund.cyber.markets.api.common.IncomingMessageGetTopicType.PAIRS
+import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.ORDERS
+import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TICKERS
+import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TRADES
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.helpers.*
+import fund.cyber.markets.helpers.rand
 import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
@@ -26,23 +29,32 @@ class IncomingMessagesHandler(
     override fun onFullTextMessage(wsChannel: WebSocketChannel, bufferedMessage: BufferedTextMessage) {
         val command = commandsParser.parseMessage(bufferedMessage.data)
         when (command) {
-            is UnknownCommand -> {}
+            is UnknownCommand -> {
+            }
             is InfoCommand -> {
                 when (command.type) {
                     PAIRS ->
                         WebSockets.sendText(
-                                jsonSerializer.writeValueAsString(tradesBroadcastersIndex.getAllPairs()),
-                                wsChannel, null
+                                jsonSerializer.writeValueAsString(
+                                        StreamApiResponseMessage(
+                                                command.type.toString().toLowerCase(),
+                                                tradesBroadcastersIndex.getAllPairs()
+                                        )
+                                ), wsChannel, null
                         )
                     EXCHANGES ->
                         WebSockets.sendText(
-                                jsonSerializer.writeValueAsString(tradesBroadcastersIndex.getAllExchangesWithPairs()),
-                                wsChannel, null
+                                jsonSerializer.writeValueAsString(
+                                        StreamApiResponseMessage(
+                                                command.type.toString().toLowerCase(),
+                                                tradesBroadcastersIndex.getAllExchangesWithPairs()
+                                        )
+                                ), wsChannel, null
                         )
                 }
             }
             is ChannelSubscriptionCommand -> {
-                when(command.type) {
+                when (command.type) {
                     TRADES -> {
                         val broadcasters = tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
                         val result = LinkedList<Trade>()
@@ -59,7 +71,11 @@ class IncomingMessagesHandler(
                             }
                             attemptCounter++
                         }
-                        WebSockets.sendText(jsonSerializer.writeValueAsString(result), wsChannel, null)
+                        WebSockets.sendText(
+                                jsonSerializer.writeValueAsString(
+                                        StreamApiResponseMessage( command.type.toString().toLowerCase(),result)
+                                ), wsChannel, null
+                        )
                         broadcasters.forEach { broadcaster -> broadcaster.registerChannel(wsChannel) }
                     }
                     ORDERS -> ordersBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
