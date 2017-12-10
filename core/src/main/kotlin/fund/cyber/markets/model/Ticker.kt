@@ -1,6 +1,7 @@
 package fund.cyber.markets.model
 
 import com.datastax.driver.mapping.annotations.*
+import com.fasterxml.jackson.annotation.JsonIgnore
 import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
 import java.util.*
@@ -33,6 +34,14 @@ data class Ticker(
 
     constructor(windowDuration: Long) : this(null, null, null, null, windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
     constructor() : this(-1L)
+
+    @Transient
+    @JsonIgnore
+    private val priceMap = mutableMapOf<BigDecimal, Int>()
+    @Transient
+    @JsonIgnore
+    private val priceSet = TreeSet<BigDecimal>()
+
     fun add(trade: Trade): Ticker {
 
         if (!validTrade(trade)) {
@@ -89,6 +98,8 @@ data class Ticker(
                 else
                     this.maxPrice?.max(ticker.maxPrice)
 
+        saveMinMaxPrices(minPrice!!, maxPrice!!)
+
         tradeCount += ticker.tradeCount
 
         return this
@@ -98,18 +109,7 @@ data class Ticker(
         quoteAmount = quoteAmount.minus(ticker.quoteAmount)
         baseAmount = baseAmount.minus(ticker.baseAmount)
 
-        //TODO: add price calc
-/*        minPrice =
-                if (minPrice == null)
-                    ticker.minPrice
-                else
-                    this.minPrice?.min(ticker.minPrice)
-
-        maxPrice =
-                if (maxPrice == null)
-                    ticker.maxPrice
-                else
-                    this.maxPrice?.max(ticker.maxPrice)*/
+        restoreMinMaxPrices(ticker)
 
         tradeCount -= ticker.tradeCount
 
@@ -137,12 +137,41 @@ data class Ticker(
         return this
     }
 
+    private fun saveMinMaxPrices(minPrice: BigDecimal, maxPrice: BigDecimal) {
+        priceMap.getOrPut(minPrice, { 0 } )
+        priceMap.getOrPut(maxPrice, { 0 } )
+
+        priceMap.put(minPrice, priceMap[minPrice]!! + 1 )
+        priceMap.put(maxPrice, priceMap[maxPrice]!! + 1 )
+
+        priceSet.add(minPrice)
+        priceSet.add(maxPrice)
+    }
+
+    private fun restoreMinMaxPrices(ticker: Ticker) {
+        restorePrice(ticker.minPrice!!)
+        restorePrice(ticker.maxPrice!!)
+
+        try {
+            this.minPrice = priceSet.first()
+            this.maxPrice = priceSet.last()
+        } catch (e: Exception) {
+            this.minPrice = BigDecimal(0)
+            this.maxPrice = BigDecimal(0)
+        }
+    }
+
+    private fun restorePrice(price: BigDecimal) {
+        val priceCount = priceMap[price]
+        if (priceCount != null && priceCount > 1) {
+            priceMap.put(price, priceCount - 1)
+        } else {
+            priceSet.remove(price)
+        }
+    }
+
     private fun validTrade(trade: Trade): Boolean {
-        return !(trade.baseAmount == null
-                || trade.quoteAmount == null
-                || trade.pair == null
-                || trade.quoteAmount.compareTo(BigDecimal.ZERO) == 0
-                || trade.baseAmount.compareTo(BigDecimal.ZERO) == 0)
+        return !(trade.quoteAmount.compareTo(BigDecimal.ZERO) == 0 || trade.baseAmount.compareTo(BigDecimal.ZERO) == 0)
     }
 
 }

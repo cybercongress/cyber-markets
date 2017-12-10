@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.sql.Timestamp
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -158,7 +159,7 @@ class TickersProcessor(
                     if (exchange != "ALL") {
                         val ticker = windowDurMap[windowDuration]
                         if (ticker != null) {
-                            weightMap.put(exchange, ticker.calcPrice().price.divide(sumPrice))
+                            weightMap.put(exchange, ticker.calcPrice().price.divide(sumPrice, RoundingMode.HALF_UP))
                         }
                     }
                 }
@@ -226,7 +227,7 @@ class TickersProcessor(
     }
 
     private fun log(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
-        println(" Window timestamp" + Timestamp(currentMillisHop))
+        println("Window timestamp: " + Timestamp(currentMillisHop))
         tickers.forEach { tokensPair, exchangeMap ->
             exchangeMap.forEach { exchange, windowDurMap ->
                 windowDurMap.forEach { windowDuration, ticker ->
