@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.Broadcaster
 import fund.cyber.markets.api.common.StreamApiResponseMessage
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.tickers.model.Ticker
+import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.tickersSingleThreadContext
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets

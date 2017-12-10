@@ -5,8 +5,8 @@ import fund.cyber.markets.helpers.env
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.config.TopicConfig
-import org.apache.kafka.streams.StreamsConfig
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -19,12 +19,14 @@ class TickersConfiguration(
         val topicResubscribe: Long = TimeUnit.MINUTES.toMillis(1),
         val windowDurationsString: String = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440"),
         val windowHop: Long = TimeUnit.SECONDS.toMillis(env(Constants.WINDOW_HOP_SEC, 3)),
-        val tickersTopicName: String = "TICKERS"
+        val tickersTopicName: String = "TICKERS",
+        val debug: Boolean = env("DEBUG", false)
 ) {
 
     val windowDurations = windowDurationsString.split(",").map { it -> it.toLong() * 60 * 1000 }
 
     val consumerProperties = Properties().apply {
+        put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, topicResubscribe)
         put("bootstrap.servers", kafkaServers)
         put("group.id", "TRADE_CONSUMER")
         put("enable.auto.commit", false)
@@ -36,6 +38,10 @@ class TickersConfiguration(
         put("bootstrap.servers", kafkaServers)
         put("group.id", "TICKER_PRODUCER")
         put("transactional.id", "TICKER_PRODUCER_TR_ID")
+    }
+
+    val cassandraProperties = Properties().apply {
+        put("cassandraHost", env("CASSANDRA_HOST_CONNECTION", "localhost"))
     }
 
     fun createTickerTopic() {

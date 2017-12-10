@@ -9,8 +9,8 @@ import fund.cyber.markets.model.OrdersBatch
 import fund.cyber.markets.model.TokensPairInitializer
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.ordersSingleThreadContext
-import fund.cyber.markets.tickers.model.Ticker
-import fund.cyber.markets.tickers.model.TickerKey
+import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TickerKey
 import fund.cyber.markets.tickersSingleThreadContext
 import fund.cyber.markets.tradesSingleThreadContext
 import kotlinx.coroutines.experimental.launch

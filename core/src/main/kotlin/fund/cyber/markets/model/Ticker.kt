@@ -1,15 +1,27 @@
-package fund.cyber.markets.tickers.model
+package fund.cyber.markets.model
 
+import com.datastax.driver.mapping.annotations.*
 import fund.cyber.markets.dto.TokensPair
-import fund.cyber.markets.model.Trade
 import java.math.BigDecimal
 import java.util.*
 
+@Table(keyspace = "markets", name = "ticker",
+        readConsistency = "QUORUM", writeConsistency = "QUORUM",
+        caseSensitiveKeyspace = false, caseSensitiveTable = false)
 data class Ticker(
+
+        @ClusteringColumn(0)
         var exchange: String?,
+
+        @Frozen
+        @PartitionKey(0)
         var tokensPair: TokensPair?,
         var timestampFrom: Date?,
+
+        @ClusteringColumn(1)
         var timestampTo: Date?,
+
+        @PartitionKey(1)
         var windowDuration: Long,
         var baseAmount: BigDecimal,
         var quoteAmount: BigDecimal,
@@ -20,7 +32,7 @@ data class Ticker(
 ) {
 
     constructor(windowDuration: Long) : this(null, null, null, null, windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
-
+    constructor() : this(-1L)
     fun add(trade: Trade): Ticker {
 
         if (!validTrade(trade)) {

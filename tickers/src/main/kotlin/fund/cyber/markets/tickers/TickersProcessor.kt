@@ -1,10 +1,11 @@
 package fund.cyber.markets.tickers
 
+import fund.cyber.markets.dao.service.TickerDaoService
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
-import fund.cyber.markets.tickers.model.Ticker
-import fund.cyber.markets.tickers.model.TickerKey
+import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TickerKey
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -17,6 +18,7 @@ class TickersProcessor(
         val configuration: TickersConfiguration,
         val consumer: KafkaConsumer<String, Trade>,
         val producer: KafkaProducer<TickerKey, Ticker>,
+        val tickersDaoService: TickerDaoService,
         private val windowHop: Long = configuration.windowHop,
         private val windowDurations: List<Long> = configuration.windowDurations
 ) {
@@ -107,9 +109,11 @@ class TickersProcessor(
             calculatePrice(tickers)
 
             //log
-            log(tickers, currentMillisHop)
+            if (configuration.debug) {
+                log(tickers, currentMillisHop)
+            }
 
-            //produce to kafka
+            //save and produce to kafka
             saveAndProduceToKafka(tickers, configuration.tickersTopicName, currentMillisHop)
 
             //update timestamps
@@ -137,29 +141,41 @@ class TickersProcessor(
     private fun calculatePrice(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>) {
 
         windowDurations.forEach { windowDuration ->
-
             tickers.forEach { tokensPair, exchangeMap ->
+
                 var sumPrice = BigDecimal(0)
                 exchangeMap.forEach { exchange, windowDurMap ->
                     if (exchange != "ALL") {
-                        sumPrice = sumPrice.add(windowDurMap[windowDuration]!!.calcPrice().price)
+                        val ticker = windowDurMap[windowDuration]
+                        if (ticker != null) {
+                            sumPrice = sumPrice.add(ticker.calcPrice().price)
+                        }
                     }
                 }
 
                 val weightMap = mutableMapOf<String, BigDecimal>()
                 exchangeMap.forEach { exchange, windowDurMap ->
                     if (exchange != "ALL") {
-                        weightMap.put(exchange, sumPrice.divide(windowDurMap[windowDuration]!!.price))
+                        val ticker = windowDurMap[windowDuration]
+                        if (ticker != null) {
+                            weightMap.put(exchange, ticker.calcPrice().price.divide(sumPrice))
+                        }
                     }
                 }
 
-                val avgPrice = BigDecimal(0)
+                var avgPrice = BigDecimal(0)
                 weightMap.forEach { exchange, weight ->
-                    val weightedPrice = exchangeMap[exchange]!![windowDuration]!!.price.divide(weight)
-                    avgPrice.plus(weightedPrice)
+                    val ticker = exchangeMap[exchange]?.get(windowDuration)
+                    if (ticker != null) {
+                        val weightedPrice = ticker.price.multiply(weight)
+                        avgPrice = avgPrice.plus(weightedPrice)
+                    }
                 }
 
-                exchangeMap["ALL"]!![windowDuration]!!.price = avgPrice
+                val tickerAllExchange = exchangeMap["ALL"]?.get(windowDuration)
+                if (tickerAllExchange != null) {
+                    tickerAllExchange.price = avgPrice
+                }
             }
         }
     }
@@ -172,6 +188,7 @@ class TickersProcessor(
                     windowDurMap.forEach { windowDuration, ticker ->
                         if (ticker.timestampTo!!.time <= currentMillisHop) {
                             producer.send(producerRecord(ticker, topicName))
+                            saveSnapshot(ticker, windowDuration)
                         }
                     }
                 }
@@ -181,6 +198,12 @@ class TickersProcessor(
             Runtime.getRuntime().exit(-1)
         }
         producer.commitTransaction()
+    }
+
+    private fun saveSnapshot(ticker: Ticker, windowDuration: Long) {
+        if (ticker.timestampTo!!.time % windowDuration == 0L) {
+            tickersDaoService.insert(ticker)
+        }
     }
 
     private fun producerRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
@@ -203,14 +226,12 @@ class TickersProcessor(
     }
 
     private fun log(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
-        println(" ======= Hop ====== " + Timestamp(currentMillisHop))
+        println(" Window timestamp" + Timestamp(currentMillisHop))
         tickers.forEach { tokensPair, exchangeMap ->
             exchangeMap.forEach { exchange, windowDurMap ->
-                if (exchange == "Poloniex") {
-                    windowDurMap.forEach { windowDuration, ticker ->
-                        if (ticker.timestampTo!!.time <= currentMillisHop) {
-                            println(ticker)
-                        }
+                windowDurMap.forEach { windowDuration, ticker ->
+                    if (ticker.timestampTo!!.time <= currentMillisHop) {
+                        println(ticker)
                     }
                 }
             }
