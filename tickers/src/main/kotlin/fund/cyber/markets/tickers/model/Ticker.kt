@@ -3,20 +3,23 @@ package fund.cyber.markets.tickers.model
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Trade
 import java.math.BigDecimal
+import java.util.*
 
 data class Ticker(
-    var exchange: String?,
-    var tokensPair: TokensPair?,
-    var windowDuration: Long,
-    var baseAmount: BigDecimal,
-    var quoteAmount: BigDecimal,
-    var price: BigDecimal,
-    var minPrice: BigDecimal?,
-    var maxPrice: BigDecimal?,
-    var tradeCount: Long
+        var exchange: String?,
+        var tokensPair: TokensPair?,
+        var timestampFrom: Date?,
+        var timestampTo: Date?,
+        var windowDuration: Long,
+        var baseAmount: BigDecimal,
+        var quoteAmount: BigDecimal,
+        var price: BigDecimal,
+        var minPrice: BigDecimal?,
+        var maxPrice: BigDecimal?,
+        var tradeCount: Long
 ) {
 
-    constructor(windowDuration: Long) : this(null, null, windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
+    constructor(windowDuration: Long) : this(null, null, null, null, windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
 
     fun add(trade: Trade): Ticker {
 
@@ -79,6 +82,28 @@ data class Ticker(
         return this
     }
 
+    fun minus(ticker: Ticker): Ticker {
+        quoteAmount = quoteAmount.minus(ticker.quoteAmount)
+        baseAmount = baseAmount.minus(ticker.baseAmount)
+
+        //TODO: add price calc
+/*        minPrice =
+                if (minPrice == null)
+                    ticker.minPrice
+                else
+                    this.minPrice?.min(ticker.minPrice)
+
+        maxPrice =
+                if (maxPrice == null)
+                    ticker.maxPrice
+                else
+                    this.maxPrice?.max(ticker.maxPrice)*/
+
+        tradeCount -= ticker.tradeCount
+
+        return this
+    }
+
     fun calcPrice(): Ticker {
         if (!(quoteAmount.compareTo(BigDecimal.ZERO) == 0 || baseAmount.compareTo(BigDecimal.ZERO) == 0)) {
             price = quoteAmount.div(baseAmount)
@@ -89,6 +114,13 @@ data class Ticker(
 
     fun setExchangeString(exchange: String) : Ticker {
         this.exchange = exchange
+
+        return this
+    }
+
+    fun setTimestamps(millisFrom: Long, millisTo: Long) : Ticker {
+        timestampFrom = Date(millisFrom)
+        timestampTo = Date(millisTo)
 
         return this
     }
