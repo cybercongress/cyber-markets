@@ -41,7 +41,8 @@ class TickersConfiguration(
     }
 
     val cassandraProperties = Properties().apply {
-        put("cassandraHost", env("CASSANDRA_HOST_CONNECTION", "localhost"))
+        put("cassandraHost", env("CASSANDRA_HOSTS", "localhost"))
+        put("cassandraPort", env("CASSANDRA_PORT", "9042"))
     }
 
     fun createTickerTopic() {
