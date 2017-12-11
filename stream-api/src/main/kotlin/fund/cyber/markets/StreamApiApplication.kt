@@ -3,7 +3,7 @@ package fund.cyber.markets
 import fund.cyber.markets.api.common.*
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Trade
-import fund.cyber.markets.tickers.model.Ticker
+import fund.cyber.markets.model.Ticker
 import io.undertow.Handlers
 import io.undertow.Handlers.path
 import io.undertow.Undertow
