@@ -9,7 +9,7 @@ const val CASSANDRA_PORT = "CASSANDRA_PORT"
 const val CASSANDRA_PORT_DEFAULT = 9042
 
 const val CORS_ALLOWED_ORIGINS = "CORS_ALLOWED_ORIGINS"
-const val CORS_ALLOWED_ORIGINS_DEFAULT = "search.cyber.fund"
+const val CORS_ALLOWED_ORIGINS_DEFAULT = "markets.cyber.fund"
 
 object RestApiConfiguration {
 

@@ -24,7 +24,7 @@ class ChannelsIndex<T> {
 
 
     /**
-     * Returns a channel for given <exchange, tokensPair, windowDuration>
+     * Returns a channel for given <exchange, pair, windowDuration>
      * If channel doesn't exists, create new one and notify listeners
      */
     fun channelFor(exchange: String, pairInitializer: TokensPairInitializer, windowDuration: Long = -1L): Channel<T> {

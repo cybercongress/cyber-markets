@@ -97,7 +97,7 @@ class TickersConsumer(
         launch(tickersSingleThreadContext) {
             records.map { record -> record.value() }
                     .forEach { ticker ->
-                        val pair = TokensPairInitializer(ticker.tokensPair!!.base, ticker.tokensPair!!.quote)
+                        val pair = TokensPairInitializer(ticker.pair!!.base, ticker.pair!!.quote)
                         channelsIndex.channelFor(ticker.exchange!!, pair, ticker.windowDuration).send(ticker)
                     }
         }

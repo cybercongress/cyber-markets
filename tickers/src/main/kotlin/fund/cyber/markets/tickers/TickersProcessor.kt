@@ -216,7 +216,7 @@ class TickersProcessor(
     private fun produceRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
         return ProducerRecord(
                 topicName,
-                TickerKey(ticker.tokensPair!!, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
+                TickerKey(ticker.pair!!, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
                 ticker)
     }
 

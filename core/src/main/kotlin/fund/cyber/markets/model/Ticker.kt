@@ -1,6 +1,10 @@
 package fund.cyber.markets.model
 
-import com.datastax.driver.mapping.annotations.*
+import com.datastax.driver.mapping.annotations.ClusteringColumn
+import com.datastax.driver.mapping.annotations.Frozen
+import com.datastax.driver.mapping.annotations.PartitionKey
+import com.datastax.driver.mapping.annotations.Table
+import com.datastax.driver.mapping.annotations.Transient
 import com.fasterxml.jackson.annotation.JsonIgnore
 import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
@@ -16,7 +20,7 @@ data class Ticker(
 
         @Frozen
         @PartitionKey(0)
-        var tokensPair: TokensPair?,
+        var pair: TokensPair?,
         var timestampFrom: Date?,
 
         @ClusteringColumn(1)
@@ -50,8 +54,8 @@ data class Ticker(
         if (exchange == null) {
             exchange = trade.exchange
         }
-        if (tokensPair == null) {
-            tokensPair = trade.pair
+        if (pair == null) {
+            pair = trade.pair
         }
 
         quoteAmount = quoteAmount.plus(trade.quoteAmount)
@@ -79,8 +83,8 @@ data class Ticker(
         quoteAmount = quoteAmount.plus(ticker.quoteAmount)
         baseAmount = baseAmount.plus(ticker.baseAmount)
 
-        if (tokensPair == null) {
-            tokensPair = ticker.tokensPair
+        if (pair == null) {
+            pair = ticker.pair
         }
         if (exchange == null) {
             exchange = ticker.exchange

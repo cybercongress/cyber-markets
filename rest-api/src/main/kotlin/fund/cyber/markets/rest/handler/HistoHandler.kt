@@ -1,6 +1,5 @@
 package fund.cyber.markets.rest.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.common.booleanValue
 import fund.cyber.markets.common.intValue
 import fund.cyber.markets.common.longValue
@@ -15,12 +14,10 @@ import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.Headers
 
-private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService
-private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
-
 class HistoHandler(
-    private val duration: Long
-) : HttpHandler {
+    private val duration: Long,
+    private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService
+) : AbstractTickerHandler(), HttpHandler {
 
     override fun handleRequest(httpExchange: HttpServerExchange) {
 
@@ -32,11 +29,12 @@ class HistoHandler(
         var limit = params["limit"]?.intValue()
         var timestamp = params["toTs"]?.longValue()
 
-        if (base == null || quote == null || exchange == null) {
+        if (base == null || quote == null) {
             httpExchange.statusCode = 400
             return
-        } else {
-            exchange = exchange
+        }
+        if (exchange == null) {
+            exchange = "ALL"
         }
         if (tryConversion == null) {
             tryConversion = true

@@ -23,7 +23,7 @@ class TickerDaoService(cassandra: Cluster) {
     fun getTickers(tokensPair: TokensPair, windowDuration: Long, exchange: String, timestamp: Long, limit: Int): List<Ticker> {
 
         val resultSet = session.execute("SELECT * FROM ticker WHERE " +
-                "tokensPair={base:'${tokensPair.base}',quote:'${tokensPair.quote}'} " +
+                "pair={base:'${tokensPair.base}',quote:'${tokensPair.quote}'} " +
                 "AND windowDuration=$windowDuration " +
                 "AND exchange='$exchange' " +
                 "AND timestampTo>=$timestamp " +
@@ -32,5 +32,18 @@ class TickerDaoService(cassandra: Cluster) {
         val result = tickerMapper!!.map(resultSet)
 
         return result.all()
+    }
+
+    fun getLastMinuteTicker(base: String, quote: String, exchange: String, timestamp: Long) : Ticker? {
+
+        val resultSet = session.execute("SELECT * FROM ticker WHERE " +
+                "pair={base:'$base',quote:'$quote'} " +
+                "AND windowDuration=60000 " +
+                "AND exchange='$exchange' " +
+                "AND timestampTo=$timestamp ")
+
+        val result = tickerMapper!!.map(resultSet)
+
+        return result.one()
     }
 }
