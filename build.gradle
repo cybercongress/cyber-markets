@@ -203,7 +203,6 @@ project(":core") {
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
         compile("org.apache.kafka:kafka-clients")
-
         compileOnly("com.datastax.cassandra:cassandra-driver-mapping")
     }
 }
@@ -226,10 +225,6 @@ project(":tickers") {
     dependencies {
         compile(project(":core"))
         compile(project(":dao"))
-        compile("org.apache.kafka:kafka-streams") {
-            exclude group: 'org.rocksdb', module: 'rocksdbjni'
-        }
-        compile("org.rocksdb:rocksdbjni")
     }
 
     mainClassName = "fund.cyber.markets.tickers.TickersApplicationKt"

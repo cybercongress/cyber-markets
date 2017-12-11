@@ -9,7 +9,10 @@ class DaoModule(properties: Properties) {
     var tickersDaoService: TickerDaoService? = null
 
     init {
-        val cassandraClient = Cluster.builder().addContactPoint(properties.getProperty("cassandraHost")).build().init()!!
+        val cassandraClient = Cluster.builder()
+                .addContactPoint(properties.getProperty("cassandraHost"))
+                .withPort(properties.getProperty("cassandraPort").toInt())
+                .build().init()!!
         tickersDaoService = TickerDaoService(cassandraClient)
     }
 
