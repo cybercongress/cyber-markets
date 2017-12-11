@@ -2,10 +2,11 @@ package fund.cyber.markets.tickers
 
 import fund.cyber.markets.dao.service.TickerDaoService
 import fund.cyber.markets.dto.TokensPair
-import fund.cyber.markets.model.Trade
-import fund.cyber.markets.tickers.configuration.TickersConfiguration
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TickerKey
+import fund.cyber.markets.model.Trade
+import fund.cyber.markets.tickers.configuration.TickersConfiguration
+import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -33,110 +34,115 @@ class TickersProcessor(
 
         sleep(windowHop)
         while (true) {
+
             val records = consumer.poll(windowHop / 2)
             val currentMillis = System.currentTimeMillis()
             val currentMillisHop = currentMillis / windowHop * windowHop
 
-            //update hop_tickers
-            records.forEach { record ->
-                val trade = record.value()
-                val ticker = hopTickers
-                        .getOrPut(trade.pair, { mutableMapOf() })
-                        .getOrPut(trade.exchange, {
-                            Ticker(windowHop).setTimestamps(
-                                    currentMillisHop,
-                                    currentMillisHop + windowHop)
-                        })
-                val tickerAllExchange = hopTickers
-                        .getOrPut(trade.pair, { mutableMapOf() })
-                        .getOrPut("ALL", {
-                            Ticker(windowHop)
-                                    .setExchangeString("ALL")
-                                    .setTimestamps(
-                                            currentMillisHop,
-                                            currentMillisHop + windowHop)
-                        })
-                ticker.add(trade)
-                tickerAllExchange.add(trade)
-            }
+            calculateHopTickers(records, hopTickers, currentMillisHop)
 
-            //add hop_tickers to tickers
-            hopTickers.forEach { tokensPair, exchangeMap ->
-                exchangeMap.forEach { exchange, hopTicker ->
+            updateTickers(hopTickers, tickers, windows, currentMillis)
 
-                    for (windowDuration in windowDurations) {
-                        val ticker = tickers
-                                .getOrPut(tokensPair, { mutableMapOf() })
-                                .getOrPut(exchange, { mutableMapOf() })
-                                .getOrPut(windowDuration, {
-                                    Ticker(windowDuration).setTimestamps(
-                                            currentMillis / windowDuration * windowDuration,
-                                            currentMillis / windowDuration * windowDuration + windowDuration)
-                                })
-                        val window = windows
-                                .getOrPut(tokensPair, { mutableMapOf() })
-                                .getOrPut(exchange, { mutableMapOf() })
-                                .getOrPut(windowDuration, { LinkedList() })
+            cleanupTickers(tickers, windows)
 
-                        window.offer(hopTicker)
-                        ticker.add(hopTicker)
-                    }
-                }
-            }
-
-            //cleanup old tickers
-            tickers.forEach { tokensPair, exchangeMap ->
-                exchangeMap.forEach { exchange, windowDurMap ->
-
-                    val iterator = windowDurMap.iterator()
-                    while (iterator.hasNext()) {
-                        val mapEntry = iterator.next()
-
-                        val windowDuration = mapEntry.key
-                        val ticker = mapEntry.value
-                        val window = windows[tokensPair]!![exchange]!![windowDuration]
-
-                        cleanUpTicker(window!!, ticker)
-
-                        //remove window without hop_tickers
-                        if (window.isEmpty()) {
-                            iterator.remove()
-                        }
-                    }
-                }
-            }
-
-            //calc price
             calculatePrice(tickers)
 
-            //log
             if (configuration.debug) {
                 log(tickers, currentMillisHop)
             }
 
-            //save and produce to kafka
             saveAndProduceToKafka(tickers, configuration.tickersTopicName, currentMillisHop)
 
-            //update timestamps
-            tickers.forEach { tokensPair, exchangeMap ->
-                exchangeMap.forEach { exchange, windowDurMap ->
-                    windowDurMap.forEach { windowDuration, ticker ->
-                        if (ticker.timestampTo!!.time <= currentMillisHop) {
-                            val diff = currentMillisHop - ticker.timestampTo!!.time + windowHop
-                            ticker.setTimestamps(
-                                    ticker.timestampFrom!!.time + diff,
-                                    ticker.timestampTo!!.time + diff)
-                        }
-                    }
-                }
-            }
+            updateTickerTimestamps(tickers, currentMillisHop)
 
             hopTickers.clear()
 
-            //sleep
             sleep(windowHop)
         }
 
+    }
+
+    private fun calculateHopTickers(records: ConsumerRecords<String, Trade>,
+                                    hopTickers: MutableMap<TokensPair, MutableMap<String, Ticker>>,
+                                    currentMillisHop: Long) {
+
+        records.forEach { record ->
+            val trade = record.value()
+            val ticker = hopTickers
+                    .getOrPut(trade.pair, { mutableMapOf() })
+                    .getOrPut(trade.exchange, {
+                        Ticker(windowHop)
+                                .setTimestamps(
+                                        currentMillisHop,
+                                        currentMillisHop + windowHop
+                                )
+                    })
+            val tickerAllExchange = hopTickers
+                    .getOrPut(trade.pair, { mutableMapOf() })
+                    .getOrPut("ALL", {
+                        Ticker(windowHop)
+                                .setExchangeString("ALL")
+                                .setTimestamps(
+                                        currentMillisHop,
+                                        currentMillisHop + windowHop
+                                )
+                    })
+            ticker.add(trade)
+            tickerAllExchange.add(trade)
+        }
+    }
+
+    private fun updateTickers(hopTickers: MutableMap<TokensPair, MutableMap<String, Ticker>>,
+                              tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+                              windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>,
+                              currentMillis: Long) {
+
+        hopTickers.forEach { tokensPair, exchangeMap ->
+            exchangeMap.forEach { exchange, hopTicker ->
+
+                for (windowDuration in windowDurations) {
+                    val ticker = tickers
+                            .getOrPut(tokensPair, { mutableMapOf() })
+                            .getOrPut(exchange, { mutableMapOf() })
+                            .getOrPut(windowDuration, {
+                                Ticker(windowDuration).setTimestamps(
+                                        currentMillis / windowDuration * windowDuration,
+                                        currentMillis / windowDuration * windowDuration + windowDuration)
+                            })
+                    val window = windows
+                            .getOrPut(tokensPair, { mutableMapOf() })
+                            .getOrPut(exchange, { mutableMapOf() })
+                            .getOrPut(windowDuration, { LinkedList() })
+
+                    window.offer(hopTicker)
+                    ticker.add(hopTicker)
+                }
+            }
+        }
+    }
+
+    private fun cleanupTickers(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+                                windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>) {
+
+        tickers.forEach { tokensPair, exchangeMap ->
+            exchangeMap.forEach { exchange, windowDurMap ->
+
+                val iterator = windowDurMap.iterator()
+                while (iterator.hasNext()) {
+                    val mapEntry = iterator.next()
+
+                    val windowDuration = mapEntry.key
+                    val ticker = mapEntry.value
+                    val window = windows[tokensPair]!![exchange]!![windowDuration]
+
+                    cleanUpTicker(window!!, ticker)
+
+                    if (window.isEmpty()) {
+                        iterator.remove()
+                    }
+                }
+            }
+        }
     }
 
     private fun calculatePrice(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>) {
@@ -188,7 +194,7 @@ class TickersProcessor(
                 exchangeMap.forEach { exchange, windowDurMap ->
                     windowDurMap.forEach { windowDuration, ticker ->
                         if (ticker.timestampTo!!.time <= currentMillisHop) {
-                            producer.send(producerRecord(ticker, topicName))
+                            producer.send(produceRecord(ticker, topicName))
                             saveSnapshot(ticker, windowDuration)
                         }
                     }
@@ -207,11 +213,26 @@ class TickersProcessor(
         }
     }
 
-    private fun producerRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
+    private fun produceRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
         return ProducerRecord(
                 topicName,
                 TickerKey(ticker.tokensPair!!, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
                 ticker)
+    }
+
+    private fun updateTickerTimestamps(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
+        tickers.forEach { tokensPair, exchangeMap ->
+            exchangeMap.forEach { exchange, windowDurMap ->
+                windowDurMap.forEach { windowDuration, ticker ->
+                    if (ticker.timestampTo!!.time <= currentMillisHop) {
+                        val diff = currentMillisHop - ticker.timestampTo!!.time + windowHop
+                        ticker.setTimestamps(
+                                ticker.timestampFrom!!.time + diff,
+                                ticker.timestampTo!!.time + diff)
+                    }
+                }
+            }
+        }
     }
 
     private fun cleanUpTicker(window: Queue<Ticker>, ticker: Ticker) {
@@ -237,7 +258,6 @@ class TickersProcessor(
                 }
             }
         }
-
     }
 
 }
