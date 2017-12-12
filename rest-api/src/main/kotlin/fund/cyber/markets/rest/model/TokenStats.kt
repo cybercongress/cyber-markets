@@ -1,4 +1,4 @@
-package graphs
+package fund.cyber.markets.rest.model
 
 import java.math.BigDecimal
 

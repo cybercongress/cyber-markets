@@ -6,14 +6,15 @@ import java.util.*
 
 class DaoModule(properties: Properties) {
 
-    var tickersDaoService: TickerDaoService? = null
+    private val cassandraClient = Cluster.builder()
+            .addContactPoints(*properties.getProperty("cassandraHost").split(",").toTypedArray())
+            .withPort(properties.getProperty("cassandraPort").toInt())
+            .build().init()!!
 
-    init {
-        val cassandraClient = Cluster.builder()
-                .addContactPoint(properties.getProperty("cassandraHost"))
-                .withPort(properties.getProperty("cassandraPort").toInt())
-                .build().init()!!
-        tickersDaoService = TickerDaoService(cassandraClient)
+    val tickersDaoService by lazy { TickerDaoService(cassandraClient) }
+
+    fun shutdown() {
+        cassandraClient.close()
     }
 
 }

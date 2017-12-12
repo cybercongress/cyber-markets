@@ -1,7 +1,7 @@
 package fund.cyber.markets.rest.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import graphs.TokenStats
+import fund.cyber.markets.rest.model.TokenStats
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.Headers

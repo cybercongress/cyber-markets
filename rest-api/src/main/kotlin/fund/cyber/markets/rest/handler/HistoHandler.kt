@@ -5,19 +5,17 @@ import fund.cyber.markets.common.intValue
 import fund.cyber.markets.common.longValue
 import fund.cyber.markets.common.stringValue
 import fund.cyber.markets.dao.service.TickerDaoService
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.ConversionType
 import fund.cyber.markets.rest.model.HistoEntity
 import fund.cyber.markets.rest.model.TickerData
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
-import io.undertow.util.Headers
 
 class HistoHandler(
     private val duration: Long,
     private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService
-) : AbstractTickerHandler(), HttpHandler {
+) : AbstractHandler(), HttpHandler {
 
     override fun handleRequest(httpExchange: HttpServerExchange) {
 
@@ -30,8 +28,7 @@ class HistoHandler(
         var timestamp = params["toTs"]?.longValue()
 
         if (base == null || quote == null) {
-            httpExchange.statusCode = 400
-            return
+            handleBadRequest("Bad parameters", httpExchange)
         }
         if (exchange == null) {
             exchange = "ALL"
@@ -46,7 +43,7 @@ class HistoHandler(
             timestamp = System.currentTimeMillis() / duration * duration - duration
         }
 
-        val tickers = tickerDaoService.getTickers(TokensPair(base, quote), duration, exchange, timestamp, limit)
+        val tickers = tickerDaoService.getTickers(base!!, quote!!, duration, exchange, timestamp, limit)
 
         val data = mutableListOf<TickerData>()
         tickers.forEach { ticker ->
@@ -68,10 +65,7 @@ class HistoHandler(
                 ConversionType("direct", "")
         )
 
-        val rawResponse = jsonSerializer.writeValueAsString(histoEntity)
-
-        httpExchange.responseHeaders.put(Headers.CONTENT_TYPE, "application/json")
-        httpExchange.responseSender.send(rawResponse)
+        send(histoEntity, httpExchange)
     }
 
 }

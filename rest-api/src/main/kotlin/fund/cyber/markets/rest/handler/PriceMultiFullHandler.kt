@@ -4,11 +4,12 @@ import fund.cyber.markets.common.booleanValue
 import fund.cyber.markets.common.stringValue
 import fund.cyber.markets.dao.service.TickerDaoService
 import fund.cyber.markets.rest.configuration.AppContext
+import fund.cyber.markets.rest.model.PriceMultiFullData
+import fund.cyber.markets.rest.model.PriceMultiFullModel
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
-import java.math.BigDecimal
 
-class PriceMultiHandler(
+class PriceMultiFullHandler(
     private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService
 ) : AbstractHandler(), HttpHandler {
 
@@ -31,22 +32,35 @@ class PriceMultiHandler(
         }
 
         val timestamp = System.currentTimeMillis() / 60 / 1000 * 60 * 1000
-        val result = mutableMapOf<String, MutableMap<String, BigDecimal>>()
+        val raw = mutableMapOf<String, MutableMap<String, PriceMultiFullData>>()
+
 
         if (!tryConversion) {
             for (base in bases!!) {
-                val quoteMap = mutableMapOf<String, BigDecimal>()
+                val quoteFullData = mutableMapOf<String, PriceMultiFullData>()
                 for (quote in quotes!!) {
                     val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
-                    if (ticker != null) {
-                        quoteMap.put(quote, ticker.price)
+                    val ticker24h = tickerDaoService.getLastDayTicker(base, quote, exchange)
+                    if (ticker != null && ticker24h != null) {
+                        val priceData = PriceMultiFullData(
+                                exchange,
+                                base,
+                                quote,
+                                ticker.price,
+                                ticker.timestampTo!!.time,
+                                ticker24h.baseAmount,
+                                ticker24h.quoteAmount,
+                                ticker24h.maxPrice!!,
+                                ticker24h.minPrice!!
+                        )
+                        quoteFullData.put(quote, priceData)
                     }
                 }
-                result.put(base, quoteMap)
+                raw.put(base, quoteFullData)
             }
         }
 
-        send(result, httpExchange)
+        send(PriceMultiFullModel(raw), httpExchange)
     }
 
 }
