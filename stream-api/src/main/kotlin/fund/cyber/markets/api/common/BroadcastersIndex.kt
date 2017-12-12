@@ -50,7 +50,7 @@ abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListen
     }
 
     fun getAllPairs(): Collection<TokensPair> {
-        return index.map { (definition, _) -> definition.tokensPair }
+        return index.map { (definition, _) -> definition.tokensPair }.distinct()
     }
 
     fun getAllExchangesWithPairs(): Map<String, List<TokensPair>> {
