@@ -3,6 +3,7 @@ package fund.cyber.markets.rest.handler
 import fund.cyber.markets.common.booleanValue
 import fund.cyber.markets.common.stringValue
 import fund.cyber.markets.dao.service.TickerDaoService
+import fund.cyber.markets.rest.common.CrossConversion
 import fund.cyber.markets.rest.configuration.AppContext
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
@@ -27,7 +28,7 @@ class PriceMultiHandler(
             exchange = "ALL"
         }
         if (tryConversion == null) {
-            tryConversion = false
+            tryConversion = true
         }
 
         val timestamp = System.currentTimeMillis() / 60 / 1000 * 60 * 1000
@@ -40,6 +41,11 @@ class PriceMultiHandler(
                     val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
                     if (ticker != null) {
                         quoteMap.put(quote, ticker.price)
+                    } else if (tryConversion) {
+                        val conversion = CrossConversion(tickerDaoService, base, quote, exchange, 60*1000, timestamp).calculate()
+                        if (conversion.success) {
+                            quoteMap.put(quote, conversion.value!!)
+                        }
                     }
                 }
                 result.put(base, quoteMap)

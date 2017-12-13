@@ -14,32 +14,68 @@ class CrossConversion(
         val timestamp: Long
 ) {
 
-    fun calculate() {
+    fun calculate(): ConversionResult {
+        val invert = tryInvert()
+        if (invert.success) {
+            return invert
+        }
+        val multiply = tryMultiply()
+        if (multiply.success) {
+            return multiply
+        }
+        val divide = tryDivide()
+        if (divide.success) {
+            return divide
+        }
+        val invertDivide = tryInvertDivide()
+        if (invertDivide.success) {
+            return invertDivide
+        }
 
+        return ConversionResult(false, null, null)
     }
 
-    fun tryInvert(): ConversionResult {
+    private fun tryInvert(): ConversionResult {
         val ticker = tickerDaoService.getTicker(quote, base, windowDuration, exchange, timestamp)
+
         return if (ticker != null) {
-             ConversionResult(true, ConversionType.INVERT, calcInvert(ticker))
-        } else {
+            ConversionResult(true, ConversionType.INVERT, calcInvert(ticker))
+        } else{
             ConversionResult(false, null, null)
         }
     }
 
-    fun tryMultiply() {
+    private fun tryMultiply(): ConversionResult {
         val ticker1 = tickerDaoService.getTicker(base, "BTC", windowDuration, exchange, timestamp)
         val ticker2 = tickerDaoService.getTicker("BTC", quote, windowDuration, exchange, timestamp)
+
+        return if (ticker1 != null && ticker2 != null) {
+            ConversionResult(true, ConversionType.MULTIPLY, calcMultiply(ticker1, ticker2))
+        } else{
+            ConversionResult(false, null, null)
+        }
     }
 
-    fun tryDivide() {
+    private fun tryDivide(): ConversionResult {
         val ticker1 = tickerDaoService.getTicker(base, "BTC", windowDuration, exchange, timestamp)
         val ticker2 = tickerDaoService.getTicker(quote, "BTC", windowDuration, exchange, timestamp)
+
+        return if (ticker1 != null && ticker2 != null) {
+            ConversionResult(true, ConversionType.DIVIDE, calcDivide(ticker1, ticker2))
+        } else{
+            ConversionResult(false, null, null)
+        }
     }
 
-    fun tryInvertDivide() {
+    private fun tryInvertDivide(): ConversionResult {
         val ticker1 = tickerDaoService.getTicker("BTC", quote, windowDuration, exchange, timestamp)
         val ticker2 = tickerDaoService.getTicker("BTC", base, windowDuration, exchange, timestamp)
+
+        return if (ticker1 != null && ticker2 != null) {
+            ConversionResult(true, ConversionType.INVERT_DIVIDE, calcDivide(ticker1, ticker2))
+        } else{
+            ConversionResult(false, null, null)
+        }
     }
 
     private fun calcInvert(ticker: Ticker): BigDecimal {

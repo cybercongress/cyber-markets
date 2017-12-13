@@ -8,7 +8,7 @@ import fund.cyber.markets.rest.handler.PriceHandler
 import fund.cyber.markets.rest.handler.PriceMultiFullHandler
 import fund.cyber.markets.rest.handler.PriceMultiHandler
 import fund.cyber.markets.rest.handler.SetCorsHeadersHandler
-import fund.cyber.markets.rest.handler.TokenStatsHandler
+import fund.cyber.markets.rest.handler.StatsHandler
 import io.undertow.Handlers
 import io.undertow.Undertow
 import java.util.concurrent.TimeUnit
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 fun main(args: Array<String>) {
 
     val httpHandler = Handlers.routing()
-            .get("/tokenstats", TokenStatsHandler())
+            .get("/stats", StatsHandler())
             .get("/ping", PingPongHandler())
             .get("/histominute", HistoHandler(TimeUnit.MINUTES.toMillis(1)))
             .get("/histohour", HistoHandler(TimeUnit.HOURS.toMillis(1)))

@@ -21,7 +21,7 @@ open class AbstractHandler(
 
     fun handleNoData(httpExchange: HttpServerExchange) {
         val response = ErrorMessage(
-                "No data",
+                "Error",
                 "Sorry no data available"
         )
         httpExchange.responseHeaders.put(Headers.CONTENT_TYPE, "application/json")
