@@ -39,25 +39,31 @@ class PriceMultiFullHandler(
             for (base in bases!!) {
                 val quoteFullData = mutableMapOf<String, PriceMultiFullData>()
                 for (quote in quotes!!) {
-                    val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
-                    val ticker24h = tickerDaoService.getLastDayTicker(base, quote, exchange)
-                    if (ticker != null && ticker24h != null) {
-                        val priceData = PriceMultiFullData(
-                                exchange,
-                                base,
-                                quote,
-                                ticker.price,
-                                ticker.timestampTo!!.time,
-                                ticker24h.baseAmount,
-                                ticker24h.quoteAmount,
-                                ticker24h.maxPrice!!,
-                                ticker24h.minPrice!!
-                        )
-                        quoteFullData.put(quote, priceData)
+                    if (base != quote) {
+                        val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
+                        val ticker24h = tickerDaoService.getLastDayTicker(base, quote, exchange)
+                        if (ticker != null && ticker24h != null) {
+                            val priceData = PriceMultiFullData(
+                                    exchange,
+                                    base,
+                                    quote,
+                                    ticker.price,
+                                    ticker.timestampTo!!.time,
+                                    ticker24h.baseAmount,
+                                    ticker24h.quoteAmount,
+                                    ticker24h.maxPrice!!,
+                                    ticker24h.minPrice!!
+                            )
+                            quoteFullData.put(quote, priceData)
+                        }
                     }
                 }
                 raw.put(base, quoteFullData)
             }
+        }
+
+        if (raw.isEmpty()) {
+            handleNoData(httpExchange)
         }
 
         send(PriceMultiFullModel(raw), httpExchange)

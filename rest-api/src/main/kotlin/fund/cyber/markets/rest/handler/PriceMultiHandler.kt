@@ -46,6 +46,10 @@ class PriceMultiHandler(
             }
         }
 
+        if (result.isEmpty()) {
+            handleNoData(httpExchange)
+        }
+
         send(result, httpExchange)
     }
 

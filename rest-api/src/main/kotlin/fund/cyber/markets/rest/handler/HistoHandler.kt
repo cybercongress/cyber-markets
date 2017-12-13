@@ -27,7 +27,7 @@ class HistoHandler(
         var limit = params["limit"]?.intValue()
         var timestamp = params["toTs"]?.longValue()
 
-        if (base == null || quote == null) {
+        if (base == null || quote == null || base == quote) {
             handleBadRequest("Bad parameters", httpExchange)
         }
         if (exchange == null) {
@@ -44,6 +44,10 @@ class HistoHandler(
         }
 
         val tickers = tickerDaoService.getTickers(base!!, quote!!, duration, exchange, timestamp, limit)
+
+        if (tickers.isEmpty()) {
+            handleNoData(httpExchange)
+        }
 
         val data = mutableListOf<TickerData>()
         tickers.forEach { ticker ->

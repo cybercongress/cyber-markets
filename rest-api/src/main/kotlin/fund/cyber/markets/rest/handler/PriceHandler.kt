@@ -35,11 +35,17 @@ class PriceHandler(
 
         if (!tryConversion) {
             for (quote in quotes!!) {
-                val ticker = tickerDaoService.getMinuteTicker(base!!, quote, exchange, timestamp)
-                if (ticker != null) {
-                    result.put(quote, ticker.price)
+                if (base!! != quote) {
+                    val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
+                    if (ticker != null) {
+                        result.put(quote, ticker.price)
+                    }
                 }
             }
+        }
+
+        if (result.isEmpty()) {
+            handleNoData(httpExchange)
         }
 
         send(result, httpExchange)

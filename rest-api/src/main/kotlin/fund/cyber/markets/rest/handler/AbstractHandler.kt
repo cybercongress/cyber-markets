@@ -19,6 +19,15 @@ open class AbstractHandler(
         httpExchange.responseSender.send(jsonSerializer.writeValueAsString(response))
     }
 
+    fun handleNoData(httpExchange: HttpServerExchange) {
+        val response = ErrorMessage(
+                "No data",
+                "Sorry no data available"
+        )
+        httpExchange.responseHeaders.put(Headers.CONTENT_TYPE, "application/json")
+        httpExchange.responseSender.send(jsonSerializer.writeValueAsString(response))
+    }
+
     fun send(result: Any, httpExchange: HttpServerExchange) {
         httpExchange.responseHeaders.put(Headers.CONTENT_TYPE, "application/json")
         httpExchange.responseSender.send(jsonSerializer.writeValueAsString(result))
