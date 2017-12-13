@@ -24,6 +24,8 @@ buildscript {
         // logs
         slf4jVersion = "1.7.25"
         lockbackVersion = "1.2.3"
+
+        cassandraConfluentVersion = "3.3.2"
     }
 
     repositories {
@@ -87,6 +89,9 @@ subprojects {
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
             dependency("org.apache.kafka:kafka-streams:$kafkaVersion")
             dependency("org.rocksdb:rocksdbjni:$rocksDbVersion")
+
+            dependency("com.datastax.cassandra:cassandra-driver-core:$cassandraConfluentVersion")
+            dependency("com.datastax.cassandra:cassandra-driver-mapping:$cassandraConfluentVersion")
         }
     }
 
@@ -198,9 +203,7 @@ project(":core") {
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
         compile("org.apache.kafka:kafka-clients")
-        compile("org.apache.kafka:kafka-streams") {
-            exclude group: 'org.rocksdb', module: 'rocksdbjni'
-        }
+        compileOnly("com.datastax.cassandra:cassandra-driver-mapping")
     }
 }
 
@@ -221,8 +224,16 @@ project(":tickers") {
 
     dependencies {
         compile(project(":core"))
-        compile("org.rocksdb:rocksdbjni")
+        compile(project(":dao"))
     }
 
     mainClassName = "fund.cyber.markets.tickers.TickersApplicationKt"
+}
+
+project(":dao") {
+    dependencies {
+        compileOnly(project(":core"))
+        compile("com.datastax.cassandra:cassandra-driver-core")
+        compile("com.datastax.cassandra:cassandra-driver-mapping")
+    }
 }
