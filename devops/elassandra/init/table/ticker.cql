@@ -1,6 +1,6 @@
 CREATE TABLE markets.ticker (
 
-  pair frozen<tokenpair>,
+  tokensPair frozen<tokenpair>,
   exchange text,
   timestampFrom timestamp,
   timestampTo timestamp,

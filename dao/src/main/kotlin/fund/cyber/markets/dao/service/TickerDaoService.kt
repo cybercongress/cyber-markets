@@ -25,7 +25,7 @@ class TickerDaoService(cassandra: Cluster) {
 
         val result = tickerMapper.map(resultSet)
 
-        return result.one()
+        return result.firstOrNull()
     }
 
     fun getTickers(base: String, quote: String, windowDuration: Long, exchange: String, timestamp: Long, limit: Int): List<Ticker> {
@@ -59,7 +59,7 @@ class TickerDaoService(cassandra: Cluster) {
 
         val result = tickerMapper.map(resultSet)
 
-        return result.one()
+        return result.firstOrNull()
     }
 
 }
