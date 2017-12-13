@@ -34,7 +34,7 @@ class HistoHandler(
             exchange = "ALL"
         }
         if (tryConversion == null) {
-            tryConversion = true
+            tryConversion = false
         }
         if (limit == null) {
             limit = 1440
