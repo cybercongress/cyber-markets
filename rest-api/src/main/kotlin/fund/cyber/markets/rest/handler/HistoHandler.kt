@@ -47,6 +47,7 @@ class HistoHandler(
 
         if (tickers.isEmpty()) {
             handleNoData(httpExchange)
+            return
         }
 
         val data = mutableListOf<TickerData>()

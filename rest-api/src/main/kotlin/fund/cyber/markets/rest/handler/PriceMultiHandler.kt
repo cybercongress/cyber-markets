@@ -34,26 +34,25 @@ class PriceMultiHandler(
         val timestamp = System.currentTimeMillis() / 60 / 1000 * 60 * 1000
         val result = mutableMapOf<String, MutableMap<String, BigDecimal>>()
 
-        if (!tryConversion) {
-            for (base in bases!!) {
-                val quoteMap = mutableMapOf<String, BigDecimal>()
-                for (quote in quotes!!) {
-                    val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
-                    if (ticker != null) {
-                        quoteMap.put(quote, ticker.price)
-                    } else if (tryConversion) {
-                        val conversion = CrossConversion(tickerDaoService, base, quote, exchange, 60*1000, timestamp).calculate()
-                        if (conversion.success) {
-                            quoteMap.put(quote, conversion.value!!)
-                        }
+        for (base in bases!!) {
+            val quoteMap = mutableMapOf<String, BigDecimal>()
+            for (quote in quotes!!) {
+                val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
+                if (ticker != null) {
+                    quoteMap.put(quote, ticker.price)
+                } else if (tryConversion) {
+                    val conversion = CrossConversion(tickerDaoService, base, quote, exchange, 60*1000, timestamp).calculate()
+                    if (conversion.success) {
+                        quoteMap.put(quote, conversion.value!!)
                     }
                 }
-                result.put(base, quoteMap)
             }
+            result.put(base, quoteMap)
         }
 
         if (result.isEmpty()) {
             handleNoData(httpExchange)
+            return
         }
 
         send(result, httpExchange)

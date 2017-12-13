@@ -64,6 +64,7 @@ class PriceMultiFullHandler(
 
         if (raw.isEmpty()) {
             handleNoData(httpExchange)
+            return
         }
 
         send(PriceMultiFullModel(raw), httpExchange)
