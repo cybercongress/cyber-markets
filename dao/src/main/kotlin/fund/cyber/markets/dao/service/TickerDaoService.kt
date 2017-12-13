@@ -15,6 +15,19 @@ class TickerDaoService(cassandra: Cluster) {
         tickerMapper.saveAsync(ticker)
     }
 
+    fun getTicker(base: String, quote: String, windowDuration: Long, exchange: String, timestamp: Long): Ticker? {
+
+        val resultSet = session.execute("SELECT * FROM ticker WHERE " +
+                "pair={base:'$base',quote:'$quote'} " +
+                "AND windowDuration=$windowDuration " +
+                "AND exchange='$exchange' " +
+                "AND timestampTo=$timestamp ")
+
+        val result = tickerMapper.map(resultSet)
+
+        return result.one()
+    }
+
     fun getTickers(base: String, quote: String, windowDuration: Long, exchange: String, timestamp: Long, limit: Int): List<Ticker> {
 
         val resultSet = session.execute("SELECT * FROM ticker WHERE " +
@@ -30,16 +43,7 @@ class TickerDaoService(cassandra: Cluster) {
     }
 
     fun getMinuteTicker(base: String, quote: String, exchange: String, timestamp: Long): Ticker? {
-
-        val resultSet = session.execute("SELECT * FROM ticker WHERE " +
-                "pair={base:'$base',quote:'$quote'} " +
-                "AND windowDuration=60000 " +
-                "AND exchange='$exchange' " +
-                "AND timestampTo=$timestamp ")
-
-        val result = tickerMapper.map(resultSet)
-
-        return result.one()
+        return getTicker(base, quote, 60*1000L, exchange, timestamp)
     }
 
     fun getLastDayTicker(base: String, quote: String, exchange: String): Ticker? {
