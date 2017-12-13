@@ -18,7 +18,7 @@ class TickerDaoService(cassandra: Cluster) {
     fun getTicker(base: String, quote: String, windowDuration: Long, exchange: String, timestamp: Long): Ticker? {
 
         val resultSet = session.execute("SELECT * FROM ticker WHERE " +
-                "pair={base:'$base',quote:'$quote'} " +
+                "tokensPair={base:'$base',quote:'$quote'} " +
                 "AND windowDuration=$windowDuration " +
                 "AND exchange='$exchange' " +
                 "AND timestampTo=$timestamp ")
@@ -31,7 +31,7 @@ class TickerDaoService(cassandra: Cluster) {
     fun getTickers(base: String, quote: String, windowDuration: Long, exchange: String, timestamp: Long, limit: Int): List<Ticker> {
 
         val resultSet = session.execute("SELECT * FROM ticker WHERE " +
-                "pair={base:'$base',quote:'$quote'} " +
+                "tokensPair={base:'$base',quote:'$quote'} " +
                 "AND windowDuration=$windowDuration " +
                 "AND exchange='$exchange' " +
                 "AND timestampTo>=$timestamp " +
@@ -52,7 +52,7 @@ class TickerDaoService(cassandra: Cluster) {
         val timestamp = System.currentTimeMillis() / dayInMillis * dayInMillis
 
         val resultSet = session.execute("SELECT * FROM ticker WHERE " +
-                "pair={base:'$base',quote:'$quote'} " +
+                "tokensPair={base:'$base',quote:'$quote'} " +
                 "AND windowDuration=$dayInMillis " +
                 "AND exchange='$exchange' " +
                 "AND timestampTo=$timestamp ")

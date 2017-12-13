@@ -20,7 +20,7 @@ data class Ticker(
 
         @Frozen
         @PartitionKey(0)
-        var pair: TokensPair?,
+        var tokensPair: TokensPair?,
         var timestampFrom: Date?,
 
         @ClusteringColumn(1)
@@ -54,8 +54,8 @@ data class Ticker(
         if (exchange == null) {
             exchange = trade.exchange
         }
-        if (pair == null) {
-            pair = trade.pair
+        if (tokensPair == null) {
+            tokensPair = trade.pair
         }
 
         quoteAmount = quoteAmount.plus(trade.quoteAmount)
@@ -83,8 +83,8 @@ data class Ticker(
         quoteAmount = quoteAmount.plus(ticker.quoteAmount)
         baseAmount = baseAmount.plus(ticker.baseAmount)
 
-        if (pair == null) {
-            pair = ticker.pair
+        if (tokensPair == null) {
+            tokensPair = ticker.tokensPair
         }
         if (exchange == null) {
             exchange = ticker.exchange
