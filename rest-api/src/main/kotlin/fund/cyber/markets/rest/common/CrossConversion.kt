@@ -79,7 +79,7 @@ class CrossConversion(
     }
 
     private fun calcInvert(ticker: Ticker): BigDecimal {
-        return BigDecimal(1).divide(ticker.price)
+        return BigDecimal(1).div(ticker.price)
     }
 
     private fun calcMultiply(ticker1: Ticker, ticker2: Ticker): BigDecimal {
@@ -87,7 +87,7 @@ class CrossConversion(
     }
 
     private fun calcDivide(ticker1: Ticker, ticker2: Ticker): BigDecimal {
-        return ticker1.price.divide(ticker2.price)
+        return ticker1.price.div(ticker2.price)
     }
 
 }

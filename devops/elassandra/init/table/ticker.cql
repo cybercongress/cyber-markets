@@ -12,7 +12,7 @@ CREATE TABLE markets.ticker (
   maxPrice decimal,
   tradeCount bigint,
 
-  PRIMARY KEY ((pair, windowDuration), exchange, timestampTo)
+  PRIMARY KEY ((tokensPair, windowDuration), exchange, timestampTo)
 )
 WITH CLUSTERING ORDER BY (
   exchange ASC,
