@@ -1,7 +1,9 @@
 package fund.cyber.markets.exchanges.common
 
 import fund.cyber.markets.api.common.ChannelSubscriptionCommand
+import fund.cyber.markets.api.common.IncomingMessageGetTopicType
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType
+import fund.cyber.markets.api.common.InfoCommand
 import fund.cyber.markets.api.common.UnknownCommand
 import fund.cyber.markets.api.common.WebSocketCommandsParser
 import fund.cyber.markets.model.TokensPairInitializer
@@ -36,7 +38,15 @@ class WebSocketCommandsParserTest {
                 TokensPairInitializer.fromLabel("ETH_USD", "_").pair
         )
 
-        val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_USD"]}"""
+        val message = """
+            {
+                "subscribe":"trades",
+                "pairs":[
+                    "BTC_ETH",
+                    "ETH_USD"
+                ]
+            }
+        """.trimIndent()
         val command = commandsParser.parseMessage(message)
 
         Assertions.assertTrue(command is ChannelSubscriptionCommand)
@@ -54,7 +64,15 @@ class WebSocketCommandsParserTest {
                 TokensPairInitializer.fromLabel("AAA_BBB", "_").pair
         )
 
-        val message = """{"subscribe":"trades","pairs":["BTC_ETH","BBB_AAA"]}"""
+        val message = """
+            {
+                "subscribe":"trades",
+                "pairs":[
+                    "BTC_ETH",
+                    "BBB_AAA"
+                ]
+            }
+        """.trimIndent()
         val command = commandsParser.parseMessage(message)
 
         Assertions.assertTrue(command is ChannelSubscriptionCommand)
@@ -71,12 +89,80 @@ class WebSocketCommandsParserTest {
                 TokensPairInitializer.fromLabel("BTC_ETH", "_").pair
         )
 
-        val message = """{"subscribe":"trades","pairs":["BTC_ETH","ETH_BTC"]}"""
+        val message = """
+            {
+                "subscribe":"trades",
+                "pairs":[
+                    "BTC_ETH",
+                    "ETH_BTC"
+                ]
+            }
+        """.trimIndent()
         val command = commandsParser.parseMessage(message)
 
         Assertions.assertTrue(command is ChannelSubscriptionCommand)
         command as ChannelSubscriptionCommand
         Assertions.assertEquals(IncomingMessageSubscribeTopicType.TRADES, command.type)
         Assertions.assertArrayEquals(pairs.toTypedArray(), command.pairs?.toTypedArray())
+    }
+
+    @Test
+    @DisplayName("Should parse get pairs command")
+    fun testGetPairsCommandParserTest() {
+        val message = """
+            {
+                "get":"pairs"
+            }
+        """.trimIndent()
+        val command = commandsParser.parseMessage(message)
+
+        Assertions.assertTrue(command is InfoCommand)
+        command as InfoCommand
+        Assertions.assertEquals(IncomingMessageGetTopicType.PAIRS, command.type)
+        Assertions.assertTrue(command.tokens.isEmpty())
+    }
+
+    @Test
+    @DisplayName("Should parse get pairs command")
+    fun testGetPairsByTokenCommandParserTest() {
+
+        val tokens = listOf(
+                "BTC",
+                "USD",
+                "DOGE"
+        )
+
+        val message = """
+            {
+                "get":"pairs",
+                "tokens":[
+                    "BTC",
+                    "USD",
+                    "DOGE"
+                ]
+            }
+        """.trimIndent()
+        val command = commandsParser.parseMessage(message)
+
+        Assertions.assertTrue(command is InfoCommand)
+        command as InfoCommand
+        Assertions.assertEquals(IncomingMessageGetTopicType.PAIRS_BY_TOKEN, command.type)
+        Assertions.assertEquals(command.tokens, tokens)
+    }
+
+    @Test
+    @DisplayName("Should parse get exchanges with pairs command")
+    fun testGetExchangesCommandParserTest() {
+        val message = """
+            {
+                "get":"exchanges"
+            }
+        """.trimIndent()
+        val command = commandsParser.parseMessage(message)
+
+        Assertions.assertTrue(command is InfoCommand)
+        command as InfoCommand
+        Assertions.assertEquals(IncomingMessageGetTopicType.EXCHANGES, command.type)
+        Assertions.assertTrue(command.tokens.isEmpty())
     }
 }
