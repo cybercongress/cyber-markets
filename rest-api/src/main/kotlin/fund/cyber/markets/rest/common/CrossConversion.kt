@@ -4,6 +4,7 @@ import fund.cyber.markets.dao.service.TickerDaoService
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.rest.configuration.AppContext
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 class CrossConversion(
         val tickerDaoService: TickerDaoService = AppContext.tickerDaoService,
@@ -79,7 +80,7 @@ class CrossConversion(
     }
 
     private fun calcInvert(ticker: Ticker): BigDecimal {
-        return BigDecimal(1).div(ticker.price)
+        return BigDecimal(1).divide(ticker.price, 20, RoundingMode.HALF_EVEN)
     }
 
     private fun calcMultiply(ticker1: Ticker, ticker2: Ticker): BigDecimal {
