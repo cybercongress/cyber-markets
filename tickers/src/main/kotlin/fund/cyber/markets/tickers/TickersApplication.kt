@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
     val configuration = TickersConfiguration()
     configuration.createTickerTopic()
 
-    val tickersDaoService = DaoModule(configuration.cassandraProperties).tickersDaoService!!
+    val tickersDaoService = DaoModule(configuration.cassandraProperties).tickersDaoService
 
     val consumer = KafkaConsumer<String, Trade>(
             configuration.consumerProperties,

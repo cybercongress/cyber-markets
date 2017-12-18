@@ -1,11 +1,11 @@
 /* Gradle plugins part */
 buildscript {
     ext {
-        kotlinVersion = "1.1.51"
-        kotlinCoroutinesVersion = "0.18"
-        jacksonVersion = "2.8.9"
+        kotlinVersion = "1.2.10"
+        kotlinCoroutinesVersion = "0.19.3"
+        jacksonVersion = "2.9.2"
         okhttpVersion = "3.8.1"
-        undertowVersion = "1.4.18.Final"
+        undertowVersion = "1.4.20.Final"
         kafkaVersion = "1.0.0"
         web3jVersion = "2.3.1"
         khttpVersion = "0.1.0"
@@ -35,6 +35,7 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
         classpath("io.spring.gradle:dependency-management-plugin:$dependencyPluginVersion")
         classpath("org.junit.platform:junit-platform-gradle-plugin:$junitPlatformVersion")
         classpath("com.github.jengelman.gradle.plugins:shadow:$shadowPluginVersion")
@@ -188,6 +189,13 @@ project(":connectors-gdax") {
 }
 
 project(":core") {
+
+    apply plugin: "kotlin-noarg"
+
+    noArg {
+        annotation("com.datastax.driver.mapping.annotations.Table")
+    }
+
     dependencies {
         compile("org.slf4j:slf4j-api")
         compile("ch.qos.logback:logback-classic")

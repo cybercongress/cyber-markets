@@ -9,6 +9,4 @@ import com.datastax.driver.mapping.annotations.UDT
 data class TokensPair(
         val base: String,
         val quote: String
-) {
-    constructor() : this("", "")
-}
+)
