@@ -3,10 +3,12 @@ package fund.cyber.markets.api.common
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.EXCHANGES
 import fund.cyber.markets.api.common.IncomingMessageGetTopicType.PAIRS
+import fund.cyber.markets.api.common.IncomingMessageGetTopicType.PAIRS_BY_TOKEN
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.ORDERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TICKERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TRADES
 import fund.cyber.markets.api.configuration.AppContext
+import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.rand
 import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.AbstractReceiveListener
@@ -14,6 +16,7 @@ import io.undertow.websockets.core.BufferedTextMessage
 import io.undertow.websockets.core.StreamSourceFrameChannel
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
+import sun.tools.jstat.Token
 import java.util.LinkedList
 
 class IncomingMessagesHandler(
@@ -42,6 +45,18 @@ class IncomingMessagesHandler(
                                         )
                                 ), wsChannel, null
                         )
+                    PAIRS_BY_TOKEN -> {
+                        val result = emptyList<PairsByTokenBo>().toMutableList()
+                        command.tokens.mapTo(result) {
+                            PairsByTokenBo(it,tradesBroadcastersIndex.getAllPairsForToken(it))
+                        }
+                        WebSockets.sendText(
+                                jsonSerializer.writeValueAsString(
+                                        StreamApiResponseMessage(
+                                                command.type.toString().toLowerCase(), result
+                                        )
+                                ), wsChannel, null
+                        )}
                     EXCHANGES ->
                         WebSockets.sendText(
                                 jsonSerializer.writeValueAsString(

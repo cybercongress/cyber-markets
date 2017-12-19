@@ -4,7 +4,7 @@ package fund.cyber.markets.api.common
  * @author mgergalov
  */
 enum class IncomingMessageGetTopicType {
-    PAIRS, EXCHANGES
+    PAIRS, PAIRS_BY_TOKEN, EXCHANGES
 }
 
 enum class IncomingMessageSubscribeTopicType {
