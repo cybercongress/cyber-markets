@@ -15,7 +15,7 @@ import io.undertow.websockets.core.BufferedTextMessage
 import io.undertow.websockets.core.StreamSourceFrameChannel
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
-import java.util.*
+import java.util.LinkedList
 
 class IncomingMessagesHandler(
         private val tradesBroadcastersIndex: TradesBroadcastersIndex,
@@ -72,17 +72,18 @@ class IncomingMessagesHandler(
                         val broadcasters = tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
                         val result = LinkedList<Trade>()
                         var attemptCounter = 0
-                        while (result.size < 10 && attemptCounter < 30) {
-                            //todo if array null
-                            val randomTrade = broadcasters.elementAt(rand(0, broadcasters.size))
-                                    .getRandomTradeFromBroadcaster()
-                            if (randomTrade != null) {
-                                val unique = result.none { it.tradeId == randomTrade.tradeId }
-                                if (unique) {
-                                    result.add(randomTrade)
+                        if(broadcasters.isNotEmpty()){
+                            while (result.size < 10 && attemptCounter < 30) {
+                                val randomTrade = broadcasters.elementAt(rand(0, broadcasters.size))
+                                        .getRandomTradeFromBroadcaster()
+                                if (randomTrade != null) {
+                                    val unique = result.none { it.tradeId == randomTrade.tradeId }
+                                    if (unique) {
+                                        result.add(randomTrade)
+                                    }
                                 }
+                                attemptCounter++
                             }
-                            attemptCounter++
                         }
                         WebSockets.sendText(
                                 jsonSerializer.writeValueAsString(
