@@ -8,7 +8,6 @@ import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.ORDERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TICKERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TRADES
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.rand
 import fund.cyber.markets.model.Trade
 import io.undertow.websockets.core.AbstractReceiveListener
@@ -16,7 +15,6 @@ import io.undertow.websockets.core.BufferedTextMessage
 import io.undertow.websockets.core.StreamSourceFrameChannel
 import io.undertow.websockets.core.WebSocketChannel
 import io.undertow.websockets.core.WebSockets
-import sun.tools.jstat.Token
 import java.util.LinkedList
 
 class IncomingMessagesHandler(
@@ -74,17 +72,18 @@ class IncomingMessagesHandler(
                         val broadcasters = tradesBroadcastersIndex.broadcastersFor(command.pairs, command.exchanges)
                         val result = LinkedList<Trade>()
                         var attemptCounter = 0
-                        while (result.size < 10 && attemptCounter < 30) {
-                            //todo if array null
-                            val randomTrade = broadcasters.elementAt(rand(0, broadcasters.size))
-                                    .getRandomTradeFromBroadcaster()
-                            if (randomTrade != null) {
-                                val unique = result.none { it.tradeId == randomTrade.tradeId }
-                                if (unique) {
-                                    result.add(randomTrade)
+                        if(broadcasters.isNotEmpty()){
+                            while (result.size < 10 && attemptCounter < 30) {
+                                val randomTrade = broadcasters.elementAt(rand(0, broadcasters.size))
+                                        .getRandomTradeFromBroadcaster()
+                                if (randomTrade != null) {
+                                    val unique = result.none { it.tradeId == randomTrade.tradeId }
+                                    if (unique) {
+                                        result.add(randomTrade)
+                                    }
                                 }
+                                attemptCounter++
                             }
-                            attemptCounter++
                         }
                         WebSockets.sendText(
                                 jsonSerializer.writeValueAsString(
