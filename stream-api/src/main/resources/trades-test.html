@@ -46,6 +46,9 @@
         function send5() {
             websockets.send(`{"get":"exchanges"}`);
         }
+        function send6() {
+            websockets.send(`{"get":"pairs","tokens":["BTC","ETH","USD"]}`);
+        }
     </script>
 </head>
 <body>
@@ -66,6 +69,9 @@
 </form>
 <form onsubmit="return false;">
     <input type="button" value="Get exchanges with pairs" onclick="send5()"/>
+</form>
+<form onsubmit="return false;">
+    <input type="button" value="Get pairs for token" onclick="send6()"/>
 </form>
 </body>
 </html>

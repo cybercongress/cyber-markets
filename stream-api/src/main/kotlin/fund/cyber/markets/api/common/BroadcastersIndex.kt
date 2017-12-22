@@ -53,6 +53,12 @@ abstract class BroadcastersIndex<T, B : Broadcaster> : ChannelsIndexUpdateListen
         return index.map { (definition, _) -> definition.tokensPair }.distinct()
     }
 
+    fun getAllPairsForToken(token: String): List<TokensPair> {
+        return index
+                .map{ (definition, _) -> definition.tokensPair}
+                .filter { (base, quote) -> token == quote || token == base }.distinct()
+    }
+
     fun getAllExchangesWithPairs(): Map<String, List<TokensPair>> {
         return index
                 .map { (definition, _) -> definition.exchange to getAllPairsForExchange(definition.exchange) }
