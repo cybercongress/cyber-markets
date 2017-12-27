@@ -1,13 +1,14 @@
 package fund.cyber.markets.rest.common
 
-import fund.cyber.markets.dao.service.TickerDaoService
+import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.rest.configuration.AppContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class CrossConversion(
-        val tickerDaoService: TickerDaoService = AppContext.tickerDaoService,
+        val tickerRepository: TickerRepository = AppContext.tickerRepository,
         val base: String,
         val quote: String,
         val exchange: String,
@@ -37,7 +38,7 @@ class CrossConversion(
     }
 
     private fun tryInvert(): ConversionResult {
-        val ticker = tickerDaoService.getTicker(quote, base, windowDuration, exchange, timestamp)
+        val ticker = tickerRepository.getTicker(TokensPair(quote, base), windowDuration, exchange, timestamp)
 
         return if (ticker != null) {
             ConversionResult(true, ConversionType.INVERT, calcInvert(ticker))
@@ -47,8 +48,8 @@ class CrossConversion(
     }
 
     private fun tryMultiply(): ConversionResult {
-        val ticker1 = tickerDaoService.getTicker(base, "BTC", windowDuration, exchange, timestamp)
-        val ticker2 = tickerDaoService.getTicker("BTC", quote, windowDuration, exchange, timestamp)
+        val ticker1 = tickerRepository.getTicker(TokensPair(base, "BTC"), windowDuration, exchange, timestamp)
+        val ticker2 = tickerRepository.getTicker(TokensPair("BTC", quote), windowDuration, exchange, timestamp)
 
         return if (ticker1 != null && ticker2 != null) {
             ConversionResult(true, ConversionType.MULTIPLY, calcMultiply(ticker1, ticker2))
@@ -58,8 +59,8 @@ class CrossConversion(
     }
 
     private fun tryDivide(): ConversionResult {
-        val ticker1 = tickerDaoService.getTicker(base, "BTC", windowDuration, exchange, timestamp)
-        val ticker2 = tickerDaoService.getTicker(quote, "BTC", windowDuration, exchange, timestamp)
+        val ticker1 = tickerRepository.getTicker(TokensPair(base, "BTC"), windowDuration, exchange, timestamp)
+        val ticker2 = tickerRepository.getTicker(TokensPair(quote, "BTC"), windowDuration, exchange, timestamp)
 
         return if (ticker1 != null && ticker2 != null) {
             ConversionResult(true, ConversionType.DIVIDE, calcDivide(ticker1, ticker2))
@@ -69,8 +70,8 @@ class CrossConversion(
     }
 
     private fun tryInvertDivide(): ConversionResult {
-        val ticker1 = tickerDaoService.getTicker("BTC", quote, windowDuration, exchange, timestamp)
-        val ticker2 = tickerDaoService.getTicker("BTC", base, windowDuration, exchange, timestamp)
+        val ticker1 = tickerRepository.getTicker(TokensPair("BTC", quote), windowDuration, exchange, timestamp)
+        val ticker2 = tickerRepository.getTicker(TokensPair("BTC", base), windowDuration, exchange, timestamp)
 
         return if (ticker1 != null && ticker2 != null) {
             ConversionResult(true, ConversionType.INVERT_DIVIDE, calcDivide(ticker1, ticker2))

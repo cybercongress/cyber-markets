@@ -1,6 +1,6 @@
 package fund.cyber.markets.rest.handler
 
-import fund.cyber.markets.dao.service.TickerDaoService
+import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.StatsModel
 import io.undertow.server.HttpHandler
@@ -10,12 +10,13 @@ import java.util.*
 
 
 class StatsHandler(
-        private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService
+        private val tickerRepository: TickerRepository = AppContext.tickerRepository
 ) : AbstractHandler(), HttpHandler {
 
     private val random = Random()
 
     override fun handleRequest(exchange: HttpServerExchange) {
+        //todo: add volumes
         send(StatsModel(rand(2000000, 10000000), rand(-5, 5), rand(10000, 30000), rand(-7, 7)), exchange)
     }
 

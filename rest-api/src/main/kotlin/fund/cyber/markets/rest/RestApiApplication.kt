@@ -36,7 +36,7 @@ fun main(args: Array<String>) {
 
     Runtime.getRuntime().addShutdownHook(object : Thread() {
         override fun run() {
-            AppContext.daoModule.shutdown()
+            AppContext.cassandraService.shutdown()
         }
     })
 

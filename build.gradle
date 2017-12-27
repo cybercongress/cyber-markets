@@ -9,7 +9,7 @@ buildscript {
         kafkaVersion = "1.0.0"
         web3jVersion = "2.3.1"
         khttpVersion = "0.1.0"
-        rocksDbVersion = "5.8.6"
+        rxkotlinVersion = "2.2.0"
 
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
@@ -88,11 +88,11 @@ subprojects {
             dependency("org.mockito:mockito-core:$mockitoVersion")
             dependency("com.nhaarman:mockito-kotlin:$mockitoKotlinVersion")
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-            dependency("org.apache.kafka:kafka-streams:$kafkaVersion")
-            dependency("org.rocksdb:rocksdbjni:$rocksDbVersion")
 
             dependency("com.datastax.cassandra:cassandra-driver-core:$cassandraConfluentVersion")
             dependency("com.datastax.cassandra:cassandra-driver-mapping:$cassandraConfluentVersion")
+
+            dependency("io.reactivex.rxjava2:rxkotlin:$rxkotlinVersion")
         }
     }
 
@@ -194,6 +194,7 @@ project(":core") {
 
     noArg {
         annotation("com.datastax.driver.mapping.annotations.Table")
+        annotation("com.datastax.driver.mapping.annotations.UDT")
     }
 
     dependencies {
@@ -255,5 +256,6 @@ project(":dao") {
         compileOnly(project(":core"))
         compile("com.datastax.cassandra:cassandra-driver-core")
         compile("com.datastax.cassandra:cassandra-driver-mapping")
+        compile("io.reactivex.rxjava2:rxkotlin")
     }
 }

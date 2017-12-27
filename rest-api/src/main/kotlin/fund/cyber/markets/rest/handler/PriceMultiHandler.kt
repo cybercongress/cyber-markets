@@ -1,8 +1,10 @@
 package fund.cyber.markets.rest.handler
 
+import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.common.Durations
 import fund.cyber.markets.common.booleanValue
 import fund.cyber.markets.common.stringValue
-import fund.cyber.markets.dao.service.TickerDaoService
+import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.rest.common.CrossConversion
 import fund.cyber.markets.rest.configuration.AppContext
 import io.undertow.server.HttpHandler
@@ -10,7 +12,7 @@ import io.undertow.server.HttpServerExchange
 import java.math.BigDecimal
 
 class PriceMultiHandler(
-    private val tickerDaoService: TickerDaoService = AppContext.tickerDaoService
+    private val tickerRepository: TickerRepository = AppContext.tickerRepository
 ) : AbstractHandler(), HttpHandler {
 
     override fun handleRequest(httpExchange: HttpServerExchange) {
@@ -18,30 +20,26 @@ class PriceMultiHandler(
         val params = httpExchange.queryParameters
         val bases = params["fsyms"]?.stringValue()?.split(",")
         val quotes = params["tsyms"]?.stringValue()?.split(",")
-        var exchange = params["e"]?.stringValue()
-        var tryConversion = params["tryConversion"]?.booleanValue()
+        val exchange = params["e"]?.stringValue() ?: "ALL"
+        val tryConversion = params["tryConversion"]?.booleanValue() ?: true
 
         if (bases == null || quotes == null) {
             handleBadRequest("Bad parameters", httpExchange)
-        }
-        if (exchange == null) {
-            exchange = "ALL"
-        }
-        if (tryConversion == null) {
-            tryConversion = true
+            return
         }
 
-        val timestamp = System.currentTimeMillis() / 60 / 1000 * 60 * 1000
+        val windowDuration = Durations.MINUTE
+        val timestamp = System.currentTimeMillis() / windowDuration * windowDuration
         val result = mutableMapOf<String, MutableMap<String, BigDecimal>>()
 
-        for (base in bases!!) {
+        for (base in bases) {
             val quoteMap = mutableMapOf<String, BigDecimal>()
-            for (quote in quotes!!) {
-                val ticker = tickerDaoService.getMinuteTicker(base, quote, exchange, timestamp)
+            for (quote in quotes) {
+                val ticker = tickerRepository.getMinuteTicker(TokensPair(base, quote), exchange, timestamp)
                 if (ticker != null) {
                     quoteMap.put(quote, ticker.price)
                 } else if (tryConversion) {
-                    val conversion = CrossConversion(tickerDaoService, base, quote, exchange, 60*1000, timestamp).calculate()
+                    val conversion = CrossConversion(tickerRepository, base, quote, exchange, windowDuration, timestamp).calculate()
                     if (conversion.success) {
                         quoteMap.put(quote, conversion.value!!)
                     }

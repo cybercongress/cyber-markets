@@ -1,12 +1,13 @@
 package fund.cyber.markets.rest.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.ErrorMessage
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.Headers
 
 open class AbstractHandler(
-        val jsonSerializer: ObjectMapper = ObjectMapper()
+        private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 ) {
 
     fun handleBadRequest(errorMessage: String, httpExchange: HttpServerExchange) {
@@ -24,6 +25,7 @@ open class AbstractHandler(
                 "Error",
                 "Sorry no data available"
         )
+        httpExchange.statusCode = 404
         httpExchange.responseHeaders.put(Headers.CONTENT_TYPE, "application/json")
         httpExchange.responseSender.send(jsonSerializer.writeValueAsString(response))
     }
