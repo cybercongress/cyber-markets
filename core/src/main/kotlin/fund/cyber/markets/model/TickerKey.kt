@@ -4,7 +4,7 @@ import fund.cyber.markets.dto.TokensPair
 import java.sql.Timestamp
 
 data class TickerKey(
-        val tokensPair: TokensPair,
+        val pair: TokensPair,
         val windowDuration: Long,
         val timestamp: Timestamp
 )

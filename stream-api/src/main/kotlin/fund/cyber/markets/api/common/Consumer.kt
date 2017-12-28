@@ -6,11 +6,11 @@ import fund.cyber.markets.api.configuration.tickersTopicNamePattern
 import fund.cyber.markets.kafka.JsonDeserializer
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.OrdersBatch
+import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TickerKey
 import fund.cyber.markets.model.TokensPairInitializer
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.ordersSingleThreadContext
-import fund.cyber.markets.model.Ticker
-import fund.cyber.markets.model.TickerKey
 import fund.cyber.markets.tickersSingleThreadContext
 import fund.cyber.markets.tradesSingleThreadContext
 import kotlinx.coroutines.experimental.launch
@@ -97,7 +97,7 @@ class TickersConsumer(
         launch(tickersSingleThreadContext) {
             records.map { record -> record.value() }
                     .forEach { ticker ->
-                        val pair = TokensPairInitializer(ticker.tokensPair!!.base, ticker.tokensPair!!.quote)
+                        val pair = TokensPairInitializer(ticker.pair!!.base, ticker.pair!!.quote)
                         channelsIndex.channelFor(ticker.exchange!!, pair, ticker.windowDuration).send(ticker)
                     }
         }
