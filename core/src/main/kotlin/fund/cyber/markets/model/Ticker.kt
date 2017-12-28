@@ -1,6 +1,10 @@
 package fund.cyber.markets.model
 
-import com.datastax.driver.mapping.annotations.*
+import com.datastax.driver.mapping.annotations.ClusteringColumn
+import com.datastax.driver.mapping.annotations.Frozen
+import com.datastax.driver.mapping.annotations.PartitionKey
+import com.datastax.driver.mapping.annotations.Table
+import com.datastax.driver.mapping.annotations.Transient
 import com.fasterxml.jackson.annotation.JsonIgnore
 import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
@@ -32,8 +36,8 @@ data class Ticker(
         var tradeCount: Long
 ) {
 
-    constructor(windowDuration: Long) : this(null, null, null, null, windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
-    constructor() : this(-1L)
+    constructor(windowDuration: Long) : this(null, null, null, null,
+            windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
 
     @Transient
     @JsonIgnore

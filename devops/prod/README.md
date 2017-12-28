@@ -4,7 +4,7 @@ To refresh `cybermarkets.yaml:
 
 To deploy to cluster:
 
-    kubectl create -f cybermarkets.yaml
+    kubectl apply -f cybermarkets.yaml
 
 To clean up resources (all data will be lost):
 

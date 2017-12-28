@@ -1,6 +1,6 @@
 package fund.cyber.markets.tickers
 
-import fund.cyber.markets.dao.service.TickerDaoService
+import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TickerKey
@@ -20,10 +20,46 @@ class TickersProcessor(
         val configuration: TickersConfiguration,
         val consumer: KafkaConsumer<String, Trade>,
         val producer: KafkaProducer<TickerKey, Ticker>,
-        val tickersDaoService: TickerDaoService,
+        val tickersRepository: TickerRepository,
         private val windowHop: Long = configuration.windowHop,
         private val windowDurations: List<Long> = configuration.windowDurations
 ) {
+
+    /**
+     * The method that calculates tickers.
+     *
+     * Calculations are made in several steps:
+     * - aggregation of trades from kafka topics to tickers with window duration equal to length of window hop.
+     *   See {@link #calculateHopTickers(ConsumerRecords<String, Trade>,
+     *                                   MutableMap<TokensPair,
+     *                                   MutableMap<String, Ticker>>,
+     *                                   Long) calculateHopTickers} method.
+     *
+     * - adding tickers to the queues that correspond to the windows with different pairs/exchanges/durations,
+     *   aggregate a hopTickers from queues to final Ticker objects
+     *   See {@link #updateTickers(MutableMap<TokensPair, MutableMap<String, Ticker>>,
+     *                             MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+     *                             MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>,
+     *                             Long) updateTickers} method
+     *
+     * - cleaning the tickers from old hopTickers (hopTickers whose timestamp does not fall into the window)
+     *   See {@link #cleanupTickers(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+     *                              MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>)
+     *   cleanupTickers} method
+     *
+     * - calculation a price for each ticker and calculation a weighted average price for exchange called "ALL"
+     *   See {@link #calculatePrice(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>)
+     *   calculatePrice} method
+     *
+     * - produce updated tickers to kafka topic and save snapshots to db
+     *   See {@link #saveAndProduceToKafka(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+     *                                     String,
+     *                                     Long) saveAndProduceToKafka} method
+     *
+     * - update timestamps of tickers to next window hop time
+     *   See {@link updateTickerTimestamps(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, Long)
+     *   updateTickerTimestamps} method
+     */
 
     fun process() {
         consumer.subscribe(configuration.topicNamePattern)
@@ -188,6 +224,8 @@ class TickersProcessor(
     }
 
     private fun saveAndProduceToKafka(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, topicName: String, currentMillisHop: Long) {
+        val tickerSnapshots = mutableListOf<Ticker>()
+
         producer.beginTransaction()
         try {
             tickers.forEach { tokensPair, exchangeMap ->
@@ -195,7 +233,9 @@ class TickersProcessor(
                     windowDurMap.forEach { windowDuration, ticker ->
                         if (ticker.timestampTo!!.time <= currentMillisHop) {
                             producer.send(produceRecord(ticker, topicName))
-                            saveSnapshot(ticker, windowDuration)
+                            if (isSnapshot(ticker, windowDuration)) {
+                                tickerSnapshots.add(ticker)
+                            }
                         }
                     }
                 }
@@ -205,12 +245,12 @@ class TickersProcessor(
             Runtime.getRuntime().exit(-1)
         }
         producer.commitTransaction()
+
+        tickersRepository.saveAll(tickerSnapshots)
     }
 
-    private fun saveSnapshot(ticker: Ticker, windowDuration: Long) {
-        if (ticker.timestampTo!!.time % windowDuration == 0L) {
-            tickersDaoService.insert(ticker)
-        }
+    private fun isSnapshot(ticker: Ticker, windowDuration: Long): Boolean {
+        return ticker.timestampTo!!.time % windowDuration == 0L
     }
 
     private fun produceRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
