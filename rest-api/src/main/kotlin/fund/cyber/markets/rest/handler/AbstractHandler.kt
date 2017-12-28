@@ -1,13 +1,12 @@
 package fund.cyber.markets.rest.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.ErrorMessage
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.Headers
 
-open class AbstractHandler(
-        private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
+abstract class AbstractHandler(
+        private val jsonSerializer: ObjectMapper = ObjectMapper()
 ) {
 
     fun handleBadRequest(errorMessage: String, httpExchange: HttpServerExchange) {
