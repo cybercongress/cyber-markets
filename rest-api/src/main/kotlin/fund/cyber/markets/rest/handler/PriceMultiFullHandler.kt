@@ -57,6 +57,8 @@ class PriceMultiFullHandler(
                 }
                 raw.put(base, quoteFullData)
             }
+        } else {
+            // TODO: implement cross conversion for historical data
         }
 
         if (raw.isEmpty()) {
