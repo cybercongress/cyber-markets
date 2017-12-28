@@ -15,7 +15,14 @@ class CrossConversion(
         val windowDuration: Long,
         val timestamp: Long
 ) {
-
+    /**
+     * If the crypto currency does not trade directly from base to quote symbol BTC will be used for conversion
+     * There is 4 methods of converting
+     * - inverting (eg USD-BTC = 1/BTC-USD)
+     * - multiplying through BTC (eg REP-USD = REP-BTC * BTC-USD)
+     * - dividing through BTC (eg REP-XMR = REP-BTC/XMR-BTC)
+     * - invert dividing through BTC if BTC trades in both pairs (eg USD-EUR = BTC-USD/BTC-EUR)
+     */
     fun calculate(): ConversionResult {
         val invert = tryInvert()
         if (invert.success) {
