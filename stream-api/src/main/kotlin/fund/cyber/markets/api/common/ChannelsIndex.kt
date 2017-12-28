@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 
 
 interface ChannelsIndexUpdateListener<T> {
-    fun newChannel(exchange: String, tokensPair: TokensPair, windowDuration: Long, channel: Channel<T>)
+    fun newChannel(exchange: String, pair: TokensPair, windowDuration: Long, channel: Channel<T>)
 }
 
 
@@ -14,7 +14,7 @@ class ChannelsIndex<T> {
 
     data class ChannelDefinition(
             val exchange: String,
-            val tokensPair: TokensPair,
+            val pair: TokensPair,
             val windowDuration: Long,
             val channel: Channel<*>
     )
@@ -24,7 +24,7 @@ class ChannelsIndex<T> {
 
 
     /**
-     * Returns a channel for given <exchange, tokensPair, windowDuration>
+     * Returns a channel for given <exchange, pair, windowDuration>
      * If channel doesn't exists, create new one and notify listeners
      */
     fun channelFor(exchange: String, pairInitializer: TokensPairInitializer, windowDuration: Long = -1L): Channel<T> {
@@ -33,7 +33,7 @@ class ChannelsIndex<T> {
 
         val channelDef = index.find {
             definition -> definition.exchange == exchange
-            && definition.tokensPair == pair
+            && definition.pair == pair
             && (windowDuration < 0 || definition.windowDuration == windowDuration)
         }
 

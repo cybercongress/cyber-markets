@@ -1,6 +1,6 @@
 CREATE TABLE markets.ticker (
 
-  tokensPair frozen<tokenpair>,
+  pair frozen<tokenpair>,
   exchange text,
   timestampFrom timestamp,
   timestampTo timestamp,
@@ -12,7 +12,7 @@ CREATE TABLE markets.ticker (
   maxPrice decimal,
   tradeCount bigint,
 
-  PRIMARY KEY ((tokensPair, windowDuration), exchange, timestampTo)
+  PRIMARY KEY ((pair, windowDuration), exchange, timestampTo)
 )
 WITH CLUSTERING ORDER BY (
   exchange ASC,

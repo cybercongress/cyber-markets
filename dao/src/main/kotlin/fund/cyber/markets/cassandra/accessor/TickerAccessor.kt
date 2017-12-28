@@ -11,7 +11,7 @@ import fund.cyber.markets.model.Ticker
 @Accessor
 interface TickerAccessor {
     @Query("SELECT * FROM ticker WHERE " +
-            "tokensPair=:pair " +
+            "pair=:pair " +
             "AND windowDuration=:windowDuration " +
             "AND exchange=:exchange " +
             "AND timestampTo>=:timestamp " +

@@ -133,12 +133,12 @@ class TickersProcessor(
                               windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>,
                               currentMillis: Long) {
 
-        hopTickers.forEach { tokensPair, exchangeMap ->
+        hopTickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, hopTicker ->
 
                 for (windowDuration in windowDurations) {
                     val ticker = tickers
-                            .getOrPut(tokensPair, { mutableMapOf() })
+                            .getOrPut(pair, { mutableMapOf() })
                             .getOrPut(exchange, { mutableMapOf() })
                             .getOrPut(windowDuration, {
                                 Ticker(windowDuration).setTimestamps(
@@ -146,7 +146,7 @@ class TickersProcessor(
                                         currentMillis / windowDuration * windowDuration + windowDuration)
                             })
                     val window = windows
-                            .getOrPut(tokensPair, { mutableMapOf() })
+                            .getOrPut(pair, { mutableMapOf() })
                             .getOrPut(exchange, { mutableMapOf() })
                             .getOrPut(windowDuration, { LinkedList() })
 
@@ -160,7 +160,7 @@ class TickersProcessor(
     private fun cleanupTickers(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
                                 windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>) {
 
-        tickers.forEach { tokensPair, exchangeMap ->
+        tickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, windowDurMap ->
 
                 val iterator = windowDurMap.iterator()
@@ -169,7 +169,7 @@ class TickersProcessor(
 
                     val windowDuration = mapEntry.key
                     val ticker = mapEntry.value
-                    val window = windows[tokensPair]!![exchange]!![windowDuration]
+                    val window = windows[pair]!![exchange]!![windowDuration]
 
                     cleanUpTicker(window!!, ticker)
 
@@ -184,7 +184,7 @@ class TickersProcessor(
     private fun calculatePrice(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>) {
 
         windowDurations.forEach { windowDuration ->
-            tickers.forEach { tokensPair, exchangeMap ->
+            tickers.forEach { pair, exchangeMap ->
 
                 var sumPrice = BigDecimal(0)
                 exchangeMap.forEach { exchange, windowDurMap ->
@@ -228,7 +228,7 @@ class TickersProcessor(
 
         producer.beginTransaction()
         try {
-            tickers.forEach { tokensPair, exchangeMap ->
+            tickers.forEach { pair, exchangeMap ->
                 exchangeMap.forEach { exchange, windowDurMap ->
                     windowDurMap.forEach { windowDuration, ticker ->
                         if (ticker.timestampTo!!.time <= currentMillisHop) {
@@ -256,12 +256,12 @@ class TickersProcessor(
     private fun produceRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
         return ProducerRecord(
                 topicName,
-                TickerKey(ticker.tokensPair!!, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
+                TickerKey(ticker.pair!!, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
                 ticker)
     }
 
     private fun updateTickerTimestamps(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
-        tickers.forEach { tokensPair, exchangeMap ->
+        tickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, windowDurMap ->
                 windowDurMap.forEach { windowDuration, ticker ->
                     if (ticker.timestampTo!!.time <= currentMillisHop) {
@@ -289,7 +289,7 @@ class TickersProcessor(
 
     private fun log(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
         println("Window timestamp: " + Timestamp(currentMillisHop))
-        tickers.forEach { tokensPair, exchangeMap ->
+        tickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, windowDurMap ->
                 windowDurMap.forEach { windowDuration, ticker ->
                     if (ticker.timestampTo!!.time <= currentMillisHop) {
