@@ -5,7 +5,7 @@ import fund.cyber.markets.rest.model.ErrorMessage
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.Headers
 
-open class AbstractHandler(
+abstract class AbstractHandler(
         private val jsonSerializer: ObjectMapper = ObjectMapper()
 ) {
 
