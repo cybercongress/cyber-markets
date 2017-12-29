@@ -13,6 +13,8 @@ data class HistoEntity(
 data class TickerData(
         val time: Long,
         val price: BigDecimal,
+        val open: BigDecimal,
+        val close: BigDecimal,
         val high: BigDecimal,
         val low: BigDecimal,
         val volumeFrom: BigDecimal,

@@ -48,6 +48,7 @@ class PriceMultiFullHandler(
                                     ticker.timestampTo!!.time,
                                     ticker24h.baseAmount,
                                     ticker24h.quoteAmount,
+                                    ticker24h.open,
                                     ticker24h.maxPrice!!,
                                     ticker24h.minPrice!!
                             )
