@@ -15,63 +15,55 @@ import java.util.*
         caseSensitiveKeyspace = false, caseSensitiveTable = false)
 data class Ticker(
 
-        @ClusteringColumn(0)
-        var exchange: String?,
-
-        @Frozen
-        @PartitionKey(0)
-        var pair: TokensPair?,
+        @PartitionKey(0) @Frozen var pair: TokensPair?,
+        @PartitionKey(1) var windowDuration: Long,
+        @ClusteringColumn(0) var exchange: String?,
+        @ClusteringColumn(1) var timestampTo: Date?,
         var timestampFrom: Date?,
 
-        @ClusteringColumn(1)
-        var timestampTo: Date?,
-
-        @PartitionKey(1)
-        var windowDuration: Long,
-        var baseAmount: BigDecimal,
-        var quoteAmount: BigDecimal,
         var price: BigDecimal,
+        var open: BigDecimal,
+        var close: BigDecimal,
+
         var minPrice: BigDecimal?,
         var maxPrice: BigDecimal?,
+
+        var baseAmount: BigDecimal,
+        var quoteAmount: BigDecimal,
+
         var tradeCount: Long
 ) {
 
-    constructor(windowDuration: Long) : this(null, null, null, null,
-            windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
+    constructor(windowDuration: Long) :
+            this(null, windowDuration, null, null, null, BigDecimal.ZERO, BigDecimal.ZERO,
+                    BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0)
 
-    @Transient
-    @JsonIgnore
-    private val priceMap = mutableMapOf<BigDecimal, Int>()
-    @Transient
-    @JsonIgnore
-    private val priceSet = TreeSet<BigDecimal>()
+    @Transient @JsonIgnore private val priceMap = mutableMapOf<BigDecimal, Int>()
+    @Transient @JsonIgnore private val priceSet = TreeSet<BigDecimal>()
 
     fun add(trade: Trade): Ticker {
 
         if (!validTrade(trade)) {
             return this
         }
-        if (exchange == null) {
-            exchange = trade.exchange
-        }
-        if (pair == null) {
+
+        if (isNewTicker()) {
             pair = trade.pair
+            exchange = trade.exchange
+            open = trade.quoteAmount.div(trade.baseAmount)
+            minPrice = open
+            maxPrice = open
         }
+
+        val tradePrice = trade.quoteAmount.div(trade.baseAmount)
 
         quoteAmount = quoteAmount.plus(trade.quoteAmount)
         baseAmount = baseAmount.plus(trade.baseAmount)
 
-        minPrice =
-                if (minPrice == null)
-                    trade.quoteAmount.div(trade.baseAmount)
-                else
-                    minPrice?.min(trade.quoteAmount.div(trade.baseAmount))
+        minPrice = minPrice?.min(tradePrice)
+        maxPrice = maxPrice?.max(tradePrice)
 
-        maxPrice =
-                if (maxPrice == null)
-                    trade.quoteAmount.div(trade.baseAmount)
-                else
-                    maxPrice?.max(trade.quoteAmount.div(trade.baseAmount))
+        close = tradePrice
 
         tradeCount++
 
@@ -80,31 +72,24 @@ data class Ticker(
 
     fun add(ticker: Ticker): Ticker {
 
+        if (isNewTicker()) {
+            pair = ticker.pair
+            exchange = ticker.exchange
+            open = ticker.open
+            minPrice = open
+            maxPrice = open
+        }
+
         quoteAmount = quoteAmount.plus(ticker.quoteAmount)
         baseAmount = baseAmount.plus(ticker.baseAmount)
 
-        if (pair == null) {
-            pair = ticker.pair
-        }
-        if (exchange == null) {
-            exchange = ticker.exchange
-        }
+        minPrice = minPrice?.min(ticker.minPrice)
+        maxPrice = maxPrice?.max(ticker.maxPrice)
 
-        minPrice =
-                if (minPrice == null)
-                    ticker.minPrice
-                else
-                    this.minPrice?.min(ticker.minPrice)
-
-        maxPrice =
-                if (maxPrice == null)
-                    ticker.maxPrice
-                else
-                    this.maxPrice?.max(ticker.maxPrice)
+        close = ticker.close
+        tradeCount += ticker.tradeCount
 
         saveMinMaxPrices(minPrice!!, maxPrice!!)
-
-        tradeCount += ticker.tradeCount
 
         return this
     }
@@ -113,9 +98,9 @@ data class Ticker(
         quoteAmount = quoteAmount.minus(ticker.quoteAmount)
         baseAmount = baseAmount.minus(ticker.baseAmount)
 
-        restoreMinMaxPrices(ticker)
-
         tradeCount -= ticker.tradeCount
+
+        restoreMinMaxPrices(ticker)
 
         return this
     }
@@ -156,10 +141,10 @@ data class Ticker(
         restorePrice(ticker.minPrice!!)
         restorePrice(ticker.maxPrice!!)
 
-        try {
+        if (!priceSet.isEmpty()) {
             this.minPrice = priceSet.first()
             this.maxPrice = priceSet.last()
-        } catch (e: Exception) {
+        } else {
             this.minPrice = BigDecimal(0)
             this.maxPrice = BigDecimal(0)
         }
@@ -170,12 +155,17 @@ data class Ticker(
         if (priceCount != null && priceCount > 1) {
             priceMap.put(price, priceCount - 1)
         } else {
+            priceMap.remove(price)
             priceSet.remove(price)
         }
     }
 
     private fun validTrade(trade: Trade): Boolean {
         return !(trade.quoteAmount.compareTo(BigDecimal.ZERO) == 0 || trade.baseAmount.compareTo(BigDecimal.ZERO) == 0)
+    }
+
+    private fun isNewTicker(): Boolean {
+        return exchange == null || pair == null
     }
 
 }

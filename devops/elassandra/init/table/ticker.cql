@@ -1,15 +1,17 @@
 CREATE TABLE markets.ticker (
 
   pair frozen<tokenpair>,
-  exchange text,
-  timestampFrom timestamp,
-  timestampTo timestamp,
   windowDuration bigint,
-  baseAmount decimal,
-  quoteAmount decimal,
+  exchange text,
+  timestampTo timestamp,
+  timestampFrom timestamp,
   price decimal,
+  open decimal,
+  close decimal,
   minPrice decimal,
   maxPrice decimal,
+  baseAmount decimal,
+  quoteAmount decimal,
   tradeCount bigint,
 
   PRIMARY KEY ((pair, windowDuration), exchange, timestampTo)

@@ -117,14 +117,13 @@ class TickersProcessor(
                     .getOrPut(trade.pair, { mutableMapOf() })
                     .getOrPut("ALL", {
                         Ticker(windowHop)
-                                .setExchangeString("ALL")
                                 .setTimestamps(
                                         currentMillisHop,
                                         currentMillisHop + windowHop
                                 )
                     })
             ticker.add(trade)
-            tickerAllExchange.add(trade)
+            tickerAllExchange.add(trade).setExchangeString("ALL")
         }
     }
 
@@ -278,6 +277,10 @@ class TickersProcessor(
     private fun cleanUpTicker(window: Queue<Ticker>, ticker: Ticker) {
         while (window.peek() != null && window.peek().timestampTo!!.time <= ticker.timestampFrom!!.time) {
             ticker.minus(window.poll())
+        }
+
+        if (!window.isEmpty()) {
+            ticker.open = window.peek().open
         }
     }
 
