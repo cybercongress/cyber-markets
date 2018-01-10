@@ -71,9 +71,9 @@ class TickersProcessor(
         sleep(windowHop)
         while (true) {
 
-            val records = consumer.poll(windowHop / 2)
             val currentMillis = System.currentTimeMillis()
             val currentMillisHop = currentMillis / windowHop * windowHop
+            val records = consumer.poll(windowHop / 2)
 
             calculateHopTickers(records, hopTickers, currentMillisHop)
 
@@ -109,8 +109,8 @@ class TickersProcessor(
                     .getOrPut(trade.exchange, {
                         Ticker(windowHop)
                                 .setTimestamps(
-                                        currentMillisHop,
-                                        currentMillisHop + windowHop
+                                        currentMillisHop - windowHop,
+                                        currentMillisHop
                                 )
                     })
             val tickerAllExchange = hopTickers
@@ -118,8 +118,8 @@ class TickersProcessor(
                     .getOrPut("ALL", {
                         Ticker(windowHop)
                                 .setTimestamps(
-                                        currentMillisHop,
-                                        currentMillisHop + windowHop
+                                        currentMillisHop - windowHop,
+                                        currentMillisHop
                                 )
                     })
             ticker.add(trade)
@@ -281,7 +281,21 @@ class TickersProcessor(
 
         if (!window.isEmpty()) {
             ticker.open = window.peek().open
+            findMinMaxPrice(window, ticker)
         }
+    }
+
+    private fun findMinMaxPrice(window: Queue<Ticker>, ticker: Ticker) {
+        var min = window.peek().minPrice
+        var max = window.peek().maxPrice
+
+        for (hopTicker in window) {
+            min = min?.min(hopTicker.minPrice)
+            max = max?.max(hopTicker.maxPrice)
+        }
+
+        ticker.minPrice = min
+        ticker.maxPrice = max
     }
 
     private fun sleep(windowHop: Long) {

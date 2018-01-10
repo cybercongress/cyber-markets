@@ -4,8 +4,6 @@ import com.datastax.driver.mapping.annotations.ClusteringColumn
 import com.datastax.driver.mapping.annotations.Frozen
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
-import com.datastax.driver.mapping.annotations.Transient
-import com.fasterxml.jackson.annotation.JsonIgnore
 import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
 import java.util.*
@@ -37,9 +35,6 @@ data class Ticker(
     constructor(windowDuration: Long) :
             this(null, windowDuration, null, null, null, BigDecimal.ZERO, BigDecimal.ZERO,
                     BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0)
-
-    @Transient @JsonIgnore private val priceMap = mutableMapOf<BigDecimal, Int>()
-    @Transient @JsonIgnore private val priceSet = TreeSet<BigDecimal>()
 
     fun add(trade: Trade): Ticker {
 
@@ -89,8 +84,6 @@ data class Ticker(
         close = ticker.close
         tradeCount += ticker.tradeCount
 
-        saveMinMaxPrices(minPrice!!, maxPrice!!)
-
         return this
     }
 
@@ -99,8 +92,6 @@ data class Ticker(
         baseAmount = baseAmount.minus(ticker.baseAmount)
 
         tradeCount -= ticker.tradeCount
-
-        restoreMinMaxPrices(ticker)
 
         return this
     }
@@ -124,40 +115,6 @@ data class Ticker(
         timestampTo = Date(millisTo)
 
         return this
-    }
-
-    private fun saveMinMaxPrices(minPrice: BigDecimal, maxPrice: BigDecimal) {
-        priceMap.getOrPut(minPrice, { 0 } )
-        priceMap.getOrPut(maxPrice, { 0 } )
-
-        priceMap.put(minPrice, priceMap[minPrice]!! + 1 )
-        priceMap.put(maxPrice, priceMap[maxPrice]!! + 1 )
-
-        priceSet.add(minPrice)
-        priceSet.add(maxPrice)
-    }
-
-    private fun restoreMinMaxPrices(ticker: Ticker) {
-        restorePrice(ticker.minPrice!!)
-        restorePrice(ticker.maxPrice!!)
-
-        if (!priceSet.isEmpty()) {
-            this.minPrice = priceSet.first()
-            this.maxPrice = priceSet.last()
-        } else {
-            this.minPrice = BigDecimal(0)
-            this.maxPrice = BigDecimal(0)
-        }
-    }
-
-    private fun restorePrice(price: BigDecimal) {
-        val priceCount = priceMap[price]
-        if (priceCount != null && priceCount > 1) {
-            priceMap.put(price, priceCount - 1)
-        } else {
-            priceMap.remove(price)
-            priceSet.remove(price)
-        }
     }
 
     private fun validTrade(trade: Trade): Boolean {
