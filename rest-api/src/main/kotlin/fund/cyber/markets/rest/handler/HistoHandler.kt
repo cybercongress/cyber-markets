@@ -44,7 +44,6 @@ class HistoHandler(
         tickers.forEach { ticker ->
             val tickerData = TickerData(
                     ticker.timestampTo?.time!!,
-                    ticker.price,
                     ticker.open,
                     ticker.close,
                     ticker.maxPrice!!,

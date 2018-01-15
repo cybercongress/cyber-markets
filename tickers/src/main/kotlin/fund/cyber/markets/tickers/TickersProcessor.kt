@@ -1,6 +1,7 @@
 package fund.cyber.markets.tickers
 
 import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.common.Durations
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TickerKey
@@ -185,12 +186,12 @@ class TickersProcessor(
         windowDurations.forEach { windowDuration ->
             tickers.forEach { pair, exchangeMap ->
 
-                var sumPrice = BigDecimal(0)
+                var totalQuoteAmount = BigDecimal(0)
                 exchangeMap.forEach { exchange, windowDurMap ->
                     if (exchange != "ALL") {
-                        val ticker = windowDurMap[windowDuration]
+                        val ticker = windowDurMap[Durations.DAY]
                         if (ticker != null) {
-                            sumPrice = sumPrice.add(ticker.calcPrice().price)
+                            totalQuoteAmount = totalQuoteAmount.add(ticker.quoteAmount)
                         }
                     }
                 }
@@ -198,9 +199,9 @@ class TickersProcessor(
                 val weightMap = mutableMapOf<String, BigDecimal>()
                 exchangeMap.forEach { exchange, windowDurMap ->
                     if (exchange != "ALL") {
-                        val ticker = windowDurMap[windowDuration]
+                        val ticker = windowDurMap[Durations.DAY]
                         if (ticker != null) {
-                            weightMap.put(exchange, ticker.calcPrice().price.divide(sumPrice, RoundingMode.HALF_UP))
+                            weightMap.put(exchange, ticker.quoteAmount.divide(totalQuoteAmount, RoundingMode.HALF_UP))
                         }
                     }
                 }
@@ -209,14 +210,14 @@ class TickersProcessor(
                 weightMap.forEach { exchange, weight ->
                     val ticker = exchangeMap[exchange]?.get(windowDuration)
                     if (ticker != null) {
-                        val weightedPrice = ticker.price.multiply(weight)
+                        val weightedPrice = ticker.close.multiply(weight)
                         avgPrice = avgPrice.plus(weightedPrice)
                     }
                 }
 
                 val tickerAllExchange = exchangeMap["ALL"]?.get(windowDuration)
                 if (tickerAllExchange != null) {
-                    tickerAllExchange.price = avgPrice
+                    tickerAllExchange.avgPrice = avgPrice
                 }
             }
         }

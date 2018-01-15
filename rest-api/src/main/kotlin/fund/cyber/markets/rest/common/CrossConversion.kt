@@ -88,15 +88,15 @@ class CrossConversion(
     }
 
     private fun calcInvert(ticker: Ticker): BigDecimal {
-        return BigDecimal(1).divide(ticker.price, 20, RoundingMode.HALF_EVEN)
+        return BigDecimal(1).divide(ticker.close, 20, RoundingMode.HALF_EVEN)
     }
 
     private fun calcMultiply(ticker1: Ticker, ticker2: Ticker): BigDecimal {
-        return ticker1.price.multiply(ticker2.price)
+        return ticker1.close.multiply(ticker2.close)
     }
 
     private fun calcDivide(ticker1: Ticker, ticker2: Ticker): BigDecimal {
-        return ticker1.price.div(ticker2.price)
+        return ticker1.close.div(ticker2.close)
     }
 
 }

@@ -5,7 +5,7 @@ CREATE TABLE markets.ticker (
   exchange text,
   timestampTo timestamp,
   timestampFrom timestamp,
-  price decimal,
+  avgPrice decimal,
   open decimal,
   close decimal,
   minPrice decimal,

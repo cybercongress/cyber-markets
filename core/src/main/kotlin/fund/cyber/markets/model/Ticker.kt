@@ -19,7 +19,7 @@ data class Ticker(
         @ClusteringColumn(1) var timestampTo: Date?,
         var timestampFrom: Date?,
 
-        var price: BigDecimal,
+        var avgPrice: BigDecimal,
         var open: BigDecimal,
         var close: BigDecimal,
 
@@ -33,7 +33,7 @@ data class Ticker(
 ) {
 
     constructor(windowDuration: Long) :
-            this(null, windowDuration, null, null, null, BigDecimal.ZERO, BigDecimal.ZERO,
+            this(null, windowDuration, null, null, null, BigDecimal(-1L), BigDecimal.ZERO,
                     BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0)
 
     fun add(trade: Trade): Ticker {
@@ -92,14 +92,6 @@ data class Ticker(
         baseAmount = baseAmount.minus(ticker.baseAmount)
 
         tradeCount -= ticker.tradeCount
-
-        return this
-    }
-
-    fun calcPrice(): Ticker {
-        if (!(quoteAmount.compareTo(BigDecimal.ZERO) == 0 || baseAmount.compareTo(BigDecimal.ZERO) == 0)) {
-            price = quoteAmount.div(baseAmount)
-        }
 
         return this
     }
