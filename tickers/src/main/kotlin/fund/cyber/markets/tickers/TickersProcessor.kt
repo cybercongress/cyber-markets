@@ -230,11 +230,13 @@ class TickersProcessor(
             tickers.forEach { pair, exchangeMap ->
                 exchangeMap.forEach { exchange, windowDurMap ->
                     windowDurMap.forEach { windowDuration, ticker ->
-                        if (ticker.timestampTo!!.time <= currentMillisHop) {
+                        if (configuration.allowNotClosedWindows) {
                             producer.send(produceRecord(ticker, topicName))
-                            if (isSnapshot(ticker, windowDuration)) {
-                                tickerSnapshots.add(ticker)
-                            }
+                        } else if (ticker.timestampTo!!.time <= currentMillisHop) {
+                            producer.send(produceRecord(ticker, topicName))
+                        }
+                        if (isSnapshot(ticker, windowDuration)) {
+                            tickerSnapshots.add(ticker)
                         }
                     }
                 }
@@ -245,7 +247,11 @@ class TickersProcessor(
         }
         producer.commitTransaction()
 
-        tickersRepository.saveAll(tickerSnapshots)
+        try {
+            tickersRepository.saveAll(tickerSnapshots)
+        } catch (e: Exception) {
+            //todo: save to kafka
+        }
     }
 
     private fun isSnapshot(ticker: Ticker, windowDuration: Long): Boolean {

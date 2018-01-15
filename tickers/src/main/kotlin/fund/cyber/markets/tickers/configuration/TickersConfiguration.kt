@@ -20,6 +20,7 @@ class TickersConfiguration(
         val windowDurationsString: String = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440"),
         val windowHop: Long = TimeUnit.SECONDS.toMillis(env(Constants.WINDOW_HOP_SEC, 3)),
         val tickersTopicName: String = "TICKERS",
+        val allowNotClosedWindows: Boolean = env("ALLOW_NOT_CLOSED_WINDOWS", "true").toBoolean(),
         val debug: Boolean = env("DEBUG", "false").toBoolean()
 ) {
 
