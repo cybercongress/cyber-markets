@@ -7,10 +7,12 @@ import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TickerKey
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
+import io.reactivex.schedulers.Schedulers
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.sql.Timestamp
@@ -20,11 +22,15 @@ import java.util.concurrent.TimeUnit
 class TickersProcessor(
         val configuration: TickersConfiguration,
         val consumer: KafkaConsumer<String, Trade>,
+        val consumerBackup: KafkaConsumer<TickerKey, Ticker>,
         val producer: KafkaProducer<TickerKey, Ticker>,
         val tickersRepository: TickerRepository,
         private val windowHop: Long = configuration.windowHop,
         private val windowDurations: List<Long> = configuration.windowDurations
 ) {
+
+    private val log = LoggerFactory.getLogger(TickersProcessor::class.java)!!
+    private val thread = Schedulers.io()
 
     /**
      * The method that calculates tickers.
@@ -64,6 +70,7 @@ class TickersProcessor(
 
     fun process() {
         consumer.subscribe(configuration.topicNamePattern)
+        consumerBackup.subscribe(listOf(configuration.tickersBackupTopicName))
 
         val hopTickers = mutableMapOf<TokensPair, MutableMap<String, Ticker>>()
         val tickers = mutableMapOf<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>()
@@ -74,7 +81,8 @@ class TickersProcessor(
 
             val currentMillis = System.currentTimeMillis()
             val currentMillisHop = currentMillis / windowHop * windowHop
-            val records = consumer.poll(windowHop / 2)
+            val records = consumer.poll(Long.MAX_VALUE)
+            log.debug("Trades count: {}", records.count())
 
             calculateHopTickers(records, hopTickers, currentMillisHop)
 
@@ -84,7 +92,7 @@ class TickersProcessor(
 
             calculatePrice(tickers)
 
-            if (configuration.debug) {
+            if (log.isTraceEnabled) {
                 log(tickers, currentMillisHop)
             }
 
@@ -103,14 +111,21 @@ class TickersProcessor(
                                     hopTickers: MutableMap<TokensPair, MutableMap<String, Ticker>>,
                                     currentMillisHop: Long) {
 
-        records.forEach { record ->
+        var droppedCount = 0
+        for (record in records) {
+            val currentMillisHopFrom = currentMillisHop - windowHop * 2
+            if (record.timestamp() < currentMillisHopFrom) {
+                droppedCount++
+                continue
+            }
+
             val trade = record.value()
             val ticker = hopTickers
                     .getOrPut(trade.pair, { mutableMapOf() })
                     .getOrPut(trade.exchange, {
                         Ticker(windowHop)
                                 .setTimestamps(
-                                        currentMillisHop - windowHop,
+                                        currentMillisHopFrom,
                                         currentMillisHop
                                 )
                     })
@@ -119,13 +134,15 @@ class TickersProcessor(
                     .getOrPut("ALL", {
                         Ticker(windowHop)
                                 .setTimestamps(
-                                        currentMillisHop - windowHop,
+                                        currentMillisHopFrom,
                                         currentMillisHop
                                 )
                     })
             ticker.add(trade)
             tickerAllExchange.add(trade).setExchangeString("ALL")
         }
+
+        log.debug("Dropped trades count: {}", droppedCount)
     }
 
     private fun updateTickers(hopTickers: MutableMap<TokensPair, MutableMap<String, Ticker>>,
@@ -236,8 +253,10 @@ class TickersProcessor(
                         } else if (ticker.timestampTo!!.time <= currentMillisHop) {
                             producer.send(produceRecord(ticker, topicName))
                         }
-                        if (isSnapshot(ticker, windowDuration)) {
-                            tickerSnapshots.add(ticker)
+                        if (ticker.timestampTo!!.time <= currentMillisHop) {
+                            if (isSnapshot(ticker, windowDuration)) {
+                                tickerSnapshots.add(ticker)
+                            }
                         }
                     }
                 }
@@ -248,10 +267,59 @@ class TickersProcessor(
         }
         producer.commitTransaction()
 
+        if (tickerSnapshots.isNotEmpty()) {
+            saveSnapshots(tickerSnapshots)
+        }
+    }
+
+    private fun saveSnapshots(tickerSnapshots: MutableList<Ticker>) {
+        log.debug("Save snapshots")
+
+        val snapshots = mutableListOf<Ticker>()
+        tickerSnapshots.forEach {
+            snapshots.add(it.copy())
+        }
+
+        thread.scheduleDirect {
+            snapshots.forEach { ticker ->
+                try {
+                    tickersRepository.save(ticker)
+                } catch (e: Exception) {
+                    backupTickerToKafka(ticker)
+                }
+            }
+        }
+
+        restoreTickersFromKafka()
+    }
+
+    private fun backupTickerToKafka(ticker: Ticker) {
+        log.debug("Backuping ticker to kafka: {}", ticker)
+
+        producer.beginTransaction()
         try {
-            tickersRepository.saveAll(tickerSnapshots)
+            producer.send(produceRecord(ticker, configuration.tickersBackupTopicName))
         } catch (e: Exception) {
-            //todo: save to kafka
+            producer.abortTransaction()
+            Runtime.getRuntime().exit(-1)
+        }
+        producer.commitTransaction()
+    }
+
+    private fun restoreTickersFromKafka() {
+        log.debug("Restore tickers from kafka")
+
+        Schedulers.single().scheduleDirect {
+            val records: ConsumerRecords<TickerKey, Ticker> = consumerBackup.poll(Long.MAX_VALUE)
+            log.debug("Tickers for restore count: {}", records.count())
+
+            records.forEach { record ->
+                try {
+                    tickersRepository.save(record.value())
+                } catch (e: Exception) {
+                    log.debug("Restore failed: {} ", record.value())
+                }
+            }
         }
     }
 
@@ -308,16 +376,17 @@ class TickersProcessor(
     private fun sleep(windowHop: Long) {
         val currentMillisHop = System.currentTimeMillis() / windowHop * windowHop
         val diff = currentMillisHop + windowHop - System.currentTimeMillis()
+        log.debug("Time for hop calculation: {} ms", windowHop-diff)
         TimeUnit.MILLISECONDS.sleep(diff)
     }
 
     private fun log(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
-        println("Window timestamp: " + Timestamp(currentMillisHop))
+        log.trace("Window timestamp: {}", Timestamp(currentMillisHop))
         tickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, windowDurMap ->
                 windowDurMap.forEach { windowDuration, ticker ->
                     if (ticker.timestampTo!!.time <= currentMillisHop) {
-                        println(ticker)
+                        log.trace(ticker.toString())
                     }
                 }
             }

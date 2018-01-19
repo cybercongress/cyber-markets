@@ -25,6 +25,12 @@ fun main(args: Array<String>) {
             JsonDeserializer(Trade::class.java)
     )
 
+    val consumerBackup = KafkaConsumer<TickerKey, Ticker>(
+            configuration.consumerTickersBackupsProperties,
+            JsonDeserializer(TickerKey::class.java),
+            JsonDeserializer(Ticker::class.java)
+    )
+
     val producer = KafkaProducer<TickerKey, Ticker> (
             configuration.producerProperties,
             JsonSerializer<TickerKey>(),
@@ -40,6 +46,7 @@ fun main(args: Array<String>) {
     TickersProcessor(
             configuration,
             consumer,
+            consumerBackup,
             producer,
             tickerRepository
     ).process()
