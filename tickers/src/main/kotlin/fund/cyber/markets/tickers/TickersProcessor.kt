@@ -12,6 +12,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -71,6 +72,7 @@ class TickersProcessor(
     fun process() {
         consumer.subscribe(configuration.topicNamePattern)
         consumerBackup.subscribe(listOf(configuration.tickersBackupTopicName))
+        seekToEnd()
 
         val hopTickers = mutableMapOf<TokensPair, MutableMap<String, Ticker>>()
         val tickers = mutableMapOf<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>()
@@ -371,6 +373,18 @@ class TickersProcessor(
 
         ticker.minPrice = min
         ticker.maxPrice = max
+    }
+
+    private fun seekToEnd() {
+        consumer.poll(0)
+        val partitions = mutableListOf<TopicPartition>()
+        val tradeTopics = consumer.subscription()
+        tradeTopics.forEach { topic ->
+            consumer.partitionsFor(topic).forEach { partitionInfo ->
+                partitions.add(TopicPartition(partitionInfo.topic(), partitionInfo.partition()))
+            }
+        }
+        consumer.seekToEnd(partitions)
     }
 
     private fun sleep(windowHop: Long) {

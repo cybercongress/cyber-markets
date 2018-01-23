@@ -9,7 +9,9 @@ import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.slf4j.LoggerFactory
 
+private val log = LoggerFactory.getLogger("TickersApplication")!!
 
 fun main(args: Array<String>) {
 
@@ -43,12 +45,17 @@ fun main(args: Array<String>) {
         }
     })
 
-    TickersProcessor(
-            configuration,
-            consumer,
-            consumerBackup,
-            producer,
-            tickerRepository
-    ).process()
-
+    try {
+        TickersProcessor(
+                configuration,
+                consumer,
+                consumerBackup,
+                producer,
+                tickerRepository
+        ).process()
+    } catch (e: Exception) {
+        log.error("An error occurred during execution TickersApplication", e)
+        cassandraService.shutdown()
+        Runtime.getRuntime().exit(-1)
+    }
 }
