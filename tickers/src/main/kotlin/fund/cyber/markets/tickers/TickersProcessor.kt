@@ -3,10 +3,14 @@ package fund.cyber.markets.tickers
 import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.helpers.add
+import fund.cyber.markets.helpers.addHop
+import fund.cyber.markets.helpers.minusHop
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TickerKey
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
+import fund.cyber.markets.util.closestSmallerMultiply
 import io.reactivex.schedulers.Schedulers
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -15,17 +19,16 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
-import java.math.RoundingMode
 import java.sql.Timestamp
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class TickersProcessor(
-        val configuration: TickersConfiguration,
-        val consumer: KafkaConsumer<String, Trade>,
-        val consumerBackup: KafkaConsumer<TickerKey, Ticker>,
-        val producer: KafkaProducer<TickerKey, Ticker>,
-        val tickersRepository: TickerRepository,
+        private val configuration: TickersConfiguration,
+        private val consumer: KafkaConsumer<String, Trade>,
+        private val consumerBackup: KafkaConsumer<TickerKey, Ticker>,
+        private val producer: KafkaProducer<TickerKey, Ticker>,
+        private val tickersRepository: TickerRepository,
         private val windowHop: Long = configuration.windowHop,
         private val windowDurations: List<Long> = configuration.windowDurations
 ) {
@@ -82,8 +85,8 @@ class TickersProcessor(
         while (true) {
 
             val currentMillis = System.currentTimeMillis()
-            val currentMillisHop = currentMillis / windowHop * windowHop
-            val records = consumer.poll(Long.MAX_VALUE)
+            val currentMillisHop = closestSmallerMultiply(currentMillis, windowHop)
+            val records = consumer.poll(windowHop / 2)
             log.debug("Trades count: {}", records.count())
 
             calculateHopTickers(records, hopTickers, currentMillisHop)
@@ -125,23 +128,15 @@ class TickersProcessor(
             val ticker = hopTickers
                     .getOrPut(trade.pair, { mutableMapOf() })
                     .getOrPut(trade.exchange, {
-                        Ticker(windowHop)
-                                .setTimestamps(
-                                        currentMillisHopFrom,
-                                        currentMillisHop
-                                )
+                        Ticker(trade.pair, windowHop, trade.exchange, Date(currentMillisHop), Date(currentMillisHopFrom))
                     })
             val tickerAllExchange = hopTickers
                     .getOrPut(trade.pair, { mutableMapOf() })
                     .getOrPut("ALL", {
-                        Ticker(windowHop)
-                                .setTimestamps(
-                                        currentMillisHopFrom,
-                                        currentMillisHop
-                                )
+                        Ticker(trade.pair, windowHop, "ALL", Date(currentMillisHop), Date(currentMillisHopFrom))
                     })
-            ticker.add(trade)
-            tickerAllExchange.add(trade).setExchangeString("ALL")
+            ticker add trade
+            tickerAllExchange add trade
         }
 
         log.debug("Dropped trades count: {}", droppedCount)
@@ -160,9 +155,10 @@ class TickersProcessor(
                             .getOrPut(pair, { mutableMapOf() })
                             .getOrPut(exchange, { mutableMapOf() })
                             .getOrPut(windowDuration, {
-                                Ticker(windowDuration).setTimestamps(
-                                        currentMillis / windowDuration * windowDuration,
-                                        currentMillis / windowDuration * windowDuration + windowDuration)
+                                Ticker(pair, windowDuration, exchange,
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration)),
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration) + windowDuration)
+                                )
                             })
                     val window = windows
                             .getOrPut(pair, { mutableMapOf() })
@@ -170,7 +166,7 @@ class TickersProcessor(
                             .getOrPut(windowDuration, { LinkedList() })
 
                     window.offer(hopTicker)
-                    ticker.add(hopTicker)
+                    ticker addHop hopTicker
                 }
             }
         }
@@ -203,7 +199,7 @@ class TickersProcessor(
     private fun calculatePrice(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>) {
 
         windowDurations.forEach { windowDuration ->
-            tickers.forEach { pair, exchangeMap ->
+            tickers.forEach { _, exchangeMap ->
 
                 var totalQuoteAmount = BigDecimal(0)
                 exchangeMap.forEach { exchange, windowDurMap ->
@@ -220,7 +216,7 @@ class TickersProcessor(
                     if (exchange != "ALL") {
                         val ticker = windowDurMap[Durations.DAY]
                         if (ticker != null) {
-                            weightMap.put(exchange, ticker.quoteAmount.divide(totalQuoteAmount, RoundingMode.HALF_UP))
+                            weightMap[exchange] = ticker.quoteAmount.div(totalQuoteAmount)
                         }
                     }
                 }
@@ -247,8 +243,8 @@ class TickersProcessor(
 
         producer.beginTransaction()
         try {
-            tickers.forEach { pair, exchangeMap ->
-                exchangeMap.forEach { exchange, windowDurMap ->
+            tickers.forEach { _, exchangeMap ->
+                exchangeMap.forEach { _, windowDurMap ->
                     windowDurMap.forEach { windowDuration, ticker ->
                         if (configuration.allowNotClosedWindows) {
                             producer.send(produceRecord(ticker, topicName))
@@ -332,19 +328,18 @@ class TickersProcessor(
     private fun produceRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
         return ProducerRecord(
                 topicName,
-                TickerKey(ticker.pair!!, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
+                TickerKey(ticker.pair, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
                 ticker)
     }
 
     private fun updateTickerTimestamps(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
-        tickers.forEach { pair, exchangeMap ->
-            exchangeMap.forEach { exchange, windowDurMap ->
-                windowDurMap.forEach { windowDuration, ticker ->
+        tickers.forEach { _, exchangeMap ->
+            exchangeMap.forEach { _, windowDurMap ->
+                windowDurMap.forEach { _, ticker ->
                     if (ticker.timestampTo!!.time <= currentMillisHop) {
                         val diff = currentMillisHop - ticker.timestampTo!!.time + windowHop
-                        ticker.setTimestamps(
-                                ticker.timestampFrom!!.time + diff,
-                                ticker.timestampTo!!.time + diff)
+                        ticker.timestampFrom = Date(ticker.timestampFrom!!.time + diff)
+                        ticker.timestampTo = Date(ticker.timestampTo!!.time + diff)
                     }
                 }
             }
@@ -353,7 +348,7 @@ class TickersProcessor(
 
     private fun cleanUpTicker(window: Queue<Ticker>, ticker: Ticker) {
         while (window.peek() != null && window.peek().timestampTo!!.time <= ticker.timestampFrom!!.time) {
-            ticker.minus(window.poll())
+            ticker minusHop window.poll()
         }
 
         if (!window.isEmpty()) {
@@ -367,8 +362,8 @@ class TickersProcessor(
         var max = window.peek().maxPrice
 
         for (hopTicker in window) {
-            min = min?.min(hopTicker.minPrice)
-            max = max?.max(hopTicker.maxPrice)
+            min = min.min(hopTicker.minPrice)
+            max = max.max(hopTicker.maxPrice)
         }
 
         ticker.minPrice = min
@@ -388,7 +383,7 @@ class TickersProcessor(
     }
 
     private fun sleep(windowHop: Long) {
-        val currentMillisHop = System.currentTimeMillis() / windowHop * windowHop
+        val currentMillisHop = closestSmallerMultiply(System.currentTimeMillis(), windowHop)
         val diff = currentMillisHop + windowHop - System.currentTimeMillis()
         log.debug("Time for hop calculation: {} ms", windowHop-diff)
         TimeUnit.MILLISECONDS.sleep(diff)
@@ -396,9 +391,9 @@ class TickersProcessor(
 
     private fun log(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
         log.trace("Window timestamp: {}", Timestamp(currentMillisHop))
-        tickers.forEach { pair, exchangeMap ->
-            exchangeMap.forEach { exchange, windowDurMap ->
-                windowDurMap.forEach { windowDuration, ticker ->
+        tickers.forEach { _, exchangeMap ->
+            exchangeMap.forEach { _, windowDurMap ->
+                windowDurMap.forEach { _, ticker ->
                     if (ticker.timestampTo!!.time <= currentMillisHop) {
                         log.trace(ticker.toString())
                     }
