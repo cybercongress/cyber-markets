@@ -2,6 +2,7 @@ package fund.cyber.markets.cassandra
 
 import com.datastax.driver.core.Cluster
 import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.cassandra.repository.VolumeRepository
 import java.util.*
 
 const val MAX_CONCURRENT_REQUESTS = 8182
@@ -20,6 +21,7 @@ class CassandraService(properties: Properties) {
             .build().init()!!
 
     val tickerRepository by lazy { TickerRepository(cassandraClient) }
+    val volumeRepository by lazy { VolumeRepository(cassandraClient) }
 
     fun shutdown() {
         cassandraClient.close()

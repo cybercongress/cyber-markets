@@ -1,14 +1,9 @@
 package fund.cyber.markets.tickers
 
 import fund.cyber.markets.cassandra.CassandraService
-import fund.cyber.markets.kafka.JsonDeserializer
-import fund.cyber.markets.kafka.JsonSerializer
-import fund.cyber.markets.model.Ticker
-import fund.cyber.markets.model.TickerKey
-import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.producer.KafkaProducer
+import fund.cyber.markets.tickers.service.TickerService
+import fund.cyber.markets.tickers.service.VolumeService
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("TickersApplication")!!
@@ -16,28 +11,9 @@ private val log = LoggerFactory.getLogger("TickersApplication")!!
 fun main(args: Array<String>) {
 
     val configuration = TickersConfiguration()
-    configuration.createTickerTopic()
-
     val cassandraService = CassandraService(configuration.cassandraProperties)
-    val tickerRepository = cassandraService.tickerRepository
-
-    val consumer = KafkaConsumer<String, Trade>(
-            configuration.consumerProperties,
-            JsonDeserializer(String::class.java),
-            JsonDeserializer(Trade::class.java)
-    )
-
-    val consumerBackup = KafkaConsumer<TickerKey, Ticker>(
-            configuration.consumerTickersBackupsProperties,
-            JsonDeserializer(TickerKey::class.java),
-            JsonDeserializer(Ticker::class.java)
-    )
-
-    val producer = KafkaProducer<TickerKey, Ticker> (
-            configuration.producerProperties,
-            JsonSerializer<TickerKey>(),
-            JsonSerializer<Ticker>()
-    ).apply { initTransactions() }
+    val tickerService = TickerService(configuration, cassandraService)
+    val volumeService = VolumeService(configuration, cassandraService)
 
     Runtime.getRuntime().addShutdownHook(object : Thread() {
         override fun run() {
@@ -48,10 +24,8 @@ fun main(args: Array<String>) {
     try {
         TickersProcessor(
                 configuration,
-                consumer,
-                consumerBackup,
-                producer,
-                tickerRepository
+                tickerService,
+                volumeService
         ).process()
     } catch (e: Exception) {
         log.error("An error occurred during execution TickersApplication", e)

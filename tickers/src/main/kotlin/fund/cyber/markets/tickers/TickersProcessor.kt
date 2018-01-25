@@ -1,22 +1,18 @@
 package fund.cyber.markets.tickers
 
-import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.add
 import fund.cyber.markets.helpers.addHop
 import fund.cyber.markets.helpers.minusHop
 import fund.cyber.markets.model.Ticker
-import fund.cyber.markets.model.TickerKey
+import fund.cyber.markets.model.TokenVolume
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
+import fund.cyber.markets.tickers.service.TickerService
+import fund.cyber.markets.tickers.service.VolumeService
 import fund.cyber.markets.util.closestSmallerMultiply
-import io.reactivex.schedulers.Schedulers
 import org.apache.kafka.clients.consumer.ConsumerRecords
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.sql.Timestamp
@@ -25,16 +21,13 @@ import java.util.concurrent.TimeUnit
 
 class TickersProcessor(
         private val configuration: TickersConfiguration,
-        private val consumer: KafkaConsumer<String, Trade>,
-        private val consumerBackup: KafkaConsumer<TickerKey, Ticker>,
-        private val producer: KafkaProducer<TickerKey, Ticker>,
-        private val tickersRepository: TickerRepository,
+        private val tickerService: TickerService,
+        private val volumeService: VolumeService,
         private val windowHop: Long = configuration.windowHop,
-        private val windowDurations: List<Long> = configuration.windowDurations
+        private val windowDurations: Set<Long> = configuration.windowDurations
 ) {
 
     private val log = LoggerFactory.getLogger(TickersProcessor::class.java)!!
-    private val thread = Schedulers.io()
 
     /**
      * The method that calculates tickers.
@@ -54,9 +47,9 @@ class TickersProcessor(
      *                             Long) updateTickers} method
      *
      * - cleaning the tickers from old hopTickers (hopTickers whose timestamp does not fall into the window)
-     *   See {@link #cleanupTickers(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+     *   See {@link #cleanup(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
      *                              MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>)
-     *   cleanupTickers} method
+     *   cleanup} method
      *
      * - calculation a price for each ticker and calculation a weighted average price for exchange called "ALL"
      *   See {@link #calculatePrice(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>)
@@ -68,32 +61,31 @@ class TickersProcessor(
      *                                     Long) saveAndProduceToKafka} method
      *
      * - update timestamps of tickers to next window hop time
-     *   See {@link updateTickerTimestamps(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, Long)
-     *   updateTickerTimestamps} method
+     *   See {@link updateTimestamps(MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, Long)
+     *   updateTimestamps} method
      */
 
     fun process() {
-        consumer.subscribe(configuration.topicNamePattern)
-        consumerBackup.subscribe(listOf(configuration.tickersBackupTopicName))
-        seekToEnd()
 
         val hopTickers = mutableMapOf<TokensPair, MutableMap<String, Ticker>>()
         val tickers = mutableMapOf<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>()
+        val volumes = mutableMapOf<String, MutableMap<String, MutableMap<Long, TokenVolume>>>()
         val windows = mutableMapOf<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>()
 
         sleep(windowHop)
         while (true) {
 
+            val records = tickerService.poll(windowHop / 2)
             val currentMillis = System.currentTimeMillis()
             val currentMillisHop = closestSmallerMultiply(currentMillis, windowHop)
-            val records = consumer.poll(windowHop / 2)
             log.debug("Trades count: {}", records.count())
 
             calculateHopTickers(records, hopTickers, currentMillisHop)
 
             updateTickers(hopTickers, tickers, windows, currentMillis)
+            updateVolumes(hopTickers, volumes, currentMillis)
 
-            cleanupTickers(tickers, windows)
+            cleanup(tickers, volumes, windows)
 
             calculatePrice(tickers)
 
@@ -101,9 +93,10 @@ class TickersProcessor(
                 log(tickers, currentMillisHop)
             }
 
-            saveAndProduceToKafka(tickers, configuration.tickersTopicName, currentMillisHop)
+            tickerService.saveAndProduceToKafka(tickers, currentMillisHop)
+            volumeService.saveAndProduceToKafka(volumes, currentMillisHop)
 
-            updateTickerTimestamps(tickers, currentMillisHop)
+            updateTimestamps(tickers, volumes, currentMillisHop)
 
             hopTickers.clear()
 
@@ -118,8 +111,8 @@ class TickersProcessor(
 
         var droppedCount = 0
         for (record in records) {
-            val currentMillisHopFrom = currentMillisHop - windowHop * 2
-            if (record.timestamp() < currentMillisHopFrom) {
+            val currentMillisHopFrom = currentMillisHop - windowHop
+            if (record.timestamp() < currentMillisHopFrom - windowHop) {
                 droppedCount++
                 continue
             }
@@ -156,8 +149,8 @@ class TickersProcessor(
                             .getOrPut(exchange, { mutableMapOf() })
                             .getOrPut(windowDuration, {
                                 Ticker(pair, windowDuration, exchange,
-                                        Date(closestSmallerMultiply(currentMillis, windowDuration)),
-                                        Date(closestSmallerMultiply(currentMillis, windowDuration) + windowDuration)
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration) + windowDuration),
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration))
                                 )
                             })
                     val window = windows
@@ -172,8 +165,45 @@ class TickersProcessor(
         }
     }
 
-    private fun cleanupTickers(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
-                                windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>) {
+    private fun updateVolumes(hopTickers: MutableMap<TokensPair, MutableMap<String, Ticker>>,
+                              volumes: MutableMap<String, MutableMap<String, MutableMap<Long, TokenVolume>>>,
+                              currentMillis: Long) {
+
+        hopTickers.forEach { pair, exchangeMap ->
+            exchangeMap.forEach { exchange, hopTicker ->
+
+                for (windowDuration in windowDurations) {
+
+                    val volumeFromBase = volumes
+                            .getOrPut(pair.base, { mutableMapOf() })
+                            .getOrPut(exchange, { mutableMapOf() })
+                            .getOrPut(windowDuration, {
+                                TokenVolume(pair.base, windowDuration, exchange, BigDecimal.ZERO,
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration)),
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration) + windowDuration)
+                                )
+                            })
+
+                    val volumeFromQuote = volumes
+                            .getOrPut(pair.quote, { mutableMapOf() })
+                            .getOrPut(exchange, { mutableMapOf() })
+                            .getOrPut(windowDuration, {
+                                TokenVolume(pair.quote, windowDuration, exchange, BigDecimal.ZERO,
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration)),
+                                        Date(closestSmallerMultiply(currentMillis, windowDuration) + windowDuration)
+                                )
+                            })
+
+                    volumeFromBase.value = volumeFromBase.value.plus(hopTicker.baseAmount)
+                    volumeFromQuote.value = volumeFromQuote.value.plus(hopTicker.quoteAmount)
+                }
+            }
+        }
+    }
+
+    private fun cleanup(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+                        volumes: MutableMap<String, MutableMap<String, MutableMap<Long, TokenVolume>>>,
+                        windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>>) {
 
         tickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, windowDurMap ->
@@ -184,9 +214,12 @@ class TickersProcessor(
 
                     val windowDuration = mapEntry.key
                     val ticker = mapEntry.value
-                    val window = windows[pair]!![exchange]!![windowDuration]
 
-                    cleanUpTicker(window!!, ticker)
+                    val window = windows[pair]!![exchange]!![windowDuration]
+                    val volumeBase = volumes[pair.base]!![exchange]!![windowDuration]
+                    val volumeQuote = volumes[pair.quote]!![exchange]!![windowDuration]
+
+                    cleanupOne(ticker, volumeBase!!, volumeQuote!!, window!!)
 
                     if (window.isEmpty()) {
                         iterator.remove()
@@ -194,6 +227,35 @@ class TickersProcessor(
                 }
             }
         }
+    }
+
+    private fun cleanupOne(ticker: Ticker, volumeBase: TokenVolume, volumeQuote: TokenVolume, window: Queue<Ticker>) {
+
+        while (window.peek() != null && window.peek().timestampTo!!.time <= ticker.timestampFrom!!.time) {
+            ticker minusHop window.peek()
+            volumeBase.value = volumeBase.value.minus(window.peek().baseAmount)
+            volumeQuote.value = volumeQuote.value.minus(window.peek().quoteAmount)
+
+            window.poll()
+        }
+
+        if (!window.isEmpty()) {
+            ticker.open = window.peek().open
+            findMinMaxPrice(window, ticker)
+        }
+    }
+
+    private fun findMinMaxPrice(window: Queue<Ticker>, ticker: Ticker) {
+        var min = window.peek().minPrice
+        var max = window.peek().maxPrice
+
+        for (hopTicker in window) {
+            min = min.min(hopTicker.minPrice)
+            max = max.max(hopTicker.maxPrice)
+        }
+
+        ticker.minPrice = min
+        ticker.maxPrice = max
     }
 
     private fun calculatePrice(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>) {
@@ -238,101 +300,11 @@ class TickersProcessor(
         }
     }
 
-    private fun saveAndProduceToKafka(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, topicName: String, currentMillisHop: Long) {
-        val tickerSnapshots = mutableListOf<Ticker>()
 
-        producer.beginTransaction()
-        try {
-            tickers.forEach { _, exchangeMap ->
-                exchangeMap.forEach { _, windowDurMap ->
-                    windowDurMap.forEach { windowDuration, ticker ->
-                        if (configuration.allowNotClosedWindows) {
-                            producer.send(produceRecord(ticker, topicName))
-                        } else if (ticker.timestampTo!!.time <= currentMillisHop) {
-                            producer.send(produceRecord(ticker, topicName))
-                        }
-                        if (ticker.timestampTo!!.time <= currentMillisHop) {
-                            if (isSnapshot(ticker, windowDuration)) {
-                                tickerSnapshots.add(ticker)
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (e : Exception) {
-            producer.abortTransaction()
-            Runtime.getRuntime().exit(-1)
-        }
-        producer.commitTransaction()
 
-        if (tickerSnapshots.isNotEmpty()) {
-            saveSnapshots(tickerSnapshots)
-        }
-    }
-
-    private fun saveSnapshots(tickerSnapshots: MutableList<Ticker>) {
-        log.debug("Save snapshots")
-
-        val snapshots = mutableListOf<Ticker>()
-        tickerSnapshots.forEach {
-            snapshots.add(it.copy())
-        }
-
-        thread.scheduleDirect {
-            snapshots.forEach { ticker ->
-                try {
-                    tickersRepository.save(ticker)
-                } catch (e: Exception) {
-                    backupTickerToKafka(ticker)
-                }
-            }
-        }
-
-        restoreTickersFromKafka()
-    }
-
-    private fun backupTickerToKafka(ticker: Ticker) {
-        log.debug("Backuping ticker to kafka: {}", ticker)
-
-        producer.beginTransaction()
-        try {
-            producer.send(produceRecord(ticker, configuration.tickersBackupTopicName))
-        } catch (e: Exception) {
-            producer.abortTransaction()
-            Runtime.getRuntime().exit(-1)
-        }
-        producer.commitTransaction()
-    }
-
-    private fun restoreTickersFromKafka() {
-        log.debug("Restore tickers from kafka")
-
-        Schedulers.single().scheduleDirect {
-            val records: ConsumerRecords<TickerKey, Ticker> = consumerBackup.poll(Long.MAX_VALUE)
-            log.debug("Tickers for restore count: {}", records.count())
-
-            records.forEach { record ->
-                try {
-                    tickersRepository.save(record.value())
-                } catch (e: Exception) {
-                    log.debug("Restore failed: {} ", record.value())
-                }
-            }
-        }
-    }
-
-    private fun isSnapshot(ticker: Ticker, windowDuration: Long): Boolean {
-        return ticker.timestampTo!!.time % windowDuration == 0L
-    }
-
-    private fun produceRecord(ticker: Ticker, topicName: String): ProducerRecord<TickerKey, Ticker> {
-        return ProducerRecord(
-                topicName,
-                TickerKey(ticker.pair, ticker.windowDuration, Timestamp(ticker.timestampFrom!!.time)),
-                ticker)
-    }
-
-    private fun updateTickerTimestamps(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
+    private fun updateTimestamps(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+                                 volumes: MutableMap<String, MutableMap<String, MutableMap<Long, TokenVolume>>>,
+                                 currentMillisHop: Long) {
         tickers.forEach { _, exchangeMap ->
             exchangeMap.forEach { _, windowDurMap ->
                 windowDurMap.forEach { _, ticker ->
@@ -344,42 +316,18 @@ class TickersProcessor(
                 }
             }
         }
-    }
 
-    private fun cleanUpTicker(window: Queue<Ticker>, ticker: Ticker) {
-        while (window.peek() != null && window.peek().timestampTo!!.time <= ticker.timestampFrom!!.time) {
-            ticker minusHop window.poll()
-        }
-
-        if (!window.isEmpty()) {
-            ticker.open = window.peek().open
-            findMinMaxPrice(window, ticker)
-        }
-    }
-
-    private fun findMinMaxPrice(window: Queue<Ticker>, ticker: Ticker) {
-        var min = window.peek().minPrice
-        var max = window.peek().maxPrice
-
-        for (hopTicker in window) {
-            min = min.min(hopTicker.minPrice)
-            max = max.max(hopTicker.maxPrice)
-        }
-
-        ticker.minPrice = min
-        ticker.maxPrice = max
-    }
-
-    private fun seekToEnd() {
-        consumer.poll(0)
-        val partitions = mutableListOf<TopicPartition>()
-        val tradeTopics = consumer.subscription()
-        tradeTopics.forEach { topic ->
-            consumer.partitionsFor(topic).forEach { partitionInfo ->
-                partitions.add(TopicPartition(partitionInfo.topic(), partitionInfo.partition()))
+        volumes.forEach { token, exchangeMap ->
+            exchangeMap.forEach { exchange, intervalMap ->
+                intervalMap.forEach { interval, volume ->
+                    if (volume.timestampTo.time <= currentMillisHop) {
+                        val diff = currentMillisHop - volume.timestampTo.time + windowHop
+                        volume.timestampFrom = Date(volume.timestampFrom.time + diff)
+                        volume.timestampTo = Date(volume.timestampTo.time + diff)
+                    }
+                }
             }
         }
-        consumer.seekToEnd(partitions)
     }
 
     private fun sleep(windowHop: Long) {
