@@ -29,13 +29,13 @@ class TickersConfiguration(
         val allowNotClosedWindows: Boolean = env("ALLOW_NOT_CLOSED_WINDOWS", "true").toBoolean()
 ) {
 
-    val windowDurations = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440")
+    val windowDurations: MutableSet<Long> = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440")
             .split(",")
             .map { it -> TimeUnit.MINUTES.toMillis(it.toLong()) }
-            .toSet()
+            .toMutableSet()
             .apply {
-                plus(Durations.HOUR)
-                plus(Durations.DAY)
+                add(Durations.HOUR)
+                add(Durations.DAY)
             }
 
     val tickerConsumerConfig = Properties().apply {

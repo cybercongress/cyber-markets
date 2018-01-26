@@ -87,7 +87,7 @@ class TickersProcessor(
 
             cleanup(tickers, volumes, windows)
 
-            calculatePrice(tickers)
+            calculatePrice(tickers, volumes)
 
             if (log.isTraceEnabled) {
                 log(tickers, currentMillisHop)
@@ -258,17 +258,18 @@ class TickersProcessor(
         ticker.maxPrice = max
     }
 
-    private fun calculatePrice(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>) {
+    private fun calculatePrice(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
+                               volumes: MutableMap<String, MutableMap<String, MutableMap<Long, TokenVolume>>>) {
 
         windowDurations.forEach { windowDuration ->
-            tickers.forEach { _, exchangeMap ->
+            tickers.forEach { pair, exchangeMap ->
 
-                var totalQuoteAmount = BigDecimal(0)
+                var volume24h = BigDecimal.ZERO
                 exchangeMap.forEach { exchange, windowDurMap ->
                     if (exchange != "ALL") {
-                        val ticker = windowDurMap[Durations.DAY]
-                        if (ticker != null) {
-                            totalQuoteAmount = totalQuoteAmount.add(ticker.quoteAmount)
+                        val volume = volumes[pair.quote]!![exchange]!![Durations.DAY]
+                        if (volume != null) {
+                            volume24h = volume24h.add(volume.value)
                         }
                     }
                 }
@@ -276,9 +277,9 @@ class TickersProcessor(
                 val weightMap = mutableMapOf<String, BigDecimal>()
                 exchangeMap.forEach { exchange, windowDurMap ->
                     if (exchange != "ALL") {
-                        val ticker = windowDurMap[Durations.DAY]
-                        if (ticker != null) {
-                            weightMap[exchange] = ticker.quoteAmount.div(totalQuoteAmount)
+                        val volume24hByExchange = volumes.get(pair.quote)?.get(exchange)?.get(Durations.DAY)?.value
+                        if (volume24hByExchange != null) {
+                            weightMap[exchange] = volume24hByExchange.div(volume24h)
                         }
                     }
                 }
@@ -299,8 +300,6 @@ class TickersProcessor(
             }
         }
     }
-
-
 
     private fun updateTimestamps(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>,
                                  volumes: MutableMap<String, MutableMap<String, MutableMap<Long, TokenVolume>>>,
