@@ -15,7 +15,7 @@ interface TickerAccessor {
             "pair=:pair " +
             "AND windowDuration=:windowDuration " +
             "AND exchange=:exchange " +
-            "AND timestampTo>=:timestamp " +
+            "AND timestampTo>:timestamp " +
             "LIMIT :limitValue")
     fun getTickers(
             @Param("pair") pair: TokensPair,

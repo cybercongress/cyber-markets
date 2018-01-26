@@ -12,8 +12,8 @@ data class PriceMultiFullData(
         val toSymbol: String,
         val price: BigDecimal,
         val lastUpdate: Long,
-        val volume24hour: BigDecimal,
-        val volume24hourTo: BigDecimal,
+        val volume24hour: BigDecimal?,
+        val volume24hourTo: BigDecimal?,
         val open24hour: BigDecimal,
         val high24hour: BigDecimal,
         val low24hour: BigDecimal

@@ -34,6 +34,7 @@ class TickersConfiguration(
             .map { it -> TimeUnit.MINUTES.toMillis(it.toLong()) }
             .toMutableSet()
             .apply {
+                add(Durations.MINUTE)
                 add(Durations.HOUR)
                 add(Durations.DAY)
             }
