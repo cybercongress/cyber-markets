@@ -1,6 +1,6 @@
 package fund.cyber.markets.tickers.service
 
-import fund.cyber.markets.cassandra.CassandraService
+import fund.cyber.markets.cassandra.repository.VolumeRepository
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.kafka.JsonDeserializer
 import fund.cyber.markets.kafka.JsonSerializer
@@ -15,11 +15,10 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.sql.Timestamp
 
-class VolumeService(val configuration: TickersConfiguration,
-                    cassandraService: CassandraService) {
+class VolumeService(private val configuration: TickersConfiguration,
+                    private val volumeRepository: VolumeRepository) {
 
     private val log = LoggerFactory.getLogger(VolumeService::class.java)!!
-    private val volumeRepository = cassandraService.volumeRepository
 
     private val consumer = KafkaConsumer<TokenVolumeKey, TokenVolume>(
             configuration.volumeBackupConsumerConfig,
@@ -41,7 +40,7 @@ class VolumeService(val configuration: TickersConfiguration,
         try {
             volumes.forEach { _, exchangeMap ->
                 exchangeMap.forEach { _, windowDurMap ->
-                    windowDurMap.forEach { windowDuration, volume ->
+                    windowDurMap.forEach { _, volume ->
                         if (configuration.allowNotClosedWindows) {
                             producer.send(produceRecord(volume, topicName))
                         } else if (volume.timestampTo.time <= currentMillisHop) {

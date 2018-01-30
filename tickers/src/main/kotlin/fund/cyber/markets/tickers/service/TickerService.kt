@@ -1,6 +1,6 @@
 package fund.cyber.markets.tickers.service
 
-import fund.cyber.markets.cassandra.CassandraService
+import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.kafka.JsonDeserializer
 import fund.cyber.markets.kafka.JsonSerializer
@@ -17,11 +17,10 @@ import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import java.sql.Timestamp
 
-class TickerService(val configuration: TickersConfiguration,
-                    cassandraService: CassandraService) {
+class TickerService(private val configuration: TickersConfiguration,
+                    private val tickerRepository: TickerRepository) {
 
     private val log = LoggerFactory.getLogger(TickerService::class.java)!!
-    private val tickerRepository = cassandraService.tickerRepository
 
     private val consumer = KafkaConsumer<String, Trade>(
             configuration.tickerConsumerConfig,
