@@ -37,7 +37,7 @@ class PriceMultiHandler(
             for (quote in quotes) {
                 val ticker = tickerRepository.getMinuteTicker(TokensPair(base, quote), exchange, timestamp)
                 if (ticker != null) {
-                    quoteMap.put(quote, ticker.price)
+                    quoteMap.put(quote, ticker.close)
                 } else if (tryConversion) {
                     val conversion = CrossConversion(tickerRepository, base, quote, exchange, windowDuration, timestamp).calculate()
                     if (conversion.success) {

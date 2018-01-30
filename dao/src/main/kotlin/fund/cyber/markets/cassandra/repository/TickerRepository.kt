@@ -40,7 +40,7 @@ class TickerRepository(cassandra: Cluster) {
     }
 
     fun getTickers(pair: TokensPair, windowDuration: Long, exchange: String, timestamp: Long, limit: Int): List<Ticker> {
-        return tickerAccessor.getTickers(pair, windowDuration, exchange, timestamp, limit).all()
+        return tickerAccessor.getTickers(pair, windowDuration, exchange, Date(timestamp), limit).all()
     }
 
     fun getMinuteTicker(pair: TokensPair, exchange: String, timestamp: Long): Ticker? {

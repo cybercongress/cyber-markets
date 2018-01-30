@@ -14,6 +14,7 @@ data class PriceMultiFullData(
         val lastUpdate: Long,
         val volume24hour: BigDecimal,
         val volume24hourTo: BigDecimal,
+        val open24hour: BigDecimal,
         val high24hour: BigDecimal,
         val low24hour: BigDecimal
 )

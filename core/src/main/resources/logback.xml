@@ -13,7 +13,7 @@
     <logger name="io.netty.util.internal" level="ERROR"/>
     <logger name="org.ehcache.core" level="ERROR"/>
 
-    <root level="${CS_LOG_LEVEL:-INFO}">
+    <root level="${CM_LOG_LEVEL:-INFO}">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

@@ -44,10 +44,11 @@ class PriceMultiFullHandler(
                                     exchange,
                                     base,
                                     quote,
-                                    ticker.price,
+                                    ticker.close,
                                     ticker.timestampTo!!.time,
                                     ticker24h.baseAmount,
                                     ticker24h.quoteAmount,
+                                    ticker24h.open,
                                     ticker24h.maxPrice!!,
                                     ticker24h.minPrice!!
                             )

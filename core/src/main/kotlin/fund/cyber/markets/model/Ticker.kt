@@ -4,178 +4,29 @@ import com.datastax.driver.mapping.annotations.ClusteringColumn
 import com.datastax.driver.mapping.annotations.Frozen
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
-import com.datastax.driver.mapping.annotations.Transient
-import com.fasterxml.jackson.annotation.JsonIgnore
 import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
 import java.util.*
 
-@Table(keyspace = "markets", name = "ticker",
+@Table( keyspace = "markets", name = "ticker",
         readConsistency = "QUORUM", writeConsistency = "QUORUM",
         caseSensitiveKeyspace = false, caseSensitiveTable = false)
 data class Ticker(
+        @PartitionKey(0) @Frozen var pair: TokensPair = TokensPair("base", "quote"),
+        @PartitionKey(1) var windowDuration: Long = -1L,
+        @ClusteringColumn(0) var exchange: String = "exchange",
+        @ClusteringColumn(1) var timestampTo: Date? = null,
+        var timestampFrom: Date? = null,
 
-        @ClusteringColumn(0)
-        var exchange: String?,
+        var avgPrice: BigDecimal = BigDecimal(-1L),
+        var open: BigDecimal = BigDecimal.ZERO,
+        var close: BigDecimal = BigDecimal.ZERO,
 
-        @Frozen
-        @PartitionKey(0)
-        var pair: TokensPair?,
-        var timestampFrom: Date?,
+        var minPrice: BigDecimal = BigDecimal(Long.MAX_VALUE),
+        var maxPrice: BigDecimal = BigDecimal(Long.MIN_VALUE),
 
-        @ClusteringColumn(1)
-        var timestampTo: Date?,
+        var baseAmount: BigDecimal = BigDecimal.ZERO,
+        var quoteAmount: BigDecimal = BigDecimal.ZERO,
 
-        @PartitionKey(1)
-        var windowDuration: Long,
-        var baseAmount: BigDecimal,
-        var quoteAmount: BigDecimal,
-        var price: BigDecimal,
-        var minPrice: BigDecimal?,
-        var maxPrice: BigDecimal?,
-        var tradeCount: Long
-) {
-
-    constructor(windowDuration: Long) : this(null, null, null, null,
-            windowDuration, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, 0)
-
-    @Transient
-    @JsonIgnore
-    private val priceMap = mutableMapOf<BigDecimal, Int>()
-    @Transient
-    @JsonIgnore
-    private val priceSet = TreeSet<BigDecimal>()
-
-    fun add(trade: Trade): Ticker {
-
-        if (!validTrade(trade)) {
-            return this
-        }
-        if (exchange == null) {
-            exchange = trade.exchange
-        }
-        if (pair == null) {
-            pair = trade.pair
-        }
-
-        quoteAmount = quoteAmount.plus(trade.quoteAmount)
-        baseAmount = baseAmount.plus(trade.baseAmount)
-
-        minPrice =
-                if (minPrice == null)
-                    trade.quoteAmount.div(trade.baseAmount)
-                else
-                    minPrice?.min(trade.quoteAmount.div(trade.baseAmount))
-
-        maxPrice =
-                if (maxPrice == null)
-                    trade.quoteAmount.div(trade.baseAmount)
-                else
-                    maxPrice?.max(trade.quoteAmount.div(trade.baseAmount))
-
-        tradeCount++
-
-        return this
-    }
-
-    fun add(ticker: Ticker): Ticker {
-
-        quoteAmount = quoteAmount.plus(ticker.quoteAmount)
-        baseAmount = baseAmount.plus(ticker.baseAmount)
-
-        if (pair == null) {
-            pair = ticker.pair
-        }
-        if (exchange == null) {
-            exchange = ticker.exchange
-        }
-
-        minPrice =
-                if (minPrice == null)
-                    ticker.minPrice
-                else
-                    this.minPrice?.min(ticker.minPrice)
-
-        maxPrice =
-                if (maxPrice == null)
-                    ticker.maxPrice
-                else
-                    this.maxPrice?.max(ticker.maxPrice)
-
-        saveMinMaxPrices(minPrice!!, maxPrice!!)
-
-        tradeCount += ticker.tradeCount
-
-        return this
-    }
-
-    fun minus(ticker: Ticker): Ticker {
-        quoteAmount = quoteAmount.minus(ticker.quoteAmount)
-        baseAmount = baseAmount.minus(ticker.baseAmount)
-
-        restoreMinMaxPrices(ticker)
-
-        tradeCount -= ticker.tradeCount
-
-        return this
-    }
-
-    fun calcPrice(): Ticker {
-        if (!(quoteAmount.compareTo(BigDecimal.ZERO) == 0 || baseAmount.compareTo(BigDecimal.ZERO) == 0)) {
-            price = quoteAmount.div(baseAmount)
-        }
-
-        return this
-    }
-
-    fun setExchangeString(exchange: String) : Ticker {
-        this.exchange = exchange
-
-        return this
-    }
-
-    fun setTimestamps(millisFrom: Long, millisTo: Long) : Ticker {
-        timestampFrom = Date(millisFrom)
-        timestampTo = Date(millisTo)
-
-        return this
-    }
-
-    private fun saveMinMaxPrices(minPrice: BigDecimal, maxPrice: BigDecimal) {
-        priceMap.getOrPut(minPrice, { 0 } )
-        priceMap.getOrPut(maxPrice, { 0 } )
-
-        priceMap.put(minPrice, priceMap[minPrice]!! + 1 )
-        priceMap.put(maxPrice, priceMap[maxPrice]!! + 1 )
-
-        priceSet.add(minPrice)
-        priceSet.add(maxPrice)
-    }
-
-    private fun restoreMinMaxPrices(ticker: Ticker) {
-        restorePrice(ticker.minPrice!!)
-        restorePrice(ticker.maxPrice!!)
-
-        try {
-            this.minPrice = priceSet.first()
-            this.maxPrice = priceSet.last()
-        } catch (e: Exception) {
-            this.minPrice = BigDecimal(0)
-            this.maxPrice = BigDecimal(0)
-        }
-    }
-
-    private fun restorePrice(price: BigDecimal) {
-        val priceCount = priceMap[price]
-        if (priceCount != null && priceCount > 1) {
-            priceMap.put(price, priceCount - 1)
-        } else {
-            priceSet.remove(price)
-        }
-    }
-
-    private fun validTrade(trade: Trade): Boolean {
-        return !(trade.quoteAmount.compareTo(BigDecimal.ZERO) == 0 || trade.baseAmount.compareTo(BigDecimal.ZERO) == 0)
-    }
-
-}
+        var tradeCount: Long = 0
+)

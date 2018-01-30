@@ -1,13 +1,13 @@
 package fund.cyber.markets.api.configuration
 
 import fund.cyber.markets.helpers.env
-import java.util.Properties
+import java.util.*
 import java.util.concurrent.TimeUnit.MINUTES
 import java.util.regex.Pattern
 
 val tradesTopicNamePattern = Pattern.compile("TRADES-.*")
 val ordersTopicNamePattern = Pattern.compile("ORDERS-.*")
-val tickersTopicNamePattern = Pattern.compile("TICKERS.*")
+val tickersTopicNamePattern = Pattern.compile("TICKERS")
 
 class KafkaConfiguration(
         val kafkaServers: String = env("KAFKA_CONNECTION", "localhost:9092"),

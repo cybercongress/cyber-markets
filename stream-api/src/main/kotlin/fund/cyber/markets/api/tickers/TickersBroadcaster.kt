@@ -18,7 +18,7 @@ class TickersBroadcaster(
         private val jsonSerializer: ObjectMapper = AppContext.jsonSerializer
 ) : Broadcaster {
 
-    private var lastTicker = Ticker(-1L)
+    private var lastTicker = Ticker()
     private val registeredChannels = HashSet<WebSocketChannel>()
 
     init {
