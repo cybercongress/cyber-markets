@@ -6,6 +6,7 @@ buildscript {
         jacksonVersion = "2.9.2"
         okhttpVersion = "3.8.1"
         undertowVersion = "1.4.20.Final"
+        httpClientVersion = "4.5.5"
         kafkaVersion = "1.0.0"
         web3jVersion = "2.3.1"
         khttpVersion = "0.1.0"
@@ -80,6 +81,7 @@ subprojects {
             dependency("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
 
             dependency("io.undertow:undertow-core:$undertowVersion")
+            dependency("org.apache.httpcomponents:httpclient:$httpClientVersion")
 
             dependency("org.apache.kafka:kafka-clients:$kafkaVersion")
 
@@ -246,6 +248,7 @@ project(":rest-api") {
         compile(project(":core"))
         compile(project(":dao"))
         compile("io.undertow:undertow-core")
+        compile("org.apache.httpcomponents:httpclient")
     }
 
     mainClassName = "fund.cyber.markets.rest.RestApiApplicationKt"

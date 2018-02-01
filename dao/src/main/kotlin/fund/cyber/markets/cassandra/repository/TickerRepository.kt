@@ -11,6 +11,7 @@ import fund.cyber.markets.common.Durations
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.addHop
 import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.util.closestSmallerMultiply
 import io.reactivex.Flowable
 import java.util.*
 
@@ -44,7 +45,8 @@ class TickerRepository(cassandra: Cluster) {
         return tickerAccessor.getTickers(pair, windowDuration, exchange, Date(timestamp), limit).all()
     }
 
-    fun getTicker24h(pair: TokensPair, exchange: String, timestamp: Long): Ticker? {
+    fun getTicker24h(pair: TokensPair, exchange: String): Ticker? {
+        val timestamp = closestSmallerMultiply(System.currentTimeMillis(), Durations.MINUTE) - Durations.DAY
         val tickers = tickerAccessor.getTickers(pair, Durations.MINUTE, exchange, Date(timestamp), Int.MAX_VALUE).all()
 
         if (tickers.isEmpty()) {

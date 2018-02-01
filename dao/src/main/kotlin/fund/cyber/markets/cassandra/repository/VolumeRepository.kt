@@ -9,6 +9,7 @@ import fund.cyber.markets.cassandra.PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIE
 import fund.cyber.markets.cassandra.accessor.VolumeAccessor
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.model.TokenVolume
+import fund.cyber.markets.util.closestSmallerMultiply
 import io.reactivex.Flowable
 import java.math.BigDecimal
 import java.util.*
@@ -39,7 +40,8 @@ class VolumeRepository(cassandra: Cluster) {
         return volumeMapper.get(token, windowDuration, exchange, Date(timestamp))
     }
 
-    fun getVolume24h(token: String, exchange: String, timestamp: Long): TokenVolume? {
+    fun getVolume24h(token: String, exchange: String): TokenVolume? {
+        val timestamp = closestSmallerMultiply(System.currentTimeMillis(), Durations.MINUTE) - Durations.DAY
         val volumes = volumeAccessor.getVolumes(token, Durations.MINUTE, exchange, Date(timestamp)).all()
 
         if (volumes.isEmpty()) {
