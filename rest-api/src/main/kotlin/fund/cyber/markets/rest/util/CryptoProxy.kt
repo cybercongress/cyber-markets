@@ -11,6 +11,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.math.BigDecimal
 
+const val BUFFER_SIZE = 15
 
 object CryptoProxy {
 
@@ -40,16 +41,15 @@ object CryptoProxy {
 
         Flowable
                 .fromIterable(tokens)
-                .buffer(20)
+                .buffer(BUFFER_SIZE)
                 .blockingForEach { tokensChunk ->
+
                     val symbols = tokensChunk.joinToString(",")
                     val url = "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=$symbols&tsyms=$symbols"
-
                     val request = HttpGet(url)
                     val response = client.execute(request)
 
                     val bufferedReader = BufferedReader(InputStreamReader(response.entity.content))
-
                     val node = mapper.readTree(bufferedReader).get("RAW")
 
                     tokensChunk.forEach { token ->
