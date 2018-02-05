@@ -13,10 +13,17 @@ import java.math.BigDecimal
 
 const val BUFFER_SIZE = 15
 
+/**
+ * Proxy object for chaingear and cryptocompare REST api
+ */
 object CryptoProxy {
 
     private val mapper = ObjectMapper()
 
+    /**
+     * Returns the set of tokens available in the chaingear
+     * @return a {@code Set<String>}
+     */
     fun getTokens(): Set<String> {
         val client: HttpClient = HttpClientBuilder.create().build()
         val request = HttpGet(AppContext.CYBER_CHAINGEAR_API + "/api/tokens")
@@ -34,6 +41,11 @@ object CryptoProxy {
         return tokens
     }
 
+    /**
+     * Returns the list of supplies using cryptocompare for tokeans from chaingear
+     * @return a {@code List<Supply>}
+     * @see {Supply}
+     */
     fun getSupplies(): List<Supply> {
         val supplies = mutableListOf<Supply>()
         val client: HttpClient = HttpClientBuilder.create().build()
