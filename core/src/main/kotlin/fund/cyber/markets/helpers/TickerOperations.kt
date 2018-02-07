@@ -3,6 +3,7 @@ package fund.cyber.markets.helpers
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.Trade
 import java.math.BigDecimal
+import java.util.*
 
 infix fun Ticker.add(trade: Trade) {
     if (!validTrade(trade)) {
@@ -50,6 +51,19 @@ infix fun Ticker.minusHop(ticker: Ticker) {
     baseAmount = baseAmount.minus(ticker.baseAmount)
 
     tradeCount -= ticker.tradeCount
+}
+
+infix fun Ticker.findMinMaxPrice(window: Queue<Ticker>) {
+    var min = window.peek().minPrice
+    var max = window.peek().maxPrice
+
+    for (hopTicker in window) {
+        min = min.min(hopTicker.minPrice)
+        max = max.max(hopTicker.maxPrice)
+    }
+
+    minPrice = min
+    maxPrice = max
 }
 
 private fun validTrade(trade: Trade): Boolean {

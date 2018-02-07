@@ -7,6 +7,8 @@ import fund.cyber.markets.rest.configuration.AppContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+private const val DECIMAL_SCALE = 20
+
 class CrossConversion(
         val tickerRepository: TickerRepository = AppContext.tickerRepository,
         val base: String,
@@ -88,7 +90,7 @@ class CrossConversion(
     }
 
     private fun calcInvert(ticker: Ticker): BigDecimal {
-        return BigDecimal(1).divide(ticker.close, 20, RoundingMode.HALF_EVEN)
+        return BigDecimal.ONE.divide(ticker.close, DECIMAL_SCALE, RoundingMode.HALF_EVEN)
     }
 
     private fun calcMultiply(ticker1: Ticker, ticker2: Ticker): BigDecimal {

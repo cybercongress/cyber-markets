@@ -9,6 +9,7 @@ import fund.cyber.markets.cassandra.PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIE
 import fund.cyber.markets.cassandra.accessor.TickerAccessor
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.helpers.addHop
 import fund.cyber.markets.model.Ticker
 import io.reactivex.Flowable
 import java.util.*
@@ -43,15 +44,26 @@ class TickerRepository(cassandra: Cluster) {
         return tickerAccessor.getTickers(pair, windowDuration, exchange, Date(timestamp), limit).all()
     }
 
-    fun getMinuteTicker(pair: TokensPair, exchange: String, timestamp: Long): Ticker? {
-        return getTicker(pair, Durations.MINUTE, exchange, timestamp)
-    }
+    fun getTicker24h(pair: TokensPair, exchange: String, timestamp: Long): Ticker? {
+        val tickers = tickerAccessor.getTickers(pair, Durations.MINUTE, exchange, Date(timestamp), Int.MAX_VALUE).all()
 
-    fun getLastDayTicker(pair: TokensPair, exchange: String): Ticker? {
-        val windowDuration = Durations.DAY
-        val timestamp = System.currentTimeMillis() / windowDuration * windowDuration
+        if (tickers.isEmpty()) {
+            return null
+        }
 
-        return tickerMapper.get(pair, windowDuration, exchange, Date(timestamp))
+        val tickerFirst = tickers.first()
+        val ticker24h = Ticker(
+            tickerFirst.pair,
+                Durations.DAY,
+                tickerFirst.exchange,
+                tickers.last().timestampTo,
+                tickerFirst.timestampFrom
+        )
+        tickers.forEach { ticker ->
+            ticker24h addHop ticker
+        }
+
+        return ticker24h
     }
 
 }
