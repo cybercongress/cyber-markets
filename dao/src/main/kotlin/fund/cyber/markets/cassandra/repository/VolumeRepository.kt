@@ -8,7 +8,7 @@ import fund.cyber.markets.cassandra.MARKETS_KEYSPACE
 import fund.cyber.markets.cassandra.PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST
 import fund.cyber.markets.cassandra.accessor.VolumeAccessor
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.common.closestSmallerMultiply
+import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.model.TokenVolume
 import io.reactivex.Flowable
 import java.math.BigDecimal

@@ -1,6 +1,6 @@
 package fund.cyber.markets.tickers.processor
 
-import fund.cyber.markets.common.closestSmallerMultiply
+import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TokenVolume
 import fund.cyber.markets.tickers.AppContext

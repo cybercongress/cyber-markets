@@ -8,9 +8,9 @@ import fund.cyber.markets.cassandra.MARKETS_KEYSPACE
 import fund.cyber.markets.cassandra.PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST
 import fund.cyber.markets.cassandra.accessor.TickerAccessor
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.addHop
+import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.model.Ticker
 import io.reactivex.Flowable
 import java.util.*

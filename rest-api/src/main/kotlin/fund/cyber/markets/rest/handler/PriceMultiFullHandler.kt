@@ -3,10 +3,12 @@ package fund.cyber.markets.rest.handler
 import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.cassandra.repository.VolumeRepository
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.common.booleanValue
-import fund.cyber.markets.common.closestSmallerMultiply
-import fund.cyber.markets.common.stringValue
 import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.helpers.MILLIS_TO_SECONDS
+import fund.cyber.markets.helpers.booleanValue
+import fund.cyber.markets.helpers.closestSmallerMultiply
+import fund.cyber.markets.helpers.convert
+import fund.cyber.markets.helpers.stringValue
 import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.PriceMultiFullData
 import fund.cyber.markets.rest.model.PriceMultiFullModel
@@ -51,7 +53,7 @@ class PriceMultiFullHandler(
                                     base,
                                     quote,
                                     ticker.close,
-                                    ticker.timestampTo!!.time / 1000,
+                                    ticker.timestampTo!!.time convert MILLIS_TO_SECONDS,
                                     volumeBase?.value,
                                     volumeQuote?.value,
                                     ticker24h.open,

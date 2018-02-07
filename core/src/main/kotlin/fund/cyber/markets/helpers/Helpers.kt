@@ -28,3 +28,7 @@ inline fun <reified T : Any> env(name: String, default: T): T =
     }
 
 fun rand(from: Int, to: Int) = (Math.random() * (to - from) + from).toInt()
+
+fun closestSmallerMultiply(dividend: Long, divider: Long): Long {
+    return dividend / divider * divider
+}

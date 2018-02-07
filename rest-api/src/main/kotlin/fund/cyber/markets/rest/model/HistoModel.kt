@@ -1,6 +1,8 @@
 package fund.cyber.markets.rest.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import fund.cyber.markets.helpers.MILLIS_TO_SECONDS
+import fund.cyber.markets.helpers.convert
 import fund.cyber.markets.model.Ticker
 import java.math.BigDecimal
 
@@ -31,7 +33,7 @@ data class TickerData(
         val volumeTo: BigDecimal?
 ) {
         constructor(ticker: Ticker, volumeBase: BigDecimal?, volumeQuote: BigDecimal?) : this(
-                ticker.timestampTo?.time!! / 1000,
+                ticker.timestampTo?.time!! convert MILLIS_TO_SECONDS,
                 ticker.open,
                 ticker.close,
                 ticker.maxPrice,
