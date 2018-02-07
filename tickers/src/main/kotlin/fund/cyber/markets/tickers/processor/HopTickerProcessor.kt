@@ -23,7 +23,7 @@ class HopTickerProcessor(
     private var tradeRecords: ConsumerRecords<String, Trade>? = null
 
     override fun poll() {
-        tradeRecords = tickerService.poll(windowHop / 2)
+        tradeRecords = tickerService.poll()
         log.debug("Trades count: {}", tradeRecords?.count())
     }
 

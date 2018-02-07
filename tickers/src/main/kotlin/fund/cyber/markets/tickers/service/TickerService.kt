@@ -46,8 +46,8 @@ class TickerService(private val configuration: TickersConfiguration,
         seekToEnd()
     }
 
-    fun poll(timeout: Long): ConsumerRecords<String, Trade> {
-        return consumer.poll(timeout / 2)
+    fun poll(): ConsumerRecords<String, Trade> {
+        return consumer.poll(configuration.pollTimeout)
     }
 
     fun saveAndProduceToKafka(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
@@ -120,7 +120,7 @@ class TickerService(private val configuration: TickersConfiguration,
         log.debug("Restore tickers from kafka")
 
         Schedulers.single().scheduleDirect {
-            val records: ConsumerRecords<TickerKey, Ticker> = consumerBackup.poll(configuration.windowHop / 2)
+            val records = consumerBackup.poll(configuration.pollTimeout)
             log.debug("Tickers for restore count: {}", records.count())
 
             records.forEach { record ->
