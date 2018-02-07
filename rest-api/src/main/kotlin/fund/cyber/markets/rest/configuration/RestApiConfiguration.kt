@@ -12,6 +12,9 @@ const val CASSANDRA_PORT_DEFAULT = "9042"
 const val CORS_ALLOWED_ORIGINS = "CORS_ALLOWED_ORIGINS"
 const val CORS_ALLOWED_ORIGINS_DEFAULT = "markets.cyber.fund"
 
+const val CYBER_CHAINGEAR_API = "CYBER_CHAINGEAR_API"
+const val CYBER_CHAINGEAR_API_DEFAULT = "CYBER_CHAINGEAR_API"
+
 object RestApiConfiguration {
 
     val allowedCORS: String = env(CORS_ALLOWED_ORIGINS, CORS_ALLOWED_ORIGINS_DEFAULT)
@@ -20,5 +23,7 @@ object RestApiConfiguration {
         put("cassandraHost", env(CASSANDRA_HOSTS, CASSANDRA_HOSTS_DEFAULT))
         put("cassandraPort", env(CASSANDRA_PORT, CASSANDRA_PORT_DEFAULT))
     }
+
+    val chaingearHost = env(CYBER_CHAINGEAR_API, CYBER_CHAINGEAR_API_DEFAULT)
 
 }

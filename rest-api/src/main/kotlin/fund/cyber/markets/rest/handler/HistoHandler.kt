@@ -14,6 +14,7 @@ import fund.cyber.markets.rest.model.TickerData
 import fund.cyber.markets.util.closestSmallerMultiply
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
+import java.math.BigDecimal
 
 class HistoHandler(
         private val duration: Long,
@@ -36,7 +37,7 @@ class HistoHandler(
             return
         }
 
-        val tickers = tickerRepository.getTickers(TokensPair(base, quote), duration, exchange, timestamp, limit)
+        val tickers = tickerRepository.getTickers(TokensPair(base, quote), duration, exchange, timestamp, limit).reversed()
 
         if (tickers.isEmpty()) {
             handleNoData(httpExchange)
@@ -44,28 +45,34 @@ class HistoHandler(
         }
 
         val data = mutableListOf<TickerData>()
+        var prevTickerData = TickerData(tickers.first(), BigDecimal.ZERO, BigDecimal.ZERO)
         tickers.forEach { ticker ->
 
             val volumeBase = volumeRepository.get(ticker.pair.base, exchange, duration, timestamp)
             val volumeQuote = volumeRepository.get(ticker.pair.quote, exchange, duration, timestamp)
 
-            val tickerData = TickerData(
-                    ticker.timestampTo?.time!! / 1000,
-                    ticker.open,
-                    ticker.close,
-                    ticker.maxPrice,
-                    ticker.minPrice,
-                    volumeBase?.value,
-                    volumeQuote?.value
-            )
+            val tickerData = TickerData(ticker, volumeBase?.value, volumeQuote?.value)
+
+            if (tickerData.time - prevTickerData.time > duration / 1000) {
+                var time = prevTickerData.time
+                val close = prevTickerData.close
+                while (tickerData.time - time > duration / 1000) {
+                    time += duration / 1000
+                    data.add(TickerData(time, close))
+                }
+            }
+            prevTickerData = tickerData
+
             data.add(tickerData)
         }
 
+        resolveGaps(data, timestamp, limit)
+
         val histoEntity = HistoEntity(
                 "Success",
-                data,
+                data.subList(0, limit),
                 tickers.last().timestampTo!!.time / 1000,
-                timestamp / 1000,
+                tickers.first().timestampTo!!.time / 1000,
                 ConversionType("direct", "")
         )
 
@@ -73,7 +80,21 @@ class HistoHandler(
     }
 
     private fun getTimestamp(): Long {
-        return closestSmallerMultiply(System.currentTimeMillis(),duration) - duration
+        return closestSmallerMultiply(System.currentTimeMillis(), duration) - duration
+    }
+
+    private fun resolveGaps(data: MutableList<TickerData>, timestamp: Long, limit: Int) {
+        val durationSec = duration / 1000
+        val timestampToSec = closestSmallerMultiply(timestamp, duration) / 1000
+
+        while (data.first().time > timestampToSec) {
+            data.add(0, TickerData(data.first().time - durationSec, data.first().close))
+        }
+
+        val currentTimestamp = closestSmallerMultiply(System.currentTimeMillis(), duration) / 1000
+        while (data.last().time < currentTimestamp && data.size < limit) {
+            data.add(TickerData(data.last().time + durationSec, data.last().close))
+        }
     }
 
 }

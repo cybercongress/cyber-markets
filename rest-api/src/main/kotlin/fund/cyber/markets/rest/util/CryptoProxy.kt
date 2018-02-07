@@ -2,7 +2,7 @@ package fund.cyber.markets.rest.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.model.Supply
-import fund.cyber.markets.rest.configuration.AppContext
+import fund.cyber.markets.rest.configuration.RestApiConfiguration
 import io.reactivex.Flowable
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
@@ -26,7 +26,7 @@ object CryptoProxy {
      */
     fun getTokens(): Set<String> {
         val client: HttpClient = HttpClientBuilder.create().build()
-        val request = HttpGet(AppContext.CYBER_CHAINGEAR_API + "/api/tokens")
+        val request = HttpGet(RestApiConfiguration.chaingearHost + "/api/tokens")
         val response = client.execute(request)
         val bufferedReader = BufferedReader(InputStreamReader(response.entity.content))
 
