@@ -25,7 +25,7 @@ object CryptoProxy {
      * @return a {@code Set<String>}
      */
     fun getTokens(): Set<String> {
-        val client: HttpClient = HttpClientBuilder.create().build()
+        val client: HttpClient = HttpClientBuilder.create().build()!!
         val request = HttpGet(AppContext.CYBER_CHAINGEAR_API + "/api/tokens")
         val response = client.execute(request)
         val bufferedReader = BufferedReader(InputStreamReader(response.entity.content))
