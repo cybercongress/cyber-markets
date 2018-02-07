@@ -3,6 +3,7 @@ package fund.cyber.markets.rest.handler
 import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.cassandra.repository.VolumeRepository
 import fund.cyber.markets.common.booleanValue
+import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.common.intValue
 import fund.cyber.markets.common.longValue
 import fund.cyber.markets.common.stringValue
@@ -11,7 +12,6 @@ import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.ConversionType
 import fund.cyber.markets.rest.model.HistoEntity
 import fund.cyber.markets.rest.model.TickerData
-import fund.cyber.markets.util.closestSmallerMultiply
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
 import java.math.BigDecimal

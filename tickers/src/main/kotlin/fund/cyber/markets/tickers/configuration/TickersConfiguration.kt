@@ -1,6 +1,5 @@
 package fund.cyber.markets.tickers.configuration
 
-import fund.cyber.markets.common.Constants
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.helpers.env
 import org.apache.kafka.clients.admin.AdminClient
@@ -12,24 +11,29 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
-private val tradesTopicNamePattern = Pattern.compile("TRADES-.*")
-private val numPartitions = 1
-private val replicationFactor: Short = 1
-private val MAX_POLL_RECORDS = 20000
+private const val KAFKA_CONNECTION: String = "KAFKA_CONNECTION"
+private const val WINDOW_DURATIONS_MIN: String = "WINDOW_DURATIONS_MIN"
+private const val WINDOW_HOP_SEC: String = "WINDOW_HOP_SEC"
+private const val ALLOW_NOT_CLOSED_WINDOWS: String = "ALLOW_NOT_CLOSED_WINDOWS"
+
+private const val NUMBER_OF_PARTITIONS = 1
+private const val REPLICATION_FACTOR: Short = 1
+private const val MAX_POLL_RECORDS = 20000
+private const val POLL_TIMEOUT_COEFFICIENT: Double = 0.5
 
 class TickersConfiguration(
-        val kafkaServers: String = env(Constants.KAFKA_CONNECTION, "localhost:9092"),
-        val topicNamePattern: Pattern = tradesTopicNamePattern,
-        val topicResubscribe: Long = TimeUnit.MINUTES.toMillis(1),
-        val windowHop: Long = TimeUnit.SECONDS.toMillis(env(Constants.WINDOW_HOP_SEC, 3)),
+        private val kafkaServers: String = env(KAFKA_CONNECTION, "localhost:9092"),
+        val topicNamePattern: Pattern = Pattern.compile("TRADES-.*"),
+        val windowHop: Long = TimeUnit.SECONDS.toMillis(env(WINDOW_HOP_SEC, 3)),
+        val pollTimeout: Long = (windowHop * POLL_TIMEOUT_COEFFICIENT).toLong(),
         val tickersTopicName: String = "TICKERS",
         val volumesTopicName: String = "VOLUMES",
         val tickersBackupTopicName: String = "TICKERS-BACKUP",
         val volumesBackupTopicName: String = "VOLUMES-BACKUP",
-        val allowNotClosedWindows: Boolean = env("ALLOW_NOT_CLOSED_WINDOWS", "true").toBoolean()
+        val allowNotClosedWindows: Boolean = env(ALLOW_NOT_CLOSED_WINDOWS, "true").toBoolean()
 ) {
 
-    val windowDurations: MutableSet<Long> = env(Constants.WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440")
+    val windowDurations: MutableSet<Long> = env(WINDOW_DURATIONS_MIN, "1,5,15,30,60,180,240,360,720,1440")
             .split(",")
             .map { it -> TimeUnit.MINUTES.toMillis(it.toLong()) }
             .toMutableSet()
@@ -40,7 +44,7 @@ class TickersConfiguration(
             }
 
     val tickerConsumerConfig = Properties().apply {
-        put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, topicResubscribe)
+        put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, Durations.MINUTE)
         put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
         put("bootstrap.servers", kafkaServers)
         put("group.id", "TRADE_CONSUMER")
@@ -93,10 +97,10 @@ class TickersConfiguration(
             put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers)
         })
 
-        val tickersTopic = NewTopic(tickersTopicName, numPartitions, replicationFactor)
-        val tickersBackupTopic = NewTopic(tickersBackupTopicName, numPartitions, replicationFactor)
-        val volumesTopic = NewTopic(volumesTopicName, numPartitions, replicationFactor)
-        val volumesBackupTopic = NewTopic(volumesBackupTopicName, numPartitions, replicationFactor)
+        val tickersTopic = NewTopic(tickersTopicName, NUMBER_OF_PARTITIONS, REPLICATION_FACTOR)
+        val tickersBackupTopic = NewTopic(tickersBackupTopicName, NUMBER_OF_PARTITIONS, REPLICATION_FACTOR)
+        val volumesTopic = NewTopic(volumesTopicName, NUMBER_OF_PARTITIONS, REPLICATION_FACTOR)
+        val volumesBackupTopic = NewTopic(volumesBackupTopicName, NUMBER_OF_PARTITIONS, REPLICATION_FACTOR)
 
         val configs = mapOf(
                 TopicConfig.RETENTION_MS_CONFIG to TimeUnit.DAYS.toMillis(1).toString(),

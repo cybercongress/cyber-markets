@@ -4,12 +4,12 @@ import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.cassandra.repository.VolumeRepository
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.common.booleanValue
+import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.common.stringValue
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.PriceMultiFullData
 import fund.cyber.markets.rest.model.PriceMultiFullModel
-import fund.cyber.markets.util.closestSmallerMultiply
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
 
