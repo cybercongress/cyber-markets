@@ -29,7 +29,7 @@ class HistoHandler(
         val quote = params["tsym"]?.stringValue()
         val exchange = params["e"]?.stringValue() ?: "ALL"
         var tryConversion = params["tryConversion"]?.booleanValue() ?: false
-        val limit = params["limit"]?.intValue() ?: 1440
+        var limit = params["limit"]?.intValue() ?: 1440
         val timestamp = params["toTs"]?.longValue() ?: getTimestamp()
 
         if (base == null || quote == null || base == quote) {
@@ -67,6 +67,10 @@ class HistoHandler(
         }
 
         resolveGaps(data, timestamp, limit)
+
+        if (limit > data.size) {
+            limit = data.size
+        }
 
         val histoEntity = HistoEntity(
                 "Success",
