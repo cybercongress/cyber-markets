@@ -1,6 +1,7 @@
 package fund.cyber.markets.tickers.processor
 
 import fund.cyber.markets.common.Durations
+import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.addHop
 import fund.cyber.markets.helpers.findMinMaxPrice
@@ -9,7 +10,6 @@ import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.tickers.AppContext
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
 import fund.cyber.markets.tickers.service.TickerService
-import fund.cyber.markets.util.closestSmallerMultiply
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.sql.Timestamp

@@ -8,7 +8,6 @@ import fund.cyber.markets.model.TokenVolume
 import fund.cyber.markets.model.TokenVolumeKey
 import fund.cyber.markets.tickers.configuration.TickersConfiguration
 import io.reactivex.schedulers.Schedulers
-import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -104,7 +103,7 @@ class VolumeService(private val configuration: TickersConfiguration,
         log.debug("Restore volumes from kafka")
 
         Schedulers.single().scheduleDirect {
-            val records: ConsumerRecords<TokenVolumeKey, TokenVolume> = consumer.poll(configuration.windowHop / 2)
+            val records = consumer.poll(configuration.pollTimeout)
             log.debug("Volumes for restore count: {}", records.count())
 
             records.forEach { record ->
