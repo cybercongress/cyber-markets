@@ -1,7 +1,7 @@
 package fund.cyber.markets.rest.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.model.Supply
+import fund.cyber.markets.model.TokenSupply
 import fund.cyber.markets.rest.configuration.AppContext
 import io.reactivex.Flowable
 import org.apache.http.client.HttpClient
@@ -43,11 +43,11 @@ object CryptoProxy {
 
     /**
      * Returns the list of supplies using cryptocompare for tokeans from chaingear
-     * @return a {@code List<Supply>}
-     * @see {Supply}
+     * @return a {@code List<TokenSupply>}
+     * @see {TokenSupply}
      */
-    fun getSupplies(): List<Supply> {
-        val supplies = mutableListOf<Supply>()
+    fun getSupplies(): List<TokenSupply> {
+        val supplies = mutableListOf<TokenSupply>()
         val client: HttpClient = HttpClientBuilder.create().build()
         val tokens = getTokens()
 
@@ -67,7 +67,7 @@ object CryptoProxy {
                     tokensChunk.forEach { token ->
                         val supply = node?.get(token)?.get(token)?.get("SUPPLY")?.longValue()
                         if (supply != null) {
-                            supplies.add(Supply(token, BigDecimal.valueOf(supply)))
+                            supplies.add(TokenSupply(token, BigDecimal.valueOf(supply)))
                         }
                     }
 
