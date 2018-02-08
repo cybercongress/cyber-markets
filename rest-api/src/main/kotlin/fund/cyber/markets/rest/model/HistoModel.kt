@@ -11,7 +11,7 @@ data class HistoEntity(
         val response: String,
 
         @get:JsonProperty("Data")
-        val data: MutableList<TickerData>,
+        val data: List<TickerData>,
 
         @get:JsonProperty("TimeTo")
         val timeTo: Long,
