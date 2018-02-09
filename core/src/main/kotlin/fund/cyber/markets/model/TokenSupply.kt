@@ -7,7 +7,8 @@ import java.math.BigDecimal
 
 /**
  * Supply object
- * A variable value of type {@code BigDecimal} stores a value of a token supply
+ * A variable value of type {@code BigDecimal} stores a value of a token circulating supply
+ * A variable totalValue of type {@code BigDecimal} stores a value of a token total supply
  * A variable token of type {@code String} stores a token symbol
  */
 @Table( keyspace = "markets", name = "supply",
@@ -19,5 +20,7 @@ data class TokenSupply(
         @Column(name = "tokenSymbol")
         val token: String,
 
-        val value: BigDecimal
+        val value: BigDecimal,
+
+        val totalValue: BigDecimal
 )
