@@ -7,12 +7,17 @@ import java.math.BigDecimal
 
 /**
  * Supply object
- * A {@code BigDecimal} consist value of a token supply and {@code String} consist symbol of a token
+ * A variable value of type {@code BigDecimal} stores a value of a token supply
+ * A variable token of type {@code String} stores a token symbol
  */
 @Table( keyspace = "markets", name = "supply",
         readConsistency = "QUORUM", writeConsistency = "QUORUM",
         caseSensitiveKeyspace = false, caseSensitiveTable = false)
-data class Supply(
-        @PartitionKey(0) @Column(name = "tokenSymbol") val token: String,
+data class TokenSupply(
+
+        @PartitionKey(0)
+        @Column(name = "tokenSymbol")
+        val token: String,
+
         val value: BigDecimal
 )
