@@ -40,10 +40,10 @@ class PriceMultiFullHandler(
                 for (quote in quotes) {
                     if (base != quote) {
                         val ticker = tickerRepository.getTicker(TokensPair(base, quote), Durations.MINUTE, exchange, timestamp)
-                        val ticker24h = tickerRepository.getTicker24h(TokensPair(base, quote), exchange, timestamp - Durations.DAY)
+                        val ticker24h = tickerRepository.getTicker24h(TokensPair(base, quote), exchange)
 
-                        val volumeBase = volumeRepository.getVolume24h(base, exchange, timestamp - Durations.DAY)
-                        val volumeQuote = volumeRepository.getVolume24h(quote, exchange, timestamp - Durations.DAY)
+                        val volumeBase = volumeRepository.getVolume24h(base, exchange)
+                        val volumeQuote = volumeRepository.getVolume24h(quote, exchange)
 
                         if (ticker != null && ticker24h != null) {
                             val priceData = PriceMultiFullData(

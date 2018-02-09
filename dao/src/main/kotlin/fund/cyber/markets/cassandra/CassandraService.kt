@@ -1,6 +1,7 @@
 package fund.cyber.markets.cassandra
 
 import com.datastax.driver.core.Cluster
+import fund.cyber.markets.cassandra.repository.SupplyRepository
 import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.cassandra.repository.VolumeRepository
 import java.util.*
@@ -22,6 +23,7 @@ class CassandraService(properties: Properties) {
 
     val tickerRepository by lazy { TickerRepository(cassandraClient) }
     val volumeRepository by lazy { VolumeRepository(cassandraClient) }
+    val supplyRepository by lazy { SupplyRepository(cassandraClient) }
 
     fun shutdown() {
         cassandraClient.close()
