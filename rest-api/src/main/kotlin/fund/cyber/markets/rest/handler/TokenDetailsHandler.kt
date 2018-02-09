@@ -76,7 +76,7 @@ class TokenDetailsHandler(
                 timestamp)?.close
 
         if (price == null) {
-            val crossConversion = CrossConversion(tickerRepository, fromSymbol, toSymbol, "ALL", Durations.MINUTE, timestamp).calculate()
+            val crossConversion = CrossConversion(fromSymbol, toSymbol, "ALL", Durations.MINUTE, timestamp).calculate()
             if (crossConversion.success) {
                 price = crossConversion.value
             }
