@@ -34,6 +34,9 @@ class TokenDetailsHandler(
             return
         }
 
+        val supply = supplyRepository.get(fromSymbol) ?: TokenSupply(fromSymbol, BigDecimal.ZERO, BigDecimal.ZERO)
+        val volume = volumeRepository.getVolume24h(fromSymbol, "ALL") ?: TokenVolume(fromSymbol, Durations.DAY, "ALL", BigDecimal.ZERO, Date(), Date())
+
         val prices = mutableMapOf<String, BigDecimal>()
         val toSymbols = mutableListOf("USD", "USDT", "BTC", "ETH")
         toSymbols.forEach { toSymbol ->
@@ -46,10 +49,7 @@ class TokenDetailsHandler(
             prices["USD"] = prices["USDT"]!!
         }
 
-        val supply = supplyRepository.get(fromSymbol) ?: TokenSupply(fromSymbol, BigDecimal.ZERO, BigDecimal.ZERO)
-        val volume = volumeRepository.getVolume24h(fromSymbol, "ALL") ?: TokenVolume(fromSymbol, Durations.DAY, "ALL", BigDecimal.ZERO, Date(), Date())
-
-        val capUsd = supply.value.multiply(prices["USD"])
+        val capUsd = supply.value.multiply(prices["USD"] ?: BigDecimal.ONE)
         val capBtc = supply.value.multiply(prices["BTC"] ?: BigDecimal.ONE)
 
         val tokenDetails = TokenDetailsModel(
