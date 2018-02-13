@@ -46,10 +46,10 @@ class TokenDetailsHandler(
             }
         }
         if (prices["USD"] == null && prices["USDT"] != null) {
-            prices["USD"] = prices["USDT"]!!
+            prices["USD"] = prices["USDT"] ?: BigDecimal.ONE
         }
 
-        val capUsd = supply.value.multiply(prices["USD"] ?: BigDecimal.ONE)
+        val capUsd = supply.value.multiply(prices["USD"])
         val capBtc = supply.value.multiply(prices["BTC"] ?: BigDecimal.ONE)
 
         val tokenDetails = TokenDetailsModel(
