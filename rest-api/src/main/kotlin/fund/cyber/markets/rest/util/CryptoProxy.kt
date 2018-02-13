@@ -2,8 +2,8 @@ package fund.cyber.markets.rest.util
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.model.TokenSupply
 import fund.cyber.markets.rest.configuration.RestApiConfiguration
+import fund.cyber.markets.model.TokenSupply
 import io.reactivex.Flowable
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
