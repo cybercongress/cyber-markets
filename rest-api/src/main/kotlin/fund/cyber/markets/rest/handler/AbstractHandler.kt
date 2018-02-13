@@ -29,7 +29,7 @@ abstract class AbstractHandler(
         httpExchange.responseSender.send(jsonSerializer.writeValueAsString(response))
     }
 
-    fun send(result: Any, httpExchange: HttpServerExchange) {
+    open fun send(result: Any, httpExchange: HttpServerExchange) {
         httpExchange.responseHeaders.put(Headers.CONTENT_TYPE, "application/json")
         httpExchange.responseSender.send(jsonSerializer.writeValueAsString(result))
     }

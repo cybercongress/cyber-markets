@@ -1,5 +1,6 @@
 package fund.cyber.markets.rest.util
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.rest.configuration.RestApiConfiguration
 import fund.cyber.markets.model.TokenSupply
@@ -42,13 +43,30 @@ object CryptoProxy {
     }
 
     /**
+     * Returns the {@code JsonNode} object with info about all tokens available in cryptocompare
+     * @return a {@code JsonNode}
+     */
+    private fun getCoinListJsonNode(): JsonNode {
+        val client: HttpClient = HttpClientBuilder.create().build()
+
+        val coinList = "https://min-api.cryptocompare.com/data/all/coinlist"
+        val request = HttpGet(coinList)
+        val response = client.execute(request)
+        val bufferedReader = BufferedReader(InputStreamReader(response.entity.content))
+
+        return mapper.readTree(bufferedReader)
+    }
+
+    /**
      * Returns the list of supplies using cryptocompare for tokeans from chaingear
      * @return a {@code List<TokenSupply>}
      * @see {TokenSupply}
      */
     fun getSupplies(): List<TokenSupply> {
-        val supplies = mutableListOf<TokenSupply>()
         val client: HttpClient = HttpClientBuilder.create().build()
+
+        val supplies = mutableListOf<TokenSupply>()
+        val coinListNode = getCoinListJsonNode()
         val tokens = getTokens()
 
         Flowable
@@ -66,8 +84,9 @@ object CryptoProxy {
 
                     tokensChunk.forEach { token ->
                         val supply = node?.get(token)?.get(token)?.get("SUPPLY")?.longValue()
+                        val totalSupply = coinListNode.get("Data")?.get(token)?.get("TotalCoinSupply")?.asLong() ?: 0L
                         if (supply != null) {
-                            supplies.add(TokenSupply(token, BigDecimal.valueOf(supply)))
+                            supplies.add(TokenSupply(token, BigDecimal.valueOf(supply), BigDecimal.valueOf(totalSupply)))
                         }
                     }
 

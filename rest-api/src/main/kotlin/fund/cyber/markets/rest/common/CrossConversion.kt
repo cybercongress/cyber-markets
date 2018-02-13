@@ -10,13 +10,13 @@ import java.math.RoundingMode
 private const val DECIMAL_SCALE = 20
 
 class CrossConversion(
-        val tickerRepository: TickerRepository = AppContext.tickerRepository,
-        val base: String,
-        val quote: String,
-        val exchange: String,
-        val windowDuration: Long,
-        val timestamp: Long
-) {
+        private val base: String,
+        private val quote: String,
+        private val exchange: String,
+        private val windowDuration: Long,
+        private val timestamp: Long,
+        private val tickerRepository: TickerRepository = AppContext.tickerRepository
+        ) {
     /**
      * If the crypto currency does not trade directly from base to quote symbol BTC will be used for conversion
      * There is 4 methods of converting

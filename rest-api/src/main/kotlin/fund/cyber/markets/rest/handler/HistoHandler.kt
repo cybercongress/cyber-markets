@@ -79,7 +79,7 @@ class HistoHandler(
 
         val histoEntity = HistoEntity(
                 "Success",
-                data.subList(0, limit).reversed(),
+                data.subList(0, limit),
                 tickers.last().timestampTo!!.time convert MILLIS_TO_SECONDS,
                 tickers.first().timestampTo!!.time convert MILLIS_TO_SECONDS,
                 ConversionType("direct", "")

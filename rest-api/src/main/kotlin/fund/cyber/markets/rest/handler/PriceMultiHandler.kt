@@ -39,7 +39,7 @@ class PriceMultiHandler(
                 if (ticker != null) {
                     quoteMap.put(quote, ticker.close)
                 } else if (tryConversion) {
-                    val conversion = CrossConversion(tickerRepository, base, quote, exchange, Durations.MINUTE, timestamp).calculate()
+                    val conversion = CrossConversion(base, quote, exchange, Durations.MINUTE, timestamp).calculate()
                     if (conversion.success) {
                         quoteMap.put(quote, conversion.value!!)
                     }

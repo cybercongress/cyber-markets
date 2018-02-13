@@ -9,6 +9,7 @@ import fund.cyber.markets.rest.handler.PriceMultiFullHandler
 import fund.cyber.markets.rest.handler.PriceMultiHandler
 import fund.cyber.markets.rest.handler.SetCorsHeadersHandler
 import fund.cyber.markets.rest.handler.StatsHandler
+import fund.cyber.markets.rest.handler.TokenDetailsHandler
 import fund.cyber.markets.rest.handler.TokenListHandler
 import fund.cyber.markets.rest.handler.TokensHandler
 import fund.cyber.markets.rest.task.TaskExecutor
@@ -30,6 +31,7 @@ fun main(args: Array<String>) {
             .get("/pricemultifull", PriceMultiFullHandler())
             .get("/tokenlist", TokenListHandler())
             .get("/tokens", TokensHandler())
+            .get("/tokendetails", TokenDetailsHandler())
 
 
     val setCorsHeaderHandler = SetCorsHeadersHandler(httpHandler, RestApiConfiguration.allowedCORS)
