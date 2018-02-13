@@ -5,11 +5,19 @@ import okhttp3.Callback
 import okhttp3.Response
 import org.xnio.IoFuture
 import org.xnio.IoFuture.Notifier
-import org.xnio.IoFuture.Status.*
+import org.xnio.IoFuture.Status.CANCELLED
+import org.xnio.IoFuture.Status.DONE
+import org.xnio.IoFuture.Status.FAILED
+import org.xnio.IoFuture.Status.WAITING
 import java.io.IOException
+import java.util.*
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
+fun Deque<String>.booleanValue(): Boolean? = first?.toBoolean()
+fun Deque<String>.intValue(): Int? = first?.toIntOrNull()
+fun Deque<String>.longValue(): Long? = first?.toLongOrNull()
+fun Deque<String>.stringValue(): String? = first
 
 suspend fun <T> IoFuture<T>.cAwait(): T {
 

@@ -1,13 +1,26 @@
 package fund.cyber.markets.rest.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import fund.cyber.markets.helpers.MILLIS_TO_SECONDS
+import fund.cyber.markets.helpers.convert
+import fund.cyber.markets.model.Ticker
 import java.math.BigDecimal
 
 data class HistoEntity(
-        val Response: String,
-        val Data: MutableList<TickerData>,
-        val TimeTo: Long,
-        val TimeFrom: Long,
-        val ConversionType: ConversionType
+        @get:JsonProperty("Response")
+        val response: String,
+
+        @get:JsonProperty("Data")
+        val data: List<TickerData>,
+
+        @get:JsonProperty("TimeTo")
+        val timeTo: Long,
+
+        @get:JsonProperty("TimeFrom")
+        val timeFrom: Long,
+
+        @get:JsonProperty("ConversionType")
+        val conversionType: ConversionType
 )
 
 data class TickerData(
@@ -18,7 +31,27 @@ data class TickerData(
         val low: BigDecimal,
         val volumeFrom: BigDecimal?,
         val volumeTo: BigDecimal?
-)
+) {
+        constructor(ticker: Ticker, volumeBase: BigDecimal?, volumeQuote: BigDecimal?) : this(
+                ticker.timestampTo?.time!! convert MILLIS_TO_SECONDS,
+                ticker.open,
+                ticker.close,
+                ticker.maxPrice,
+                ticker.minPrice,
+                volumeBase,
+                volumeQuote
+        )
+
+        constructor(time: Long, close: BigDecimal) : this(
+                time,
+                close,
+                close,
+                close,
+                close,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
+        )
+}
 
 data class ConversionType(
         val type: String,

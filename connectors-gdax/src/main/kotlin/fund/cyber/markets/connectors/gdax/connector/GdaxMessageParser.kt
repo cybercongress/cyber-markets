@@ -7,6 +7,8 @@ import fund.cyber.markets.connectors.common.OrdersUpdateType
 import fund.cyber.markets.connectors.common.OrdersUpdatesMessage
 import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.connectors.common.ws.SaveExchangeMessageParser
+import fund.cyber.markets.helpers.MILLIS_TO_SECONDS
+import fund.cyber.markets.helpers.convert
 import fund.cyber.markets.model.Exchanges
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.OrderType
@@ -48,7 +50,7 @@ class GdaxTradesMessageParser(
                         tradeId = node["trade_id"].asText(),
                         exchange = Exchanges.gdax,
                         timestamp = Timestamp.valueOf(
-                                ZonedDateTime.parse(node["time"].asText()).toLocalDateTime()).time / 1000,
+                                ZonedDateTime.parse(node["time"].asText()).toLocalDateTime()).time convert MILLIS_TO_SECONDS,
                         type = TradeType.valueOf(node["side"].asText().toUpperCase()),
                         baseAmount = BigDecimal(node["size"].asText()),
                         quoteAmount = spotPrice * baseAmount,

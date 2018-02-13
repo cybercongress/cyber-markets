@@ -1,9 +1,19 @@
 package fund.cyber.markets.connectors.hitbtc.connector
 
 import com.fasterxml.jackson.databind.JsonNode
-import fund.cyber.markets.connectors.common.*
+import fund.cyber.markets.connectors.common.ContainingUnknownTokensPairMessage
+import fund.cyber.markets.connectors.common.ExchangeMessage
+import fund.cyber.markets.connectors.common.OrdersUpdateType
+import fund.cyber.markets.connectors.common.OrdersUpdatesMessage
+import fund.cyber.markets.connectors.common.TradesUpdatesMessage
 import fund.cyber.markets.connectors.common.ws.SaveExchangeMessageParser
-import fund.cyber.markets.model.*
+import fund.cyber.markets.helpers.MILLIS_TO_SECONDS
+import fund.cyber.markets.helpers.convert
+import fund.cyber.markets.model.Exchanges
+import fund.cyber.markets.model.Order
+import fund.cyber.markets.model.OrderType
+import fund.cyber.markets.model.Trade
+import fund.cyber.markets.model.TradeType
 import java.math.BigDecimal
 
 
@@ -27,7 +37,7 @@ class HitBtcTradesMessageParser(
         val symbol = node["symbol"].asText()
         val tokensPair = channelSymbolForTokensPair[symbol] ?: return ContainingUnknownTokensPairMessage(symbol)
 
-        val timestamp = node["timestamp"].asLong() / 1000
+        val timestamp = node["timestamp"].asLong() convert MILLIS_TO_SECONDS
 
         val trades = node["trade"].toList()
                 .map { tradeNode ->
