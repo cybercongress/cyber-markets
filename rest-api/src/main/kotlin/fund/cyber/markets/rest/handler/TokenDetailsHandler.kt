@@ -45,7 +45,7 @@ class TokenDetailsHandler(
                 prices[toSymbol] = price
             }
         }
-        if (prices["USD"] == null && prices["USDT"] != null) {
+        if (prices["USD"] == null) {
             prices["USD"] = prices["USDT"] ?: BigDecimal.ONE
         }
 
