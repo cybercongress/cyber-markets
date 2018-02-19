@@ -2,7 +2,6 @@ package fund.cyber.markets.rest.handler
 
 import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.cassandra.repository.VolumeRepository
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.MILLIS_TO_SECONDS
 import fund.cyber.markets.helpers.booleanValue
 import fund.cyber.markets.helpers.closestSmallerMultiply
@@ -10,6 +9,7 @@ import fund.cyber.markets.helpers.convert
 import fund.cyber.markets.helpers.intValue
 import fund.cyber.markets.helpers.longValue
 import fund.cyber.markets.helpers.stringValue
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.ConversionType
 import fund.cyber.markets.rest.model.HistoEntity

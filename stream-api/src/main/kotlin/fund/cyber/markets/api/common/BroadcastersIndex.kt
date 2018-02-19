@@ -3,9 +3,9 @@ package fund.cyber.markets.api.common
 import fund.cyber.markets.api.orders.OrdersBroadcaster
 import fund.cyber.markets.api.tickers.TickersBroadcaster
 import fund.cyber.markets.api.trades.TradesBroadcaster
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import kotlinx.coroutines.experimental.channels.Channel
 import java.util.concurrent.ConcurrentHashMap

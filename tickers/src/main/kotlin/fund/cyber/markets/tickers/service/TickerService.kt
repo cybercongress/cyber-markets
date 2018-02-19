@@ -1,7 +1,7 @@
 package fund.cyber.markets.tickers.service
 
 import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.kafka.JsonDeserializer
 import fund.cyber.markets.kafka.JsonSerializer
 import fund.cyber.markets.model.Ticker

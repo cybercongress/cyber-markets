@@ -1,6 +1,6 @@
 package fund.cyber.markets.tickers.processor
 
-import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.helpers.add
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.Trade

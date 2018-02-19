@@ -1,8 +1,8 @@
 package fund.cyber.markets.rest.common
 
 import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.rest.configuration.AppContext
 import java.math.BigDecimal
 import java.math.RoundingMode

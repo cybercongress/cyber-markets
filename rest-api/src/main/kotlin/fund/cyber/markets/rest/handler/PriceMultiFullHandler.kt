@@ -6,13 +6,13 @@ import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.cassandra.repository.VolumeRepository
 import fund.cyber.markets.common.Durations
 import fund.cyber.markets.common.UpperCaseNamingStrategy
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.MILLIS_TO_SECONDS
 import fund.cyber.markets.helpers.booleanValue
 import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.helpers.convert
 import fund.cyber.markets.helpers.stringValue
 import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.rest.common.CrossConversion
 import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.PriceMultiFullData

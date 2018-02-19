@@ -4,7 +4,6 @@ import com.datastax.driver.mapping.annotations.ClusteringColumn
 import com.datastax.driver.mapping.annotations.Frozen
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
-import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
 import java.util.*
 

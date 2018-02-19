@@ -4,11 +4,11 @@ import fund.cyber.markets.cassandra.repository.SupplyRepository
 import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.cassandra.repository.VolumeRepository
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.helpers.stringValue
 import fund.cyber.markets.model.TokenSupply
 import fund.cyber.markets.model.TokenVolume
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.rest.common.CrossConversion
 import fund.cyber.markets.rest.configuration.AppContext
 import fund.cyber.markets.rest.model.TokenDetailsModel

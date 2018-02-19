@@ -1,7 +1,7 @@
 package fund.cyber.markets.tickers.processor
 
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.helpers.addHop
 import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.helpers.findMinMaxPrice

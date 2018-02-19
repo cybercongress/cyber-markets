@@ -9,7 +9,7 @@ import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.ORDERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TICKERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TRADES
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.TokensPairInitializer
 
 

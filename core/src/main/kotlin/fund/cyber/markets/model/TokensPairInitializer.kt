@@ -1,7 +1,5 @@
 package fund.cyber.markets.model
 
-import fund.cyber.markets.dto.TokensPair
-
 open class TokensPairInitializer(firstCurrency: String, secondCurrency: String) {
 
     val pair: TokensPair

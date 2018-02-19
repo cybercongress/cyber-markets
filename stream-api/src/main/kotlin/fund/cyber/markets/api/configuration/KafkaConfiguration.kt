@@ -1,6 +1,6 @@
 package fund.cyber.markets.api.configuration
 
-import fund.cyber.markets.helpers.env
+import fund.cyber.markets.configuration.env
 import java.util.*
 import java.util.concurrent.TimeUnit.MINUTES
 import java.util.regex.Pattern

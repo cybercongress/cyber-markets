@@ -1,6 +1,6 @@
 package fund.cyber.markets.api.common
 
-import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.TokensPairInitializer
 import kotlinx.coroutines.experimental.channels.Channel
 

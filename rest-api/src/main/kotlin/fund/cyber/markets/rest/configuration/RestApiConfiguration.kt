@@ -1,6 +1,6 @@
 package fund.cyber.markets.rest.configuration
 
-import fund.cyber.markets.helpers.env
+import fund.cyber.markets.configuration.env
 import java.util.*
 
 const val CASSANDRA_HOSTS = "CASSANDRA_HOSTS"

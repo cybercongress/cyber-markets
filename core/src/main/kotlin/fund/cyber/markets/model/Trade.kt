@@ -1,6 +1,5 @@
 package fund.cyber.markets.model
 
-import fund.cyber.markets.dto.TokensPair
 import java.math.BigDecimal
 import java.time.Instant
 

@@ -1,7 +1,7 @@
 package fund.cyber.markets.tickers.configuration
 
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.helpers.env
+import fund.cyber.markets.configuration.env
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
