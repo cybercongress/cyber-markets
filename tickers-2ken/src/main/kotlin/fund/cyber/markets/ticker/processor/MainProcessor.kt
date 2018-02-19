@@ -31,13 +31,13 @@ class MainProcessor {
         sleep(windowHop)
         while (true) {
 
-            hopTickerProcessor.poll()
+/*            hopTickerProcessor.poll()
             val currentMillis = System.currentTimeMillis()
-            val currentMillisHop = closestSmallerMultiply(currentMillis, windowHop)
+            val currentMillisHop = closestSmallerMultiply(currentMillis, windowHop)*/
 
-            hopTickerProcessor.update(currentMillisHop)
+            hopTickerProcessor.update()
 
-            tickerProcessor.update(hopTickerProcessor, currentMillis)
+/*            tickerProcessor.update(hopTickerProcessor, currentMillis)
             volumeProcessor.update(hopTickerProcessor, tickerProcessor, currentMillis)
             tickerProcessor.cleanupWindows()
 
@@ -47,7 +47,7 @@ class MainProcessor {
             volumeProcessor.saveAndProduceToKafka(currentMillisHop)
 
             tickerProcessor.updateTimestamps(currentMillisHop)
-            volumeProcessor.updateTimestamps(currentMillisHop)
+            volumeProcessor.updateTimestamps(currentMillisHop)*/
 
             sleep(windowHop)
         }

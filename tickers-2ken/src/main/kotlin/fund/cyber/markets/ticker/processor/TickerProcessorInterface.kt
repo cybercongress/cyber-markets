@@ -6,7 +6,7 @@ import java.util.*
 
 interface TickerProcessorInterface {
 
-    fun update(hopTickersProcessor: HopTickerProcessor, currentMillis: Long)
+    //fun update(hopTickersProcessor: HopTickerProcessor, currentMillis: Long)
 
     fun get(pair: TokensPair, exchange: String, windowDuration: Long, currentMillis: Long): Ticker
 

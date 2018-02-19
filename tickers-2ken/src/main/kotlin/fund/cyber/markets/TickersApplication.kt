@@ -13,7 +13,6 @@ class TickersApplication {
         fun main(args: Array<String>) {
 
             val application = SpringApplication(TickersApplication::class.java)
-            application.setRegisterShutdownHook(false)
 
             val applicationContext = application.run(*args)
             val mainProcessor = applicationContext.getBean(MainProcessor::class.java)

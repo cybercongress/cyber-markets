@@ -1,14 +1,13 @@
 package fund.cyber.markets.ticker.processor
 
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.helpers.addHop
 import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.helpers.findMinMaxPrice
 import fund.cyber.markets.helpers.minusHop
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TokensPair
-import fund.cyber.markets.ticker.TickerService
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
+import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,7 +32,7 @@ class TickerProcessor(
     @Autowired
     lateinit var tickerService: TickerService
 
-    override fun update(hopTickersProcessor: HopTickerProcessor, currentMillis: Long) {
+/*    override fun update(hopTickersProcessor: HopTickerProcessor, currentMillis: Long) {
         hopTickersProcessor.hopTickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, hopTicker ->
 
@@ -47,7 +46,7 @@ class TickerProcessor(
             }
         }
         cleanupOldData()
-    }
+    }*/
 
     override fun get(pair: TokensPair, exchange: String, windowDuration: Long, currentMillis: Long): Ticker {
         return tickers

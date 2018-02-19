@@ -1,4 +1,4 @@
-package fund.cyber.markets.ticker
+package fund.cyber.markets.ticker.service
 
 import fund.cyber.markets.cassandra.model.CqlTicker
 import fund.cyber.markets.cassandra.repository.TickerRepository

@@ -3,8 +3,8 @@ package fund.cyber.markets.ticker.processor
 import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TokenVolume
-import fund.cyber.markets.ticker.VolumeService
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
+import fund.cyber.markets.ticker.service.VolumeService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,7 +29,7 @@ class VolumeProcessor(
 
     override fun update(hopTickerProcessor: HopTickerProcessor, tickerProcessor: TickerProcessor, currentMillis: Long) {
 
-        hopTickerProcessor.hopTickers.forEach { pair, exchangeMap ->
+/*        hopTickerProcessor.hopTickers.forEach { pair, exchangeMap ->
             exchangeMap.forEach { exchange, hopTicker ->
                 for (windowDuration in windowDurations) {
                     val volumeFromBase = get(pair.base, exchange, windowDuration, currentMillis)
@@ -41,7 +41,7 @@ class VolumeProcessor(
             }
         }
 
-        cleanupOldData(tickerProcessor)
+        cleanupOldData(tickerProcessor)*/
     }
 
     override fun get(token: String, exchange: String, windowDuration: Long, currentMillis: Long): TokenVolume {
