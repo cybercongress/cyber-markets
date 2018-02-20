@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
+/**
+ * @param hopTickers - map of fromToken -> TokenTicker
+ */
 @Component
 class HopTickerProcessor(
         val hopTickers: MutableMap<String, TokenTicker> = mutableMapOf()
@@ -27,6 +30,8 @@ class HopTickerProcessor(
     private val windowHop: Long by lazy { configuration.windowHop }
 
     fun update() {
+        hopTickers.clear()
+
         val currentMillisHop = closestSmallerMultiply(System.currentTimeMillis(), windowHop)
         val currentMillisHopFrom = currentMillisHop - windowHop
 
@@ -34,8 +39,9 @@ class HopTickerProcessor(
         val tradesCount = tradeRecords.count()
         log.debug("Trades count: {}", tradesCount)
 
+        //todo: magic filter
         val trades = tradeRecords
-                .filter { it.timestamp() >= currentMillisHopFrom }
+                .filter { it.timestamp() + windowHop >= currentMillisHopFrom }
                 .map { it.value() }
 
         log.debug("Dropped trades count: {}", tradesCount - trades.size)
@@ -123,7 +129,6 @@ class HopTickerProcessor(
 
         }
 
-        hopTickers.clear()
     }
 
     private fun updatePrices(trades: List<Trade>) {

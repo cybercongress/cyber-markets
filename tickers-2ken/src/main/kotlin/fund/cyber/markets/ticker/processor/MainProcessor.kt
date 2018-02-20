@@ -37,6 +37,8 @@ class MainProcessor {
 
             hopTickerProcessor.update()
 
+            tickerProcessor.update(hopTickerProcessor.hopTickers)
+
 /*            tickerProcessor.update(hopTickerProcessor, currentMillis)
             volumeProcessor.update(hopTickerProcessor, tickerProcessor, currentMillis)
             tickerProcessor.cleanupWindows()

@@ -1,11 +1,15 @@
 package fund.cyber.markets.ticker.processor
 
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.helpers.closestSmallerMultiply
-import fund.cyber.markets.helpers.findMinMaxPrice
-import fund.cyber.markets.helpers.minusHop
+import fund.cyber.markets.helpers.closestSmallerMultiplyFromTs
+import fund.cyber.markets.model.BaseTokens
+import fund.cyber.markets.model.Exchanges
 import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TokenPrice
+import fund.cyber.markets.model.TokenTicker
 import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.ticker.common.addHop
+import fund.cyber.markets.ticker.common.minusHop
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
@@ -15,11 +19,18 @@ import java.math.BigDecimal
 import java.sql.Timestamp
 import java.util.*
 
+/**
+ * @param newTickers - TokenSymbol -> WindowDuration -> TokenTicker
+ * @param newWindows - TokenSymbol -> WindowDuration -> Queue<TokenTicker>
+ */
 @Component
 class TickerProcessor(
+        val newTickers: MutableMap<String, MutableMap<Long, TokenTicker>> = mutableMapOf(),
+        val newWindows: MutableMap<String, MutableMap<Long, Queue<TokenTicker>>> = mutableMapOf(),
+
         val tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>> = mutableMapOf(),
         val windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>> = mutableMapOf()
-): TickerProcessorInterface {
+) : TickerProcessorInterface {
 
     private val log = LoggerFactory.getLogger(TickerProcessor::class.java)!!
 
@@ -32,42 +43,103 @@ class TickerProcessor(
     @Autowired
     lateinit var tickerService: TickerService
 
-/*    override fun update(hopTickersProcessor: HopTickerProcessor, currentMillis: Long) {
-        hopTickersProcessor.hopTickers.forEach { pair, exchangeMap ->
-            exchangeMap.forEach { exchange, hopTicker ->
+    fun update(hopTickers: MutableMap<String, TokenTicker>) {
+        hopTickers.forEach { tokenSymbol, hopTicker ->
+            windowDurations.forEach { duration ->
 
-                for (windowDuration in windowDurations) {
-                    val ticker = get(pair, exchange, windowDuration, currentMillis)
-                    val window = getWindow(pair, exchange, windowDuration)
+                val ticker = getTicker(tokenSymbol, duration)
+                val window = getWindow(tokenSymbol, duration)
 
-                    window.offer(hopTicker)
-                    ticker addHop hopTicker
+                window.offer(hopTicker)
+                ticker addHop hopTicker
+            }
+        }
+
+        cleanupOldData()
+        calculateWeightedPrice()
+
+        println("next hop")
+    }
+
+    private fun cleanupOldData() {
+        newTickers.forEach { tokenSymbol, windowDurationMap ->
+            windowDurationMap.forEach { windowDuration, ticker ->
+
+                val window = newWindows[tokenSymbol]!![windowDuration]!!
+                while (window.isNotEmpty() && window.peek().timestampTo <= ticker.timestampFrom) {
+                    ticker minusHop window.poll()
                 }
             }
         }
-        cleanupOldData()
-    }*/
+    }
 
-    override fun get(pair: TokensPair, exchange: String, windowDuration: Long, currentMillis: Long): Ticker {
-        return tickers
-                .getOrPut(pair, { mutableMapOf() })
-                .getOrPut(exchange, { mutableMapOf() })
+    private fun calculateWeightedPrice() {
+        val baseTokensList = BaseTokens.values().map { it.name }
+
+        newTickers.forEach { tokenSymbol, windowDurationMap ->
+            windowDurationMap.forEach { windowDuration, ticker ->
+                baseTokensList.forEach { baseTokenSymbol ->
+
+                    if (tokenSymbol != baseTokenSymbol) {
+
+                        val volumes = windowDurationMap[Durations.DAY]?.volume?.get(baseTokenSymbol)
+                        if (volumes != null) {
+
+                            var tokenVolume24h = BigDecimal.ZERO
+                            volumes.forEach { exchange, volumeValue ->
+                                if (exchange != Exchanges.ALL) {
+                                    tokenVolume24h = tokenVolume24h.plus(volumeValue)
+                                }
+                            }
+
+                            val weightMap = mutableMapOf<String, BigDecimal>()
+                            volumes.forEach { exchange, volumeValue ->
+                                if (exchange != Exchanges.ALL
+                                        && volumeValue.compareTo(BigDecimal.ZERO) == 1) {
+                                    weightMap[exchange] = volumeValue.div(tokenVolume24h)
+                                }
+                            }
+
+                            var avgPrice = BigDecimal.ZERO
+                            weightMap.forEach { exchange, weight ->
+                                val exchangePrice = ticker.price[baseTokenSymbol]!![exchange]!!.value!!.multiply(weight)
+                                if (exchangePrice != null) {
+                                    avgPrice = avgPrice.plus(exchangePrice)
+                                }
+                            }
+
+                            newTickers[tokenSymbol]!![windowDuration]!!.price[baseTokenSymbol]!!
+                                    .put(Exchanges.ALL, TokenPrice(avgPrice))
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getTicker(tokenSymbol: String, windowDuration: Long): TokenTicker {
+        //todo: correct timestamp ?
+        val timestampFrom = closestSmallerMultiplyFromTs(windowDuration)
+
+        return newTickers
+                .getOrPut(tokenSymbol, { mutableMapOf() })
                 .getOrPut(windowDuration, {
-                    Ticker(pair, windowDuration, exchange,
-                            Date(closestSmallerMultiply(currentMillis, windowDuration) + windowDuration),
-                            Date(closestSmallerMultiply(currentMillis, windowDuration))
-                    )
+                    TokenTicker(
+                            symbol = tokenSymbol,
+                            timestampFrom = timestampFrom,
+                            timestampTo = timestampFrom + windowDuration,
+                            interval = windowDuration)
                 })
     }
 
-    override fun getWindow(pair: TokensPair, exchange: String, windowDuration: Long): Queue<Ticker> {
-        return windows
-                .getOrPut(pair, { mutableMapOf() })
-                .getOrPut(exchange, { mutableMapOf() })
-                .getOrPut(windowDuration, { LinkedList() })
+    private fun getWindow(tokenSymbol: String, windowDuration: Long): Queue<TokenTicker> {
+        return newWindows
+                .getOrPut(tokenSymbol, { mutableMapOf() })
+                .getOrPut(windowDuration, { LinkedList<TokenTicker>() })
     }
 
-    override fun updateTimestamps(currentMillisHop: Long) {
+    fun updateTimestamps(currentMillisHop: Long) {
         tickers.forEach { _, exchangeMap ->
             exchangeMap.forEach { _, windowDurMap ->
                 windowDurMap.forEach { _, ticker ->
@@ -81,108 +153,7 @@ class TickerProcessor(
         }
     }
 
-    private fun cleanupOldData() {
-        tickers.forEach { pair, exchangeMap ->
-            exchangeMap.forEach { exchange, windowDurationMap ->
-                windowDurationMap.forEach { windowDuration, ticker ->
-
-                    val window = windows[pair]!![exchange]!![windowDuration]!!
-                    val windowCopy = LinkedList<Ticker>()
-                    window.forEach {
-                        windowCopy.add(it.copy())
-                    }
-
-                    while (windowCopy.peek() != null &&
-                            windowCopy.peek().timestampTo!!.time <= ticker.timestampFrom!!.time) {
-
-                        ticker minusHop windowCopy.poll()
-                    }
-
-                    if (!windowCopy.isEmpty()) {
-                        ticker.open = windowCopy.peek().open
-                        ticker findMinMaxPrice windowCopy
-                    }
-
-                }
-            }
-        }
-    }
-
-    override fun cleanupWindows() {
-
-        tickers.forEach { pair, exchangeMap ->
-            exchangeMap.forEach { exchange, windowDurMap ->
-
-                val iterator = windowDurMap.iterator()
-                while (iterator.hasNext()) {
-                    val mapEntry = iterator.next()
-
-                    val windowDuration = mapEntry.key
-                    val ticker = mapEntry.value
-
-                    val window = windows[pair]!![exchange]!![windowDuration]!!
-
-                    while (window.peek() != null && window.peek().timestampTo!!.time <= ticker.timestampFrom!!.time) {
-                        window.poll()
-                    }
-
-                    if (window.isEmpty()) {
-                        iterator.remove()
-                    }
-
-                }
-            }
-        }
-    }
-
-    override fun calculatePrice(volumeProcessor: VolumeProcessor, currentMillisHop: Long) {
-        val volumes = volumeProcessor.volumes
-
-        windowDurations.forEach { windowDuration ->
-            tickers.forEach { pair, exchangeMap ->
-
-                var volume24h = BigDecimal.ZERO
-                exchangeMap.forEach { exchange, windowDurMap ->
-                    if (exchange != "ALL") {
-                        val volume = volumes[pair.quote]!![exchange]!![Durations.DAY]
-                        if (volume != null) {
-                            volume24h = volume24h.add(volume.value)
-                        }
-                    }
-                }
-
-                val weightMap = mutableMapOf<String, BigDecimal>()
-                exchangeMap.forEach { exchange, windowDurMap ->
-                    if (exchange != "ALL") {
-                        val volume24hByExchange = volumes.get(pair.quote)?.get(exchange)?.get(Durations.DAY)?.value
-                        if (volume24hByExchange != null) {
-                            weightMap[exchange] = volume24hByExchange.div(volume24h)
-                        }
-                    }
-                }
-
-                var avgPrice = BigDecimal(0)
-                weightMap.forEach { exchange, weight ->
-                    val ticker = exchangeMap[exchange]?.get(windowDuration)
-                    if (ticker != null) {
-                        val weightedPrice = ticker.close.multiply(weight)
-                        avgPrice = avgPrice.plus(weightedPrice)
-                    }
-                }
-
-                val tickerAllExchange = exchangeMap["ALL"]?.get(windowDuration)
-                if (tickerAllExchange != null) {
-                    tickerAllExchange.avgPrice = avgPrice
-                }
-            }
-        }
-
-        if (log.isTraceEnabled) {
-            logTickers(currentMillisHop)
-        }
-    }
-
-    override fun saveAndProduceToKafka(currentMillisHop: Long) {
+    fun saveAndProduceToKafka(currentMillisHop: Long) {
         tickerService.saveAndProduceToKafka(tickers, currentMillisHop)
     }
 
