@@ -1,12 +1,7 @@
 include("core")
 
-//include("tickers")
-include("tickers-2ken")
-
+include("tickers")
 include("stream-api")
-include("rest-api")
-
-include("dao")
 include("cassandra-service")
 
 include("connectors:common")

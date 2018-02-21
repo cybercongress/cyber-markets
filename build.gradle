@@ -19,7 +19,7 @@ buildscript {
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
         shadowPluginVersion = "2.0.1"
-        bootPluginVersion = "2.0.0.M7"
+        bootPluginVersion = "2.0.0.RC1"
 
         // tests
         junitVersion = "5.0.3"
@@ -67,11 +67,17 @@ subprojects {
     apply plugin: "io.spring.dependency-management"
 
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "1.8"
+        }
     }
 
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "1.8"
+        }
     }
 
     kotlin {
@@ -116,7 +122,9 @@ subprojects {
             dependency("org.junit.jupiter:junit-jupiter-api:$junitVersion")
             dependency("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
             dependency("org.mockito:mockito-core:$mockitoVersion")
-            dependency("com.nhaarman:mockito-kotlin:$mockitoKotlinVersion")
+            dependency("com.nhaarman:mockito-kotlin:$mockitoKotlinVersion") {
+                exclude 'org.jetbrains.kotlin:kotlin-stdlib'
+            }
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 
             dependency("org.springframework.data:spring-data-cassandra:$springCassandraVersion")
@@ -182,39 +190,7 @@ project(":stream-api") {
     mainClassName = "fund.cyber.markets.StreamApiApplication"
 }
 
-/*project(":tickers") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":core"))
-        compile(project(":dao"))
-    }
-
-    mainClassName = "fund.cyber.markets.tickers.TickersApplicationKt"
-}*/
-
-project(":rest-api") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":core"))
-        compile(project(":dao"))
-        compile("io.undertow:undertow-core")
-        compile("org.apache.httpcomponents:httpclient")
-    }
-
-    mainClassName = "fund.cyber.markets.rest.RestApiApplicationKt"
-}
-
-project(":dao") {
-    dependencies {
-        compileOnly(project(":core"))
-        compile("com.datastax.cassandra:cassandra-driver-core")
-        compile("com.datastax.cassandra:cassandra-driver-mapping")
-    }
-}
-
-project(":tickers-2ken") {
+project(":tickers") {
 
     apply plugin: "org.springframework.boot"
 
