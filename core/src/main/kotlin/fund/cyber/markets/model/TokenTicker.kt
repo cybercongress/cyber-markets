@@ -10,8 +10,8 @@ import java.math.BigDecimal
 data class TokenTicker(
         val symbol: String,
 
-        val timestampFrom: Long,
-        val timestampTo: Long,
+        var timestampFrom: Long,
+        var timestampTo: Long,
         val interval: Long,
 
         val price: MutableMap<String, MutableMap<String, TokenPrice>> = mutableMapOf(),

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+import javax.annotation.PostConstruct
 
 private const val KAFKA_CONNECTION: String = "KAFKA_CONNECTION"
 private const val WINDOW_DURATIONS_MIN: String = "WINDOW_DURATIONS_MIN"
@@ -70,30 +71,7 @@ class TickersConfiguration(
         put("transactional.id", "TICKER_PRODUCER_TR_ID")
     }
 
-    val volumeBackupConsumerConfig = Properties().apply {
-        put("bootstrap.servers", kafkaServers)
-        put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
-        put("group.id", "VOLUME_BACKUP_CONSUMER")
-        put("enable.auto.commit", false)
-        put("isolation.level", "read_committed")
-        put("auto.offset.reset", "earliest")
-    }
-
-    val volumeProducerConfig = Properties().apply {
-        put("bootstrap.servers", kafkaServers)
-        put("group.id", "VOLUME_PRODUCER")
-        put("transactional.id", "VOLUME_PRODUCER_TR_ID")
-    }
-
-    val cassandraProperties = Properties().apply {
-        put("cassandraHost", env("CASSANDRA_HOSTS", "localhost"))
-        put("cassandraPort", env("CASSANDRA_PORT", "9042"))
-    }
-
-    init {
-        createTopics()
-    }
-
+    @PostConstruct
     private fun createTopics() {
         val adminClient = AdminClient.create(Properties().apply {
             put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers)

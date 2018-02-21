@@ -1,12 +1,12 @@
 package fund.cyber.markets.ticker.service
 
-import fund.cyber.markets.cassandra.model.CqlTicker
+import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.helpers.closestSmallerMultiplyFromTs
 import fund.cyber.markets.kafka.JsonDeserializer
 import fund.cyber.markets.kafka.JsonSerializer
-import fund.cyber.markets.model.Ticker
-import fund.cyber.markets.model.TickerKey
-import fund.cyber.markets.model.TokensPair
+import fund.cyber.markets.model.TokenTicker
+import fund.cyber.markets.model.TokenTickerKey
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import io.reactivex.schedulers.Schedulers
@@ -19,70 +19,58 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.sql.Timestamp
+import javax.annotation.PostConstruct
 
 @Service
 class TickerService {
 
     private val log = LoggerFactory.getLogger(TickerService::class.java)!!
 
-    @Autowired
-    lateinit var configuration: TickersConfiguration
+    @Autowired lateinit var tickerRepository: TickerRepository
+    @Autowired lateinit var configuration: TickersConfiguration
 
-    @Autowired
-    lateinit var tickerRepository: TickerRepository
+    //private var firstPoll: Boolean = true
+    private var restoreNeeded: Boolean = false
 
-    private val consumer by lazy { KafkaConsumer<String, Trade>(
-            configuration.tickerConsumerConfig,
-            JsonDeserializer(String::class.java),
-            JsonDeserializer(Trade::class.java)
-    ).apply {
-        subscribe(configuration.topicNamePattern)
-    } }
-
-    private val consumerBackup by lazy { KafkaConsumer<TickerKey, CqlTicker>(
-            configuration.tickersBackupConsumerConfig,
-            JsonDeserializer(TickerKey::class.java),
-            JsonDeserializer(CqlTicker::class.java)
-    ).apply {
-        subscribe(listOf(configuration.tickersBackupTopicName))
-    }}
-
-    private val producer by lazy { KafkaProducer<TickerKey, CqlTicker>(
-            configuration.tickerProducerConfig,
-            JsonSerializer<TickerKey>(),
-            JsonSerializer<CqlTicker>()
-    ).apply { initTransactions() }}
-
-    private var firstPoll: Boolean = true
+    @PostConstruct
+    fun test() {
+        seekToEnd()
+    }
 
     fun poll(): ConsumerRecords<String, Trade> {
-        if (firstPoll) {
+/*        if (firstPoll) {
             seekToEnd()
             firstPoll = false
-        }
+        }*/
         return consumer.poll(configuration.pollTimeout)
     }
 
-    fun saveAndProduceToKafka(tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>>, currentMillisHop: Long) {
-        val tickerSnapshots = mutableListOf<Ticker>()
+    fun saveAndProduceToKafka(tickers: MutableMap<String, MutableMap<Long, TokenTicker>>) {
+        val tickerSnapshots = mutableListOf<CqlTokenTicker>()
         val topicName = configuration.tickersTopicName
+
+        //todo: correct timestamp?
+        val currentMillisHop = closestSmallerMultiplyFromTs(configuration.windowHop)
 
         producer.beginTransaction()
         try {
-            tickers.forEach { _, exchangeMap ->
-                exchangeMap.forEach { _, windowDurMap ->
-                    windowDurMap.forEach { windowDuration, ticker ->
-                        if (configuration.allowNotClosedWindows) {
-                            producer.send(produceRecord(CqlTicker(ticker), topicName))
-                        } else if (ticker.timestampTo!!.time <= currentMillisHop) {
-                            producer.send(produceRecord(CqlTicker(ticker), topicName))
-                        }
-                        if (ticker.timestampTo!!.time <= currentMillisHop && isSnapshot(ticker, windowDuration)) {
-                            tickerSnapshots.add(ticker)
-                        }
+
+            tickers.forEach { tokenSymbol, windowDurationMap ->
+                windowDurationMap.forEach { windowDuration, ticker ->
+
+                    val isClosedWindow = ticker.timestampTo <= currentMillisHop
+                    val isSnapshot = ticker.timestampTo % windowDuration == 0L
+
+                    if (isClosedWindow || configuration.allowNotClosedWindows) {
+                        producer.send(produceRecord(CqlTokenTicker(ticker), topicName))
                     }
+                    if (isClosedWindow && isSnapshot) {
+                        tickerSnapshots.add(CqlTokenTicker(ticker))
+                    }
+
                 }
             }
+
         } catch (e: Exception) {
             log.error("Cannot produce ticker to kafka", e)
             producer.abortTransaction()
@@ -95,13 +83,8 @@ class TickerService {
         }
     }
 
-    private fun saveSnapshots(tickerSnapshots: MutableList<Ticker>) {
+    private fun saveSnapshots(snapshots: MutableList<CqlTokenTicker>) {
         log.debug("Save tickers snapshots")
-
-        val snapshots = mutableListOf<CqlTicker>()
-        tickerSnapshots.forEach {
-            snapshots.add(CqlTicker(it))
-        }
 
         Schedulers.io().scheduleDirect {
             try {
@@ -111,18 +94,22 @@ class TickerService {
             }
         }
 
-        restoreTickersFromKafka()
+        if (restoreNeeded) {
+            restoreTickersFromKafka()
+        }
     }
 
-    private fun backupTickerToKafka(tickers: MutableList<CqlTicker>) {
-        log.debug("Backuping tickers to kafka: {}", tickers.size)
+    private fun backupTickerToKafka(tickers: MutableList<CqlTokenTicker>) {
+        log.info("Backuping tickers to kafka: {}", tickers.size)
 
+        restoreNeeded = true
         producer.beginTransaction()
         try {
             tickers.forEach { ticker ->
                 producer.send(produceRecord(ticker, configuration.tickersBackupTopicName))
             }
         } catch (e: Exception) {
+            log.error("Tickers backup to kafka failed. Exiting app")
             producer.abortTransaction()
             Runtime.getRuntime().exit(-1)
         }
@@ -130,31 +117,29 @@ class TickerService {
     }
 
     private fun restoreTickersFromKafka() {
-        log.debug("Restore tickers from kafka")
+        log.info("Restoring tickers from kafka")
 
+        restoreNeeded = false
         Schedulers.single().scheduleDirect {
-            val records = consumerBackup.poll(configuration.pollTimeout)
-            log.debug("Tickers for restore count: {}", records.count())
+            val records = consumerBackup.poll(0)
+            log.info("Tickers for restore count: {}", records.count())
 
-            records
-                    .forEach { cqlTickerRecord ->
-                        try {
-                            tickerRepository.save(cqlTickerRecord.value()).block()
-                        } catch (e: Exception) {
-                            log.debug("Restore failed: {} ", cqlTickerRecord)
-                        }
-                    }
+            val tickers = records.map { it.value() }
+
+            try {
+                tickerRepository.saveAll(tickers).collectList().block()
+            } catch (e: Exception) {
+                restoreNeeded = true
+                log.error("Tickers restore failed")
+            }
+
         }
     }
 
-    private fun isSnapshot(ticker: Ticker, windowDuration: Long): Boolean {
-        return ticker.timestampTo!!.time % windowDuration == 0L
-    }
-
-    private fun produceRecord(ticker: CqlTicker, topicName: String): ProducerRecord<TickerKey, CqlTicker> {
+    private fun produceRecord(ticker: CqlTokenTicker, topicName: String): ProducerRecord<TokenTickerKey, CqlTokenTicker> {
         return ProducerRecord(
                 topicName,
-                TickerKey(TokensPair(ticker.pair.base, ticker.pair.quote), ticker.windowDuration, Timestamp(ticker.timestampTo!!.time)),
+                TokenTickerKey(ticker.symbol, ticker.interval, Timestamp(ticker.timestampTo)),
                 ticker)
     }
 
@@ -169,5 +154,27 @@ class TickerService {
         }
         consumer.seekToEnd(partitions)
     }
+
+    private val consumer by lazy { KafkaConsumer<String, Trade>(
+            configuration.tickerConsumerConfig,
+            JsonDeserializer(String::class.java),
+            JsonDeserializer(Trade::class.java)
+    ).apply {
+        subscribe(configuration.topicNamePattern)
+    } }
+
+    private val consumerBackup by lazy { KafkaConsumer<TokenTickerKey, CqlTokenTicker>(
+            configuration.tickersBackupConsumerConfig,
+            JsonDeserializer(TokenTickerKey::class.java),
+            JsonDeserializer(CqlTokenTicker::class.java)
+    ).apply {
+        subscribe(listOf(configuration.tickersBackupTopicName))
+    }}
+
+    private val producer by lazy { KafkaProducer<TokenTickerKey, CqlTokenTicker>(
+            configuration.tickerProducerConfig,
+            JsonSerializer<TokenTickerKey>(),
+            JsonSerializer<CqlTokenTicker>()
+    ).apply { initTransactions() }}
 
 }

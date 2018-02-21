@@ -1,13 +1,12 @@
 package fund.cyber.markets.ticker.processor
 
 import fund.cyber.markets.common.Durations
+import fund.cyber.markets.helpers.closestSmallerMultiply
 import fund.cyber.markets.helpers.closestSmallerMultiplyFromTs
 import fund.cyber.markets.model.BaseTokens
 import fund.cyber.markets.model.Exchanges
-import fund.cyber.markets.model.Ticker
 import fund.cyber.markets.model.TokenPrice
 import fund.cyber.markets.model.TokenTicker
-import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.ticker.common.addHop
 import fund.cyber.markets.ticker.common.minusHop
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
@@ -16,36 +15,37 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
-import java.sql.Timestamp
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
- * @param newTickers - TokenSymbol -> WindowDuration -> TokenTicker
- * @param newWindows - TokenSymbol -> WindowDuration -> Queue<TokenTicker>
+ * @param tickers - map of TokenSymbol -> WindowDuration -> TokenTicker
+ * @param windows - map of TokenSymbol -> WindowDuration -> Queue<TokenTicker>
  */
 @Component
 class TickerProcessor(
-        val newTickers: MutableMap<String, MutableMap<Long, TokenTicker>> = mutableMapOf(),
-        val newWindows: MutableMap<String, MutableMap<Long, Queue<TokenTicker>>> = mutableMapOf(),
-
-        val tickers: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Ticker>>> = mutableMapOf(),
-        val windows: MutableMap<TokensPair, MutableMap<String, MutableMap<Long, Queue<Ticker>>>> = mutableMapOf()
+        val tickers: MutableMap<String, MutableMap<Long, TokenTicker>> = mutableMapOf(),
+        val windows: MutableMap<String, MutableMap<Long, Queue<TokenTicker>>> = mutableMapOf()
 ) : TickerProcessorInterface {
 
     private val log = LoggerFactory.getLogger(TickerProcessor::class.java)!!
 
-    @Autowired
-    lateinit var configuration: TickersConfiguration
+    @Autowired lateinit var hopTickerProcessor: HopTickerProcessor
+    @Autowired lateinit var tickerService: TickerService
+    @Autowired lateinit var configuration: TickersConfiguration
 
-    private val windowHop: Long by lazy { configuration.windowHop }
-    private val windowDurations: Set<Long> by lazy { configuration.windowDurations }
-
-    @Autowired
-    lateinit var tickerService: TickerService
+    fun process() {
+        sleep(configuration.windowHop)
+        while (true) {
+            hopTickerProcessor.update()
+            update(hopTickerProcessor.hopTickers)
+            sleep(configuration.windowHop)
+        }
+    }
 
     fun update(hopTickers: MutableMap<String, TokenTicker>) {
         hopTickers.forEach { tokenSymbol, hopTicker ->
-            windowDurations.forEach { duration ->
+            configuration.windowDurations.forEach { duration ->
 
                 val ticker = getTicker(tokenSymbol, duration)
                 val window = getWindow(tokenSymbol, duration)
@@ -58,14 +58,15 @@ class TickerProcessor(
         cleanupOldData()
         calculateWeightedPrice()
 
-        println("next hop")
+        saveAndProduceToKafka()
+        updateTimestamps()
     }
 
     private fun cleanupOldData() {
-        newTickers.forEach { tokenSymbol, windowDurationMap ->
+        tickers.forEach { tokenSymbol, windowDurationMap ->
             windowDurationMap.forEach { windowDuration, ticker ->
 
-                val window = newWindows[tokenSymbol]!![windowDuration]!!
+                val window = windows[tokenSymbol]!![windowDuration]!!
                 while (window.isNotEmpty() && window.peek().timestampTo <= ticker.timestampFrom) {
                     ticker minusHop window.poll()
                 }
@@ -76,7 +77,7 @@ class TickerProcessor(
     private fun calculateWeightedPrice() {
         val baseTokensList = BaseTokens.values().map { it.name }
 
-        newTickers.forEach { tokenSymbol, windowDurationMap ->
+        tickers.forEach { tokenSymbol, windowDurationMap ->
             windowDurationMap.forEach { windowDuration, ticker ->
                 baseTokensList.forEach { baseTokenSymbol ->
 
@@ -108,11 +109,30 @@ class TickerProcessor(
                                 }
                             }
 
-                            newTickers[tokenSymbol]!![windowDuration]!!.price[baseTokenSymbol]!!
-                                    .put(Exchanges.ALL, TokenPrice(avgPrice))
-
+                            ticker.price[baseTokenSymbol]!!.put(Exchanges.ALL, TokenPrice(avgPrice))
                         }
+                    } else {
+                        ticker.price[baseTokenSymbol]!!.put(Exchanges.ALL, TokenPrice(BigDecimal.ONE))
                     }
+                }
+            }
+        }
+    }
+
+    fun saveAndProduceToKafka() {
+        tickerService.saveAndProduceToKafka(tickers)
+    }
+
+    fun updateTimestamps() {
+        //todo: correct timestamp ?
+        val currentMillisHop = closestSmallerMultiplyFromTs(configuration.windowHop)
+
+        tickers.forEach { _, windowDurationMap ->
+            windowDurationMap.forEach { _, ticker ->
+                if (ticker.timestampTo <= currentMillisHop) {
+                    val difference = currentMillisHop - ticker.timestampTo + configuration.windowHop
+                    ticker.timestampFrom += difference
+                    ticker.timestampTo += difference
                 }
             }
         }
@@ -122,7 +142,7 @@ class TickerProcessor(
         //todo: correct timestamp ?
         val timestampFrom = closestSmallerMultiplyFromTs(windowDuration)
 
-        return newTickers
+        return tickers
                 .getOrPut(tokenSymbol, { mutableMapOf() })
                 .getOrPut(windowDuration, {
                     TokenTicker(
@@ -134,40 +154,16 @@ class TickerProcessor(
     }
 
     private fun getWindow(tokenSymbol: String, windowDuration: Long): Queue<TokenTicker> {
-        return newWindows
+        return windows
                 .getOrPut(tokenSymbol, { mutableMapOf() })
                 .getOrPut(windowDuration, { LinkedList<TokenTicker>() })
     }
 
-    fun updateTimestamps(currentMillisHop: Long) {
-        tickers.forEach { _, exchangeMap ->
-            exchangeMap.forEach { _, windowDurMap ->
-                windowDurMap.forEach { _, ticker ->
-                    if (ticker.timestampTo!!.time <= currentMillisHop) {
-                        val diff = currentMillisHop - ticker.timestampTo!!.time + windowHop
-                        ticker.timestampFrom = Date(ticker.timestampFrom!!.time + diff)
-                        ticker.timestampTo = Date(ticker.timestampTo!!.time + diff)
-                    }
-                }
-            }
-        }
-    }
-
-    fun saveAndProduceToKafka(currentMillisHop: Long) {
-        tickerService.saveAndProduceToKafka(tickers, currentMillisHop)
-    }
-
-    private fun logTickers(currentMillisHop: Long) {
-        log.trace("Window timestamp: {}", Timestamp(currentMillisHop))
-        tickers.forEach { _, exchangeMap ->
-            exchangeMap.forEach { _, windowDurMap ->
-                windowDurMap.forEach { _, ticker ->
-                    if (ticker.timestampTo!!.time <= currentMillisHop) {
-                        log.trace(ticker.toString())
-                    }
-                }
-            }
-        }
+    private fun sleep(windowHop: Long) {
+        val currentMillisHop = closestSmallerMultiply(System.currentTimeMillis(), windowHop)
+        val diff = currentMillisHop + windowHop - System.currentTimeMillis()
+        log.debug("Time for hop calculation: {} ms", windowHop - diff)
+        TimeUnit.MILLISECONDS.sleep(diff)
     }
 
 }
