@@ -63,6 +63,8 @@ class TickerProcessor(
     }
 
     private fun cleanupOldData() {
+        val tickersForDelete = mutableListOf<TokenTicker>()
+
         tickers.forEach { tokenSymbol, windowDurationMap ->
             windowDurationMap.forEach { windowDuration, ticker ->
 
@@ -70,7 +72,14 @@ class TickerProcessor(
                 while (window.isNotEmpty() && window.peek().timestampTo <= ticker.timestampFrom) {
                     ticker minusHop window.poll()
                 }
+                if (window.isEmpty()) {
+                    tickersForDelete.add(ticker)
+                }
             }
+        }
+
+        tickersForDelete.forEach { ticker ->
+            tickers[ticker.symbol]!!.remove(ticker.interval)
         }
     }
 
@@ -120,7 +129,7 @@ class TickerProcessor(
     }
 
     fun saveAndProduceToKafka() {
-        tickerService.saveAndProduceToKafka(tickers)
+        tickerService.persist(tickers)
     }
 
     fun updateTimestamps() {

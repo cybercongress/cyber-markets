@@ -203,6 +203,10 @@ project(":tickers") {
         compile project(":cassandra-service")
 
         compile "org.springframework.boot:spring-boot-starter"
+        compile "org.springframework.kafka:spring-kafka"
+
+        testCompile 'org.springframework:spring-test'
+        testCompile 'org.springframework.kafka:spring-kafka-test'
     }
 }
 

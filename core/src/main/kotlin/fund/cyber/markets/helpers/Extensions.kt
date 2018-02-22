@@ -40,8 +40,8 @@ suspend fun Call.await(): Response {
 
     return suspendCoroutine { cont: Continuation<Response> ->
         val callback = object : Callback {
-            override fun onFailure(call: Call?, e: IOException) {cont.resumeWithException(e)}
-            override fun onResponse(call: Call?, response: Response) {cont.resume(response)}
+            override fun onFailure(call: Call, e: IOException) {cont.resumeWithException(e)}
+            override fun onResponse(call: Call, response: Response) {cont.resume(response)}
         }
         enqueue(callback)
     }
