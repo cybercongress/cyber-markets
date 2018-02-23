@@ -8,11 +8,11 @@ import fund.cyber.markets.ticker.configuration.TICKERS_TOPIC_NAME
 import io.reactivex.schedulers.Schedulers
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import java.sql.Timestamp
 import javax.annotation.PostConstruct
@@ -22,12 +22,7 @@ class TickerKafkaService {
 
     private val log = LoggerFactory.getLogger(TickerKafkaService::class.java)!!
 
-    @Qualifier("tickerKafkaTemplate")
-    @Autowired private lateinit var tickerTemplate: KafkaTemplate<TokenTickerKey, CqlTokenTicker>
-
-    @Qualifier("tickerBackupKafkaTemplate")
-    @Autowired private lateinit var tickerBackupTemplate: KafkaTemplate<TokenTickerKey, CqlTokenTicker>
-
+    @Autowired private lateinit var tickerProducer: KafkaProducer<TokenTickerKey, CqlTokenTicker>
     @Autowired private lateinit var tradesConsumer: KafkaConsumer<String, Trade>
     @Autowired private lateinit var tickersBackupConsumer: KafkaConsumer<TokenTickerKey, CqlTokenTicker>
 
@@ -45,10 +40,10 @@ class TickerKafkaService {
         Schedulers.io().scheduleDirect {
             try {
                 tickers.forEach { ticker ->
-                    tickerTemplate.send(
+                    tickerProducer.send(ProducerRecord(
                             TICKERS_TOPIC_NAME,
                             TokenTickerKey(ticker.symbol, ticker.interval, Timestamp(ticker.timestampTo)),
-                            ticker)
+                            ticker))
                 }
             } catch (e: Exception) {
                 log.error("Cannot produce ticker to kafka. Exiting app", e)
@@ -62,12 +57,11 @@ class TickerKafkaService {
 
         try {
             tickers.forEach { ticker ->
-                tickerBackupTemplate.send(
+                tickerProducer.send(ProducerRecord(
                         TICKERS_BACKUP_TOPIC_NAME,
                         TokenTickerKey(ticker.symbol, ticker.interval, Timestamp(ticker.timestampTo)),
-                        ticker)
+                        ticker))
             }
-            tickerBackupTemplate.flush()
         } catch (e: Exception) {
             log.error("Tickers backup to kafka failed. Exiting app", e)
             Runtime.getRuntime().exit(-1)
