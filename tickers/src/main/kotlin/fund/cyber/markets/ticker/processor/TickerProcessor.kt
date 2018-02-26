@@ -129,17 +129,16 @@ class TickerProcessor(
     }
 
     fun saveAndProduceToKafka() {
-        tickerService.persist(tickers)
+        tickerService.persist(tickers, hopTickerProcessor.currentHopFromMillis)
     }
 
     fun updateTimestamps() {
-        //todo: correct timestamp ?
-        val currentMillisHop = closestSmallerMultiplyFromTs(configuration.windowHop)
+        val currentHopFromMillis = hopTickerProcessor.currentHopFromMillis
 
         tickers.forEach { _, windowDurationMap ->
             windowDurationMap.forEach { _, ticker ->
-                if (ticker.timestampTo <= currentMillisHop) {
-                    val difference = currentMillisHop - ticker.timestampTo + configuration.windowHop
+                if (ticker.timestampTo <= currentHopFromMillis) {
+                    val difference = currentHopFromMillis - ticker.timestampTo + configuration.windowHop
                     ticker.timestampFrom += difference
                     ticker.timestampTo += difference
                 }
@@ -148,7 +147,6 @@ class TickerProcessor(
     }
 
     private fun getTicker(tokenSymbol: String, windowDuration: Long): TokenTicker {
-        //todo: correct timestamp ?
         val timestampFrom = closestSmallerMultiplyFromTs(windowDuration)
 
         return tickers

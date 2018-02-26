@@ -150,13 +150,6 @@ subprojects {
 
 project(":core") {
 
-    apply plugin: "kotlin-noarg"
-
-    noArg {
-        annotation("com.datastax.driver.mapping.annotations.Table")
-        annotation("com.datastax.driver.mapping.annotations.UDT")
-    }
-
     dependencies {
         compile("org.slf4j:slf4j-api")
         compile("ch.qos.logback:logback-classic")
@@ -172,7 +165,6 @@ project(":core") {
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
         compile("org.apache.kafka:kafka-clients")
-        compileOnly("com.datastax.cassandra:cassandra-driver-mapping")
 
         compile("io.reactivex.rxjava2:rxkotlin")
     }
@@ -211,15 +203,20 @@ project(":tickers") {
 }
 
 project(":cassandra-service") {
+
+    apply plugin: "kotlin-noarg"
+
+    noArg {
+        annotation("com.datastax.driver.mapping.annotations.Table")
+        annotation("com.datastax.driver.mapping.annotations.UDT")
+    }
+
     dependencies {
         compileOnly project(":core")
 
-        //https://jira.spring.io/browse/DATACMNS-1245 bug
-        compile("org.springframework.data:spring-data-cassandra")
-        compile("io.projectreactor:reactor-core")
+        compileOnly ("org.springframework.boot:spring-boot-starter")
 
         compile("com.datastax.cassandra:cassandra-driver-core")
         compile("com.datastax.cassandra:cassandra-driver-mapping")
-        //compile("com.datastax.cassandra:cassandra-driver-extras")
     }
 }

@@ -1,6 +1,6 @@
 package fund.cyber.markets.ticker.processor
 
-import fund.cyber.markets.helpers.closestSmallerMultiply
+import fund.cyber.markets.helpers.closestSmallerMultiplyFromTs
 import fund.cyber.markets.model.BaseTokens
 import fund.cyber.markets.model.Exchanges
 import fund.cyber.markets.model.TokenPrice
@@ -28,12 +28,13 @@ class HopTickerProcessor(
     @Autowired lateinit var tickerService: TickerService
     @Autowired lateinit var crossConversion: CrossConversion
     private val windowHop: Long by lazy { configuration.windowHop }
+    var currentHopFromMillis: Long = closestSmallerMultiplyFromTs(windowHop)
 
     fun update() {
         hopTickers.clear()
 
-        val currentMillisHop = closestSmallerMultiply(System.currentTimeMillis(), windowHop)
-        val currentMillisHopFrom = currentMillisHop - windowHop
+        currentHopFromMillis = closestSmallerMultiplyFromTs(windowHop)
+        val currentMillisHopFrom = currentHopFromMillis - windowHop
 
         val tradeRecords = tickerService.poll()
         val tradesCount = tradeRecords.count()
@@ -56,11 +57,11 @@ class HopTickerProcessor(
 
             val tickerBase = hopTickers
                     .getOrPut(base, {
-                        TokenTicker(base, currentMillisHopFrom, currentMillisHop, windowHop)
+                        TokenTicker(base, currentMillisHopFrom, currentHopFromMillis, windowHop)
                     })
             val tickerQuote = hopTickers
                     .getOrPut(quote, {
-                        TokenTicker(quote, currentMillisHopFrom, currentMillisHop, windowHop)
+                        TokenTicker(quote, currentMillisHopFrom, currentHopFromMillis, windowHop)
                     })
 
             val volumeBase = tickerBase.volume

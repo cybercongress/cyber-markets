@@ -1,7 +1,14 @@
 package fund.cyber.markets.cassandra.model
 
+import com.datastax.driver.mapping.annotations.ClusteringColumn
+import com.datastax.driver.mapping.annotations.Column
+import com.datastax.driver.mapping.annotations.Frozen
+import com.datastax.driver.mapping.annotations.PartitionKey
+import com.datastax.driver.mapping.annotations.Table
+import com.datastax.driver.mapping.annotations.UDT
 import fund.cyber.markets.model.TokenTicker
 import java.math.BigDecimal
+import java.util.*
 
 /**
  * TokenTicker class for cassandra
@@ -10,21 +17,32 @@ import java.math.BigDecimal
  * @property volume - map of CT_Symbol -> Exchange -> Volume
  * @property baseVolume - map of BCT_Symbol -> exchange -> TotalVolume in BCT
  */
+
+@Table(keyspace = "markets", name = "ticker",
+        readConsistency = "QUORUM", writeConsistency = "QUORUM",
+        caseSensitiveKeyspace = false, caseSensitiveTable = false)
 data class CqlTokenTicker(
+        @PartitionKey(0) @Column(name = "tokensymbol")
         val symbol: String,
 
-        var timestampFrom: Long,
-        var timestampTo: Long,
+        @ClusteringColumn(0)
+        var timestampFrom: Date,
+        var timestampTo: Date,
+
+        @ClusteringColumn(1)
         val interval: Long,
 
-        val volume: MutableMap<String, MutableMap<String, BigDecimal>>,
-        val baseVolume: MutableMap<String, MutableMap<String, BigDecimal>>,
+        @Frozen
+        val volume: Map<String, Map<String, BigDecimal>>,
+        @Frozen
+        val baseVolume: Map<String, Map<String, BigDecimal>>,
+        @Frozen
         val price: MutableMap<String, MutableMap<String, CqlTokenPrice>> = mutableMapOf()
 ) {
     constructor(tokenTicker: TokenTicker) : this(
             tokenTicker.symbol,
-            tokenTicker.timestampFrom,
-            tokenTicker.timestampTo,
+            Date(tokenTicker.timestampFrom),
+            Date(tokenTicker.timestampTo),
             tokenTicker.interval, tokenTicker.volume,
             tokenTicker.baseVolume) {
 
@@ -38,6 +56,7 @@ data class CqlTokenTicker(
     }
 }
 
+@UDT(name = "tokenprice")
 data class CqlTokenPrice(
         var value: BigDecimal
 )

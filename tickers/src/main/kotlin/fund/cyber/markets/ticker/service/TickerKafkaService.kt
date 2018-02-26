@@ -42,7 +42,7 @@ class TickerKafkaService {
                 tickers.forEach { ticker ->
                     tickerProducer.send(ProducerRecord(
                             TICKERS_TOPIC_NAME,
-                            TokenTickerKey(ticker.symbol, ticker.interval, Timestamp(ticker.timestampTo)),
+                            TokenTickerKey(ticker.symbol, ticker.interval, Timestamp(ticker.timestampTo.time)),
                             ticker))
                 }
             } catch (e: Exception) {
@@ -59,7 +59,7 @@ class TickerKafkaService {
             tickers.forEach { ticker ->
                 tickerProducer.send(ProducerRecord(
                         TICKERS_BACKUP_TOPIC_NAME,
-                        TokenTickerKey(ticker.symbol, ticker.interval, Timestamp(ticker.timestampTo)),
+                        TokenTickerKey(ticker.symbol, ticker.interval, Timestamp(ticker.timestampTo.time)),
                         ticker))
             }
         } catch (e: Exception) {
@@ -68,8 +68,8 @@ class TickerKafkaService {
         }
     }
 
-    fun pollBackupedTickers(): List<CqlTokenTicker> {
-        val records = tickersBackupConsumer.poll(0)
+    fun pollBackupedTickers(timeout: Long): List<CqlTokenTicker> {
+        val records = tickersBackupConsumer.poll(timeout)
         log.info("Tickers for restore count: {}", records.count())
 
         return records.map { it.value() }

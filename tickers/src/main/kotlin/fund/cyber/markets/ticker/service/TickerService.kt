@@ -2,7 +2,6 @@ package fund.cyber.markets.ticker.service
 
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.helpers.closestSmallerMultiplyFromTs
 import fund.cyber.markets.model.TokenTicker
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
@@ -28,16 +27,13 @@ class TickerService {
         return tickerKafkaService.pollTrades(configuration.pollTimeout)
     }
 
-    fun persist(tickers: MutableMap<String, MutableMap<Long, TokenTicker>>) {
+    fun persist(tickers: MutableMap<String, MutableMap<Long, TokenTicker>>, currentHopFromMillis: Long) {
         val tickerSnapshots = mutableListOf<CqlTokenTicker>()
         val tickerClosed = mutableListOf<CqlTokenTicker>()
 
-        //todo: correct timestamp?
-        val currentMillisHop = closestSmallerMultiplyFromTs(configuration.windowHop)
-
         tickers.forEach { _, windowDurationMap ->
             windowDurationMap.forEach { windowDuration, ticker ->
-                val isClosedWindow = ticker.timestampTo <= currentMillisHop
+                val isClosedWindow = ticker.timestampTo <= currentHopFromMillis
                 val isSnapshot = ticker.timestampTo % windowDuration == 0L
 
                 if (isClosedWindow || configuration.allowNotClosedWindows) {
@@ -62,9 +58,10 @@ class TickerService {
 
         Schedulers.single().scheduleDirect {
             try {
-                tickerRepository.saveAll(snapshots).collectList().block()
+                tickerRepository.saveAll(snapshots)
                 isCassandraAlive = true
             } catch (e: Exception) {
+                log.error("Save tickers snapshots failed", e)
                 restoreNeeded = true
                 isCassandraAlive = false
                 tickerKafkaService.backupTickers(snapshots)
@@ -80,10 +77,10 @@ class TickerService {
         log.info("Restoring tickers from kafka")
 
         Schedulers.single().scheduleDirect {
-            val tickers = tickerKafkaService.pollBackupedTickers()
+            val tickers = tickerKafkaService.pollBackupedTickers(configuration.pollTimeout)
 
             try {
-                tickerRepository.saveAll(tickers).collectList().block()
+                tickerRepository.saveAll(tickers)
             } catch (e: Exception) {
                 log.error("Tickers restore failed")
             }
