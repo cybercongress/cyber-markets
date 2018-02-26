@@ -28,7 +28,7 @@ class HopTickerProcessor(
     @Autowired lateinit var tickerService: TickerService
     @Autowired lateinit var crossConversion: CrossConversion
     private val windowHop: Long by lazy { configuration.windowHop }
-    var currentHopFromMillis: Long = closestSmallerMultiplyFromTs(windowHop)
+    var currentHopFromMillis: Long = 0L
 
     fun update() {
         hopTickers.clear()
