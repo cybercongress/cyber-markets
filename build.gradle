@@ -15,6 +15,7 @@ buildscript {
 
         springKafkaVersion = "2.1.2.RELEASE"
         springCassandraVersion = "2.0.3.RELEASE"
+        springBootTestVersion = "1.5.10.RELEASE"
 
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
@@ -116,7 +117,9 @@ subprojects {
             dependency("org.apache.httpcomponents:httpclient:$httpClientVersion")
 
             dependency("org.springframework.kafka:spring-kafka:$springKafkaVersion")
-            dependency("org.springframework.kafka:spring-kafka-test:$springKafkaVersion")
+            //dependency("org.springframework.kafka:spring-kafka-test:$springKafkaVersion")
+            dependency("org.springframework:spring-boot-starter-test:$springBootTestVersion")
+
             dependency("org.apache.kafka:kafka-clients:$kafkaVersion")
 
             dependency("org.junit.jupiter:junit-jupiter-api:$junitVersion")
@@ -127,8 +130,8 @@ subprojects {
             }
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 
-            dependency("org.springframework.data:spring-data-cassandra:$springCassandraVersion")
-            dependency("org.springframework.data:spring-data-commons:$springCassandraVersion")
+            //dependency("org.springframework.data:spring-data-cassandra:$springCassandraVersion")
+            //dependency("org.springframework.data:spring-data-commons:$springCassandraVersion")
             dependency("com.datastax.cassandra:cassandra-driver-core:$cassandraConfluentVersion")
             dependency("com.datastax.cassandra:cassandra-driver-mapping:$cassandraConfluentVersion")
 
@@ -194,11 +197,11 @@ project(":tickers") {
         compile project(":core")
         compile project(":cassandra-service")
 
-        compile "org.springframework.boot:spring-boot-starter"
+        compile("org.springframework.boot:spring-boot-starter")
         compile "org.springframework.kafka:spring-kafka"
 
-        testCompile 'org.springframework:spring-test'
-        testCompile 'org.springframework.kafka:spring-kafka-test'
+        testCompile("org.springframework.boot:spring-boot-starter-test")
+        //testCompile 'org.springframework.kafka:spring-kafka-test'
     }
 }
 
