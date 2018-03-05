@@ -1,12 +1,11 @@
 # Build Stage
 FROM openjdk:8u131-jdk AS build
-COPY ./ /cm
-WORKDIR /cm
-RUN ./gradlew clean :tickers:installDist
+COPY ./ /build
+WORKDIR /build
+RUN ./gradlew clean :tickers:assemble
 
 # Container with application
 FROM openjdk:8u131-jre-alpine
-VOLUME /cyberdata
-COPY --from=build /cm/tickers/build/install/tickers /cyberapp
+COPY --from=build /build/tickers/build/libs /cyberapp/bin
 
-ENTRYPOINT ["/cyberapp/bin/tickers"]
+ENTRYPOINT ["java", "-jar", "/cyberapp/bin/tickers.jar"]

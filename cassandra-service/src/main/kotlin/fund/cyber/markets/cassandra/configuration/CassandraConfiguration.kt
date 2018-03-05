@@ -7,6 +7,7 @@ import fund.cyber.markets.configuration.CASSANDRA_HOSTS
 import fund.cyber.markets.configuration.CASSANDRA_HOSTS_DEFAULT
 import fund.cyber.markets.configuration.CASSANDRA_PORT
 import fund.cyber.markets.configuration.CASSANDRA_PORT_DEFAULT
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,13 +18,18 @@ const val MARKETS_KEYSPACE = "markets"
 
 @Configuration
 class CassandraRepositoryConfiguration(
-        @Value("#{systemProperties['${CASSANDRA_HOSTS}'] ?: '${CASSANDRA_HOSTS_DEFAULT}'}")
+        @Value("\${$CASSANDRA_HOSTS:$CASSANDRA_HOSTS_DEFAULT}")
         private val cassandraHosts: String,
-        @Value("#{systemProperties['${CASSANDRA_PORT}'] ?: '${CASSANDRA_PORT_DEFAULT}'}")
+        @Value("\${$CASSANDRA_PORT:$CASSANDRA_PORT_DEFAULT}")
         private val cassandraPort: Int
 ) {
+
+    private val log = LoggerFactory.getLogger(CassandraRepositoryConfiguration::class.java)!!
+
     @Bean
     fun cassandraCluster(): Cluster {
+        log.info("Cassandra hosts: {}; Cassandra port: {}", cassandraHosts, cassandraPort)
+
         return Cluster.builder()
                 .addContactPoints(cassandraHosts)
                 .withPort(cassandraPort)
