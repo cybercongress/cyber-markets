@@ -4,8 +4,8 @@ import com.datastax.driver.mapping.Result
 import com.datastax.driver.mapping.annotations.Accessor
 import com.datastax.driver.mapping.annotations.Param
 import com.datastax.driver.mapping.annotations.Query
-import fund.cyber.markets.dto.TokensPair
 import fund.cyber.markets.model.Ticker
+import fund.cyber.markets.model.TokensPair
 import java.util.*
 
 

@@ -15,7 +15,6 @@ defaults:
       branches:
         ignore: /.*/
 
-
 jobs:
 
   build_connectors:
@@ -32,11 +31,11 @@ jobs:
       - run:
           name: Test and build connectors project
           command: |
-            ./gradlew -p ./connectors-bitfinex clean build
-            ./gradlew -p ./connectors-bitstamp clean build
-            ./gradlew -p ./connectors-hitbtc clean build
-            ./gradlew -p ./connectors-poloniex clean build
-            ./gradlew -p ./connectors-gdax clean build
+            ./gradlew -p ./connectors/bitfinex clean build
+            ./gradlew -p ./connectors/bitstamp clean build
+            ./gradlew -p ./connectors/hitbtc clean build
+            ./gradlew -p ./connectors/poloniex clean build
+            ./gradlew -p ./connectors/gdax clean build
       - save_cache:
           key: connectors-core-dependencies-{{ checksum "build.gradle" }}
           paths:
@@ -59,26 +58,6 @@ jobs:
           command: ./gradlew -p ./stream-api clean build
       - save_cache:
           key: api-dependencies-{{ checksum "build.gradle" }}
-          paths:
-            - ~/.gradle/caches/
-            - ~/.gradle/wrapper/
-
-  build_rest-api:
-    <<: *default_container
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - rest-api-dependencies-{{ checksum "build.gradle" }}
-            - rest-api-dependencies
-          paths:
-            - ~/.gradle/caches/
-            - ~/.gradle/wrapper/
-      - run:
-          name: Test and build rest-api project
-          command: ./gradlew -p ./rest-api clean build
-      - save_cache:
-          key: rest-api-dependencies-{{ checksum "build.gradle" }}
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
@@ -216,38 +195,6 @@ jobs:
              docker tag build/cm-stream-api cybernode/cm-stream-api:latest
              docker push cybernode/cm-stream-api:latest
 
-  deploy_rest-api_image:
-     <<: *default_container
-     steps:
-       - checkout
-       - setup_remote_docker:
-           version: 17.05.0-ce
-       - run:
-           name: Build rest-api docker image
-           command: |
-             docker build -t build/cm-rest-api -f ./devops/rest-api/Dockerfile ./
-             docker login -u $DOCKER_USER -p $DOCKER_PASS
-             docker tag build/cm-rest-api cybernode/cm-rest-api:$CIRCLE_TAG
-             docker push cybernode/cm-rest-api:$CIRCLE_TAG
-             docker tag build/cm-rest-api cybernode/cm-rest-api:latest
-             docker push cybernode/cm-rest-api:latest
-
-#  deploy_kafka-connectors_image:
-#       <<: *default_container
-#      steps:
-#         - checkout
-#         - setup_remote_docker:
-#             version: 17.05.0-ce
-#         - run:
-#             name: Build kafka-connectors docker image
-#             command: |
-#               docker build -t build/cm-kafka-connectors -f ./devops/kafka-connectors/Dockerfile ./
-#               docker login -u $DOCKER_USER -p $DOCKER_PASS
-#               docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:$CIRCLE_TAG
-#               docker push cybernode/cm-kafka-connectors:$CIRCLE_TAG
-#               docker tag build/cm-kafka-connectors cybernode/cm-kafka-connectors:latest
-#               docker push cybernode/cm-kafka-connectors:latest
-
   deploy_tickers_image:
      <<: *default_container
      steps:
@@ -308,22 +255,6 @@ workflows:
           <<: *release_filter
           requires:
             - build_stream-api
-
-  rest-api_build:
-    jobs:
-      - build_rest-api:
-          filters:
-            tags:
-              only: /.*/
-      - deploy_rest-api_image:
-          <<: *release_filter
-          requires:
-            - build_rest-api
-
-#  kafka-connectors_build:
-#    jobs:
-#      - deploy_kafka-connectors_image:
-#          <<: *release_filter
 
   tickers_build:
     jobs:

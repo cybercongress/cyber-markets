@@ -19,16 +19,12 @@ suspend fun <R> retryUntilSuccess(retryDelay: Long = 5, block: suspend () -> R):
     }
 }
 
-inline fun <reified T : Any> env(name: String, default: T): T =
-    when (T::class) {
-        String::class -> (System.getenv(name) ?: default) as T
-        Int::class, Int::class.javaPrimitiveType -> (System.getenv(name)?.toIntOrNull() ?: default) as T
-        Boolean::class, Boolean::class.javaPrimitiveType -> (System.getenv(name).toBoolean()) as T
-        else -> default
-    }
-
 fun rand(from: Int, to: Int) = (Math.random() * (to - from) + from).toInt()
 
 fun closestSmallerMultiply(dividend: Long, divider: Long): Long {
     return dividend / divider * divider
+}
+
+fun closestSmallerMultiplyFromTs(divider: Long): Long {
+    return System.currentTimeMillis() / divider * divider
 }

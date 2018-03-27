@@ -1,24 +1,26 @@
 /* Gradle plugins part */
 buildscript {
     ext {
-        kotlinVersion = "1.2.21"
+        kotlinVersion = "1.2.31"
         kotlinCoroutinesVersion = "0.19.3"
         jacksonVersion = "2.9.2"
-        okhttpVersion = "3.8.1"
-        undertowVersion = "1.4.20.Final"
         httpClientVersion = "4.5.5"
         kafkaVersion = "1.0.0"
         web3jVersion = "2.3.1"
-        khttpVersion = "0.1.0"
         rxkotlinVersion = "2.2.0"
+        reactorVersion = "3.1.3.RELEASE"
+
+        springBootVersion = "2.0.0.RELEASE"
+        springKafkaVersion = "2.1.2.RELEASE"
+        springCassandraVersion = "2.0.3.RELEASE"
 
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
         shadowPluginVersion = "2.0.1"
 
         // tests
-        junitVersion = "5.0.1"
-        junitPlatformVersion = "1.0.1"
+        junitVersion = "5.0.3"
+        junitPlatformVersion = "1.0.3"
         mockitoVersion = "2.1.0"
         mockitoKotlinVersion = "0.7.0"
 
@@ -32,14 +34,20 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev/' }
+        maven { url 'https://repo.spring.io/libs-snapshot' }
+        maven { url 'https://repo.spring.io/libs-milestone' }
     }
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
+        classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion")
+
         classpath("io.spring.gradle:dependency-management-plugin:$dependencyPluginVersion")
         classpath("org.junit.platform:junit-platform-gradle-plugin:$junitPlatformVersion")
         classpath("com.github.jengelman.gradle.plugins:shadow:$shadowPluginVersion")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
     }
 }
 
@@ -50,10 +58,24 @@ task wrapper(type: Wrapper) {
 
 
 subprojects {
-/* Gradle plugins settings part */
     apply plugin: "kotlin"
+    apply plugin: 'kotlin-spring'
     apply plugin: "org.junit.platform.gradle.plugin"
     apply plugin: "io.spring.dependency-management"
+
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "1.8"
+        }
+    }
+
+    compileTestKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "1.8"
+        }
+    }
 
     kotlin {
         experimental {
@@ -61,40 +83,58 @@ subprojects {
         }
     }
 
-/* Java dependencies part */
     repositories {
         jcenter()
         mavenCentral()
+        maven { url 'https://repo.spring.io/libs-milestone' }
+        maven { url 'https://repo.spring.io/libs-snapshot' }
     }
 
     dependencyManagement {
         dependencies {
+            imports {
+                mavenBom "org.springframework.boot:spring-boot-starter-parent:$springBootVersion"
+            }
+
             dependency("org.slf4j:slf4j-api:$slf4jVersion")
             dependency("ch.qos.logback:logback-classic:$lockbackVersion")
 
+            dependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
             dependency("org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlinVersion")
             dependency("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
             dependency("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinCoroutinesVersion")
 
-            dependency("com.squareup.okhttp3:okhttp:$okhttpVersion")
             dependency("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-            dependency("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+            dependency("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion") {
+                exclude 'org.jetbrains.kotlin:kotlin-stdlib'
+            }
 
-            dependency("io.undertow:undertow-core:$undertowVersion")
-            dependency("org.apache.httpcomponents:httpclient:$httpClientVersion")
+            dependency("org.springframework.kafka:spring-kafka:$springKafkaVersion")
+
+            dependency("org.springframework.boot:spring-boot-starter:$springBootVersion")
+            dependency("org.springframework:spring-boot-starter-test:$springBootVersion")
+            dependency("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
+            dependency("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
 
             dependency("org.apache.kafka:kafka-clients:$kafkaVersion")
 
             dependency("org.junit.jupiter:junit-jupiter-api:$junitVersion")
             dependency("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
             dependency("org.mockito:mockito-core:$mockitoVersion")
-            dependency("com.nhaarman:mockito-kotlin:$mockitoKotlinVersion")
+            dependency("com.nhaarman:mockito-kotlin:$mockitoKotlinVersion") {
+                exclude 'org.jetbrains.kotlin:kotlin-stdlib'
+            }
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 
+            //dependency("org.springframework.data:spring-data-cassandra:$springCassandraVersion")
+            //dependency("org.springframework.data:spring-data-commons:$springCassandraVersion")
             dependency("com.datastax.cassandra:cassandra-driver-core:$cassandraConfluentVersion")
             dependency("com.datastax.cassandra:cassandra-driver-mapping:$cassandraConfluentVersion")
 
-            dependency("io.reactivex.rxjava2:rxkotlin:$rxkotlinVersion")
+            dependency("io.reactivex.rxjava2:rxkotlin:$rxkotlinVersion") {
+                exclude 'org.jetbrains.kotlin:kotlin-stdlib'
+            }
+            dependency("io.projectreactor:reactor-core:$reactorVersion")
         }
     }
 
@@ -107,97 +147,7 @@ subprojects {
     }
 }
 
-project(":connectors-core") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":core"))
-        compile("khttp:khttp:$khttpVersion")
-    }
-
-    run {
-        systemProperties System.getProperties()
-    }
-}
-
-project(":connectors-bitfinex") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":connectors-core"))
-    }
-
-    mainClassName = "fund.cyber.markets.connectors.bitfinex.BitfinexConnectorApplicationKt"
-
-    run {
-        systemProperties System.getProperties()
-    }
-}
-
-project(":connectors-bitstamp") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":connectors-core"))
-    }
-
-    mainClassName = "fund.cyber.markets.connectors.bitstamp.BitstampConnectorApplicationKt"
-
-    run {
-        systemProperties System.getProperties()
-    }
-}
-
-project(":connectors-hitbtc") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":connectors-core"))
-    }
-
-    mainClassName = "fund.cyber.markets.connectors.hitbtc.HitBtcConnectorApplicationKt"
-
-    run {
-        systemProperties System.getProperties()
-    }
-}
-
-project(":connectors-poloniex") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":connectors-core"))
-    }
-
-    mainClassName = "fund.cyber.markets.connectors.poloniex.PoloniexConnectorApplicationKt"
-
-    run {
-        systemProperties System.getProperties()
-    }
-}
-
-project(":connectors-gdax") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":connectors-core"))
-    }
-
-    mainClassName = "fund.cyber.markets.connectors.gdax.GdaxConnectorApplicationKt"
-
-    run {
-        systemProperties System.getProperties()
-    }
-}
-
 project(":core") {
-
-    apply plugin: "kotlin-noarg"
-
-    noArg {
-        annotation("com.datastax.driver.mapping.annotations.Table")
-        annotation("com.datastax.driver.mapping.annotations.UDT")
-    }
 
     dependencies {
         compile("org.slf4j:slf4j-api")
@@ -207,14 +157,12 @@ project(":core") {
         compile("org.jetbrains.kotlin:kotlin-reflect")
         compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 
-        compile("io.undertow:undertow-core")
-
-        compile("com.squareup.okhttp3:okhttp")
         compile("com.fasterxml.jackson.core:jackson-databind")
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
         compile("org.apache.kafka:kafka-clients")
-        compileOnly("com.datastax.cassandra:cassandra-driver-mapping")
+
+        compile("io.reactivex.rxjava2:rxkotlin")
     }
 }
 
@@ -223,42 +171,60 @@ project(":stream-api") {
 
     dependencies {
         compile(project(":core"))
-        compile(project(":tickers"))
         compile("io.undertow:undertow-core")
     }
 
     mainClassName = "fund.cyber.markets.StreamApiApplication"
 }
 
-project(":tickers") {
-    apply plugin: "application"
-
-    dependencies {
-        compile(project(":core"))
-        compile(project(":dao"))
-    }
-
-    mainClassName = "fund.cyber.markets.tickers.TickersApplicationKt"
-}
-
 project(":rest-api") {
-    apply plugin: "application"
+
+    apply plugin: "org.springframework.boot"
 
     dependencies {
-        compile(project(":core"))
-        compile(project(":dao"))
-        compile("io.undertow:undertow-core")
-        compile("org.apache.httpcomponents:httpclient")
-    }
+        compile project(":core")
+        compile project(":cassandra-service")
 
-    mainClassName = "fund.cyber.markets.rest.RestApiApplicationKt"
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.springframework.boot:spring-boot-starter-webflux'
+        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
+    }
 }
 
-project(":dao") {
+project(":tickers") {
+
+    apply plugin: "org.springframework.boot"
+
+    springBoot {
+        mainClassName = 'fund.cyber.markets.TickersApplication'
+    }
+
     dependencies {
-        compileOnly(project(":core"))
+        compile project(":core")
+        compile project(":cassandra-service")
+
+        compile("org.springframework.boot:spring-boot-starter")
+        compile("org.springframework.kafka:spring-kafka")
+
+        testCompile("org.springframework.boot:spring-boot-starter-test")
+    }
+}
+
+project(":cassandra-service") {
+
+    apply plugin: "kotlin-noarg"
+
+    noArg {
+        annotation("com.datastax.driver.mapping.annotations.Table")
+        annotation("com.datastax.driver.mapping.annotations.UDT")
+    }
+
+    dependencies {
+        compileOnly project(":core")
+
+        compileOnly("org.springframework.boot:spring-boot-starter")
+
         compile("com.datastax.cassandra:cassandra-driver-core")
         compile("com.datastax.cassandra:cassandra-driver-mapping")
-        compile("io.reactivex.rxjava2:rxkotlin")
     }
 }

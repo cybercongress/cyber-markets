@@ -1,6 +1,6 @@
 package fund.cyber.markets.api.common
 
-import fund.cyber.markets.dto.TokensPair
+import fund.cyber.markets.model.TokensPair
 
 /**
  * @author mgergalov
