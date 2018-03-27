@@ -1,9 +1,17 @@
+buildscript {
+    ext {
+        undertowVersion = "1.4.20.Final"
+        okhttpVersion = "3.10.0"
+    }
+}
+
 project(":connectors:common") {
     apply plugin: "application"
 
     dependencies {
         compile(project(":core"))
-        compile("khttp:khttp:$khttpVersion")
+        compile("io.undertow:undertow-core:$undertowVersion")
+        compile("com.squareup.okhttp3:okhttp:$okhttpVersion")
     }
 }
 

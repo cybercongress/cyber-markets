@@ -37,24 +37,21 @@ data class CqlTokenTicker(
         @Frozen
         val baseVolume: Map<String, Map<String, BigDecimal>>,
         @Frozen
-        val price: MutableMap<String, MutableMap<String, CqlTokenPrice>> = mutableMapOf()
+        val price: Map<String, Map<String, CqlTokenPrice>>
 ) {
     constructor(tokenTicker: TokenTicker) : this(
             tokenTicker.symbol,
             Date(tokenTicker.timestampFrom),
             Date(tokenTicker.timestampTo),
             tokenTicker.interval, tokenTicker.volume,
-            tokenTicker.baseVolume) {
-
-        tokenTicker.price.forEach { baseTokenSymbol, exchangeMap ->
-            exchangeMap.forEach { exchange, tokenPrice ->
-                price
-                        .getOrPut(baseTokenSymbol, { mutableMapOf() })
-                        .getOrPut(exchange, { CqlTokenPrice(tokenPrice.value!!) })
-            }
-        }
-    }
+            tokenTicker.baseVolume,
+            prices(tokenTicker))
 }
+
+private fun prices(tokenTicker: TokenTicker) =
+        tokenTicker.price.mapValues { (_, exchangeMap) ->
+            exchangeMap.mapValues { (_, tokenPrice) -> CqlTokenPrice(tokenPrice.value!!) }
+        }
 
 @UDT(name = "tokenprice")
 data class CqlTokenPrice(

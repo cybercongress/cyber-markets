@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import fund.cyber.markets.connectors.common.PairsProvider
 import fund.cyber.markets.connectors.httpClient
 import fund.cyber.markets.connectors.jsonParser
-import fund.cyber.markets.helpers.await
+import fund.cyber.markets.connectors.common.await
 import fund.cyber.markets.model.TokensPairInitializer
 import okhttp3.Request
 import java.math.BigDecimal

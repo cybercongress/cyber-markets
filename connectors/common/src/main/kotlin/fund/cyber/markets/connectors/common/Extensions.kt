@@ -1,4 +1,4 @@
-package fund.cyber.markets.helpers
+package fund.cyber.markets.connectors.common
 
 import okhttp3.Call
 import okhttp3.Callback

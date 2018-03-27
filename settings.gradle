@@ -1,8 +1,9 @@
 include("core")
+include("cassandra-service")
 
 include("tickers")
 include("stream-api")
-include("cassandra-service")
+include("rest-api")
 
 include("connectors:common")
 include("connectors:bitfinex")

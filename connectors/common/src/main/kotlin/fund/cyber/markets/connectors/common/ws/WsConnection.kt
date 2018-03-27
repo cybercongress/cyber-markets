@@ -3,7 +3,7 @@ package fund.cyber.markets.connectors.common.ws
 import fund.cyber.markets.connectors.byteBuffersPool
 import fund.cyber.markets.connectors.xnioSsl
 import fund.cyber.markets.connectors.xnioWorker
-import fund.cyber.markets.helpers.cAwait
+import fund.cyber.markets.connectors.common.cAwait
 import io.undertow.websockets.client.WebSocketClient
 import io.undertow.websockets.core.AbstractReceiveListener
 import io.undertow.websockets.core.BufferedTextMessage
