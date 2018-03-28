@@ -1,6 +1,4 @@
-package fund.cyber.markets.connectors.common.kafka
-
-import fund.cyber.markets.configuration.env
+import fund.cyber.markets.common.env
 import java.util.*
 
 class KafkaConfiguration(
