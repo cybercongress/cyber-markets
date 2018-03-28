@@ -3,19 +3,6 @@ package fund.cyber.markets.model
 
 import java.math.BigDecimal
 
-
-enum class TradeType {
-    SELL,
-    BUY,
-    UNKNOWN
-}
-
-enum class OrderType {
-    SELL,
-    BUY,
-    UNKNOWN
-}
-
 data class Order (
         val type: OrderType,
         val exchange: String,
@@ -31,3 +18,9 @@ data class OrdersBatch (
         val quoteToken: String,
         val orders: List<Order> = ArrayList()
 )
+
+enum class OrderType {
+    SELL,
+    BUY,
+    UNKNOWN
+}

@@ -9,6 +9,7 @@ buildscript {
         web3jVersion = "2.3.1"
         rxkotlinVersion = "2.2.0"
         reactorVersion = "3.1.3.RELEASE"
+        xchangeStreamVersion = "4.3.2"
 
         springBootVersion = "2.0.0.RELEASE"
         springKafkaVersion = "2.1.2.RELEASE"
@@ -135,6 +136,13 @@ subprojects {
                 exclude 'org.jetbrains.kotlin:kotlin-stdlib'
             }
             dependency("io.projectreactor:reactor-core:$reactorVersion")
+
+            dependency("info.bitrich.xchange-stream:xchange-stream-core:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-binance:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-bitfinex:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-bitstamp:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-gdax:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-poloniex2:$xchangeStreamVersion")
         }
     }
 
@@ -188,6 +196,27 @@ project(":rest-api") {
         compile 'org.springframework.boot:spring-boot-starter'
         compile 'org.springframework.boot:spring-boot-starter-webflux'
         compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
+    }
+}
+
+project(":exchanges-connector") {
+
+    apply plugin: "org.springframework.boot"
+
+    dependencies {
+        compile project(":core")
+
+        compile("org.springframework.boot:spring-boot-starter")
+        compile("org.springframework.kafka:spring-kafka")
+
+
+        //missing hitbtc connector
+        compile("info.bitrich.xchange-stream:xchange-stream-core")
+        compile("info.bitrich.xchange-stream:xchange-binance")
+        compile("info.bitrich.xchange-stream:xchange-bitfinex")
+        compile("info.bitrich.xchange-stream:xchange-bitstamp")
+        compile("info.bitrich.xchange-stream:xchange-gdax")
+        compile("info.bitrich.xchange-stream:xchange-poloniex2")
     }
 }
 
