@@ -1,268 +1,116 @@
 version: 2
 
+aliases:
 
-defaults:
-
-  container: &default_container
+  # Common configuration for all jobs
+  - &defaults
     working_directory: ~/build
     docker:
       - image: circleci/openjdk:8-jdk
 
-  release_filter: &release_filter
+  - &release_filter
     filters:
       tags:
-        only: /^release-.*/
+        only: /.*/
       branches:
         ignore: /.*/
 
 jobs:
 
-  build_connectors:
-    <<: *default_container
+  build_project:
+    <<: *defaults
     steps:
       - checkout
       - restore_cache:
           keys:
-            - connectors-core-dependencies-{{ checksum "build.gradle" }}
-            - connectors-core-dependencies
+            - project-dependencies-{{ checksum "build.gradle" }}
+            - project-dependencies
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
       - run:
-          name: Test and build connectors project
+          name: Build and test the cyber-markets project
+          command: ./gradlew clean build
+      - save_cache:
+          key: project-dependencies-{{ checksum "build.gradle" }}
+          paths:
+            - ~/.gradle/caches/
+            - ~/.gradle/wrapper/
+
+  deploy_exchanges-connector_image:
+    <<: *default_container
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Build exchanges-connector docker image
           command: |
-            ./gradlew -p ./connectors/bitfinex clean build
-            ./gradlew -p ./connectors/bitstamp clean build
-            ./gradlew -p ./connectors/hitbtc clean build
-            ./gradlew -p ./connectors/poloniex clean build
-            ./gradlew -p ./connectors/gdax clean build
-      - save_cache:
-          key: connectors-core-dependencies-{{ checksum "build.gradle" }}
-          paths:
-            - ~/.gradle/caches/
-            - ~/.gradle/wrapper/
-
-  build_stream-api:
-    <<: *default_container
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - api-dependencies-{{ checksum "build.gradle" }}
-            - api-dependencies
-          paths:
-            - ~/.gradle/caches/
-            - ~/.gradle/wrapper/
-      - run:
-          name: Test and build stream-api project
-          command: ./gradlew -p ./stream-api clean build
-      - save_cache:
-          key: api-dependencies-{{ checksum "build.gradle" }}
-          paths:
-            - ~/.gradle/caches/
-            - ~/.gradle/wrapper/
-
-  build_tickers:
-    <<: *default_container
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - ticker-dependencies-{{ checksum "build.gradle" }}
-            - ticker-dependencies
-          paths:
-            - ~/.gradle/caches/
-            - ~/.gradle/wrapper/
-      - run:
-          name: Test and build tickers project
-          command: ./gradlew -p ./tickers clean build
-      - save_cache:
-          key: ticker-{{ checksum "build.gradle" }}
-          paths:
-            - ~/.gradle/caches/
-            - ~/.gradle/wrapper/
-
-  deploy_connectors-bitfinex_image:
-     <<: *default_container
-     steps:
-       - checkout
-       - setup_remote_docker:
-           version: 17.05.0-ce
-       - run:
-           name: Build connectors-bitfinex docker image
-           command: |
-             docker build -t build/cm-connectors-bitfinex -f ./devops/connectors/bitfinex/Dockerfile ./
-             docker login -u $DOCKER_USER -p $DOCKER_PASS
-             docker tag build/cm-connectors-bitfinex cybernode/cm-connectors-bitfinex:$CIRCLE_TAG
-             docker push cybernode/cm-connectors-bitfinex:$CIRCLE_TAG
-             docker tag build/cm-connectors-bitfinex cybernode/cm-connectors-bitfinex:latest
-             docker push cybernode/cm-connectors-bitfinex:latest
-
-  deploy_connectors-bitstamp_image:
-       <<: *default_container
-       steps:
-         - checkout
-         - setup_remote_docker:
-             version: 17.05.0-ce
-         - run:
-             name: Build and deploy connectors-bitstamp docker image
-             command: |
-               docker build -t build/cm-connectors-bitstamp -f ./devops/connectors/bitstamp/Dockerfile ./
-               docker login -u $DOCKER_USER -p $DOCKER_PASS
-               docker tag build/cm-connectors-bitstamp cybernode/cm-connectors-bitstamp:$CIRCLE_TAG
-               docker push cybernode/cm-connectors-bitstamp:$CIRCLE_TAG
-               docker tag build/cm-connectors-bitstamp cybernode/cm-connectors-bitstamp:latest
-               docker push cybernode/cm-connectors-bitstamp:latest
-
-  deploy_connectors-hitbtc_image:
-         <<: *default_container
-         steps:
-           - checkout
-           - setup_remote_docker:
-               version: 17.05.0-ce
-           - run:
-               name: Build and deploy connectors-hitbtc docker image
-               command: |
-                 docker build -t build/cm-connectors-hitbtc -f ./devops/connectors/hitbtc/Dockerfile ./
-                 docker login -u $DOCKER_USER -p $DOCKER_PASS
-                 docker tag build/cm-connectors-hitbtc cybernode/cm-connectors-hitbtc:$CIRCLE_TAG
-                 docker push cybernode/cm-connectors-hitbtc:$CIRCLE_TAG
-                 docker tag build/cm-connectors-hitbtc cybernode/cm-connectors-hitbtc:latest
-                 docker push cybernode/cm-connectors-hitbtc:latest
-
-  deploy_connectors-poloniex_image:
-         <<: *default_container
-         steps:
-           - checkout
-           - setup_remote_docker:
-               version: 17.05.0-ce
-           - run:
-               name: Build and deploy connectors-poloniex docker image
-               command: |
-                 docker build -t build/cm-connectors-poloniex -f ./devops/connectors/poloniex/Dockerfile ./
-                 docker login -u $DOCKER_USER -p $DOCKER_PASS
-                 docker tag build/cm-connectors-poloniex cybernode/cm-connectors-poloniex:$CIRCLE_TAG
-                 docker push cybernode/cm-connectors-poloniex:$CIRCLE_TAG
-                 docker tag build/cm-connectors-poloniex cybernode/cm-connectors-poloniex:latest
-                 docker push cybernode/cm-connectors-poloniex:latest
-
-  deploy_connectors-etherdelta_image:
-           <<: *default_container
-           steps:
-             - checkout
-             - setup_remote_docker:
-                 version: 17.05.0-ce
-             - run:
-                 name: Build and deploy connectors-etherdelta docker image
-                 command: |
-                   docker build -t build/cm-connectors-etherdelta -f ./devops/connectors/etherdelta/Dockerfile ./
-                   docker login -u $DOCKER_USER -p $DOCKER_PASS
-                   docker tag build/cm-connectors-etherdelta cybernode/cm-connectors-etherdelta:$CIRCLE_TAG
-                   docker push cybernode/cm-connectors-etherdelta:$CIRCLE_TAG
-                   docker tag build/cm-connectors-etherdelta cybernode/cm-connectors-etherdelta:latest
-                   docker push cybernode/cm-connectors-etherdelta:latest
-
-  deploy_connectors-gdax_image:
-           <<: *default_container
-           steps:
-             - checkout
-             - setup_remote_docker:
-                 version: 17.05.0-ce
-             - run:
-                 name: Build and deploy connectors-gdax docker image
-                 command: |
-                   docker build -t build/cm-connectors-gdax -f ./devops/connectors/gdax/Dockerfile ./
-                   docker login -u $DOCKER_USER -p $DOCKER_PASS
-                   docker tag build/cm-connectors-gdax cybernode/cm-connectors-gdax:$CIRCLE_TAG
-                   docker push cybernode/cm-connectors-gdax:$CIRCLE_TAG
-                   docker tag build/cm-connectors-gdax cybernode/cm-connectors-gdax:latest
-                   docker push cybernode/cm-connectors-gdax:latest
-
-
-  deploy_stream-api_image:
-     <<: *default_container
-     steps:
-       - checkout
-       - setup_remote_docker:
-           version: 17.05.0-ce
-       - run:
-           name: Build stream-api docker image
-           command: |
-             docker build -t build/cm-stream-api -f ./devops/stream-api/Dockerfile ./
-             docker login -u $DOCKER_USER -p $DOCKER_PASS
-             docker tag build/cm-stream-api cybernode/cm-stream-api:$CIRCLE_TAG
-             docker push cybernode/cm-stream-api:$CIRCLE_TAG
-             docker tag build/cm-stream-api cybernode/cm-stream-api:latest
-             docker push cybernode/cm-stream-api:latest
+            docker build -t cybernode/cm-exchanges-connector:$CIRCLE_TAG -f ./exchanges-connector/Dockerfile ./
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push cybernode/cm-exchanges-connector:$CIRCLE_TAG
 
   deploy_tickers_image:
-     <<: *default_container
-     steps:
-       - checkout
-       - setup_remote_docker:
-           version: 17.05.0-ce
-       - run:
-           name: Build tickers docker image
-           command: |
-             docker build -t build/cm-tickers -f ./devops/tickers/Dockerfile ./
-             docker login -u $DOCKER_USER -p $DOCKER_PASS
-             docker tag build/cm-tickers cybernode/cm-tickers:$CIRCLE_TAG
-             docker push cybernode/cm-tickers:$CIRCLE_TAG
-             docker tag build/cm-tickers cybernode/cm-tickers:latest
-             docker push cybernode/cm-tickers:latest
+    <<: *default_container
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Build tickers docker image
+          command: |
+            docker build -t cybernode/cm-tickers:$CIRCLE_TAG -f ./tickers/Dockerfile ./
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push cybernode/cm-tickers:$CIRCLE_TAG
+
+  deploy_stream-api_image:
+    <<: *default_container
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Build stream-api docker image
+          command: |
+            docker build -t cybernode/cm-stream-api:$CIRCLE_TAG -f ./stream-api/Dockerfile ./
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push cybernode/cm-stream-api:$CIRCLE_TAG
+
+  deploy_rest-api_image:
+    <<: *default_container
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Build rest-api docker image
+          command: |
+            docker build -t cybernode/cm-rest-api:$CIRCLE_TAG -f ./rest-api/Dockerfile ./
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push cybernode/cm-rest-api:$CIRCLE_TAG
 
 workflows:
   version: 2
 
-  connectors_build:
+  cyber-markets_build:
     jobs:
-      - build_connectors:
+      - build_project:
           filters:
             tags:
               only: /.*/
-      - deploy_connectors-bitfinex_image:
+      - deploy_exchanges-connector_image:
           <<: *release_filter
           requires:
-            - build_connectors
-      - deploy_connectors-bitstamp_image:
-          <<: *release_filter
-          requires:
-            - build_connectors
-      - deploy_connectors-hitbtc_image:
-          <<: *release_filter
-          requires:
-            - build_connectors
-      - deploy_connectors-poloniex_image:
-          <<: *release_filter
-          requires:
-            - build_connectors
-      - deploy_connectors-gdax_image:
-                <<: *release_filter
-                requires:
-                  - build_connectors
-      - deploy_connectors-etherdelta_image:
-          <<: *release_filter
-          requires:
-            - build_connectors
-
-  stream-api_build:
-    jobs:
-      - build_stream-api:
-          filters:
-            tags:
-              only: /.*/
-      - deploy_stream-api_image:
-          <<: *release_filter
-          requires:
-            - build_stream-api
-
-  tickers_build:
-    jobs:
-      - build_tickers:
-          filters:
-            tags:
-              only: /.*/
+            - build_project
       - deploy_tickers_image:
           <<: *release_filter
           requires:
-            - build_tickers
+            - build_project
+      - deploy_stream-api_image:
+          <<: *release_filter
+          requires:
+            - build_project
+      - deploy_rest-api_image:
+          <<: *release_filter
+          requires:
+            - build_project
