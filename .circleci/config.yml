@@ -38,7 +38,7 @@ jobs:
             - ~/.gradle/wrapper/
 
   deploy_exchanges-connector_image:
-    <<: *default_container
+    <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
@@ -51,7 +51,7 @@ jobs:
             docker push cybernode/cm-exchanges-connector:$CIRCLE_TAG
 
   deploy_tickers_image:
-    <<: *default_container
+    <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
@@ -64,7 +64,7 @@ jobs:
             docker push cybernode/cm-tickers:$CIRCLE_TAG
 
   deploy_stream-api_image:
-    <<: *default_container
+    <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
@@ -77,7 +77,7 @@ jobs:
             docker push cybernode/cm-stream-api:$CIRCLE_TAG
 
   deploy_rest-api_image:
-    <<: *default_container
+    <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
