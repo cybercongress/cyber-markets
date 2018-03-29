@@ -138,7 +138,7 @@ class HopTickerProcessorImpl(
             prices
                     .getOrPut(trade.pair.base, { mutableMapOf() })
                     .getOrPut(trade.pair.quote, { mutableMapOf() })
-                    .put(trade.exchange, trade.spotPrice)
+                    .put(trade.exchange, trade.price)
         }
     }
 
