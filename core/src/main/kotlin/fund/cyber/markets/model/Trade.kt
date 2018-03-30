@@ -8,6 +8,7 @@ data class Trade(
         val pair: TokensPair,
         val type: TradeType,
         val timestamp: Date,
+        val epochHour: Long,
         val tradeId: String,
         val baseAmount: BigDecimal,
         val quoteAmount: BigDecimal,

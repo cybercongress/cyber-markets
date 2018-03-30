@@ -4,7 +4,6 @@ import fund.cyber.markets.connector.configuration.ConnectorConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import java.util.concurrent.TimeUnit
 
 @Component
 class ConnectorRunner {
@@ -27,11 +26,8 @@ class ConnectorRunner {
 
         connectors.forEach { connector ->
             connector.connect()
-            connector.subscribeTrades()
-            connector.subscribeOrders()
+            connector.subscribeAll()
         }
-
-        TimeUnit.MINUTES.sleep(1)
     }
 
     fun shutdown() {

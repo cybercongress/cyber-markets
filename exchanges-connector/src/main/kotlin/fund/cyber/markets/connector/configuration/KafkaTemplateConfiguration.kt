@@ -7,6 +7,7 @@ import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.Trade
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
+import org.knowm.xchange.dto.marketdata.OrderBook
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,7 +21,7 @@ import java.util.*
 @Configuration
 class KafkaTemplateConfiguration {
 
-    @Value("\${${KAFKA_BROKERS}:${KAFKA_BROKERS_DEFAULT}}")
+    @Value("\${$KAFKA_BROKERS:$KAFKA_BROKERS_DEFAULT}")
     private lateinit var kafkaBrokers: String
 
     @Bean
@@ -30,7 +31,12 @@ class KafkaTemplateConfiguration {
 
     @Bean
     fun orderProducerFactory(): ProducerFactory<String, Order> {
-        return DefaultKafkaProducerFactory(tradeProducerConfigs())
+        return DefaultKafkaProducerFactory(orderProducerConfigs())
+    }
+
+    @Bean
+    fun orderBookProducerFactory(): ProducerFactory<String, OrderBook> {
+        return DefaultKafkaProducerFactory(orderBookProducerConfigs())
     }
 
     @Bean
@@ -54,6 +60,18 @@ class KafkaTemplateConfiguration {
     }
 
     @Bean
+    fun orderBookProducerConfigs(): Map<String, Any> {
+        val props = HashMap<String, Any>()
+        props[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = kafkaBrokers
+        props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
+
+        //todo: use own class for orderbook
+        props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = JsonSerializer<OrderBook>()::class.java
+
+        return props
+    }
+
+    @Bean
     fun tradeKafkaTemplate(): KafkaTemplate<String, Trade> {
         return KafkaTemplate(tradeProducerFactory())
     }
@@ -61,6 +79,11 @@ class KafkaTemplateConfiguration {
     @Bean
     fun orderKafkaTemplate(): KafkaTemplate<String, Order> {
         return KafkaTemplate(orderProducerFactory())
+    }
+
+    @Bean
+    fun orderBookKafkaTemplate(): KafkaTemplate<String, OrderBook> {
+        return KafkaTemplate(orderBookProducerFactory())
     }
 
 }
