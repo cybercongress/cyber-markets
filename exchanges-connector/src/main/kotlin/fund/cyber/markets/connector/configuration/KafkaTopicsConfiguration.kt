@@ -17,6 +17,7 @@ import javax.annotation.PostConstruct
 
 const val TRADES_TOPIC_PREFIX = "TRADES-"
 const val ORDERS_TOPIC_PREFIX = "ORDERS-"
+const val ORDER_BOOKS_TOPIC_PREFIX = "ORDERBOOKS-"
 
 const val PARTITION_NUMBER = 1
 const val REPLICATION_FACTOR = 1
@@ -25,7 +26,7 @@ const val REPLICATION_FACTOR = 1
 @Configuration
 class KafkaConfiguration {
 
-    @Value("\${${KAFKA_BROKERS}:${KAFKA_BROKERS_DEFAULT}}")
+    @Value("\${$KAFKA_BROKERS:$KAFKA_BROKERS_DEFAULT}")
     private lateinit var kafkaBrokers: String
 
     @Autowired
@@ -55,8 +56,10 @@ class KafkaConfiguration {
         connectorConfiguration.exchanges.forEach { exchangeName ->
             val tradesTopic = NewTopic(TRADES_TOPIC_PREFIX + exchangeName, PARTITION_NUMBER, REPLICATION_FACTOR.toShort()).configs(topicConfigs())
             val ordersTopic = NewTopic(ORDERS_TOPIC_PREFIX + exchangeName, PARTITION_NUMBER, REPLICATION_FACTOR.toShort()).configs(topicConfigs())
+            val orderBooksTopic = NewTopic(ORDER_BOOKS_TOPIC_PREFIX + exchangeName, PARTITION_NUMBER, REPLICATION_FACTOR.toShort()).configs(topicConfigs())
             newTopics.add(tradesTopic)
             newTopics.add(ordersTopic)
+            newTopics.add(orderBooksTopic)
         }
 
         kafkaClient.createTopics(newTopics)

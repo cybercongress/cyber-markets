@@ -7,5 +7,6 @@ interface ExchangeConnector {
     fun subscribeTrades()
     fun subscribeOrders()
     fun subscribeOrderBook()
+    fun subscribeAll()
     fun updateTokensPairs()
 }

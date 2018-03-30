@@ -58,7 +58,7 @@ class OrdersBatchConsumer(
         launch(ordersSingleThreadContext) {
             records.map { record -> record.value() }
                     .forEach { ordersBatch ->
-                        val pair = TokensPairInitializer(ordersBatch.baseToken, ordersBatch.quoteToken)
+                        val pair = TokensPairInitializer(ordersBatch.pair.base, ordersBatch.pair.quote)
                         channelsIndex.channelFor(ordersBatch.exchange, pair).send(ordersBatch.orders)
                     }
         }

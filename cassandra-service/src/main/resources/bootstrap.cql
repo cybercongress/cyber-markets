@@ -32,20 +32,32 @@ CREATE TYPE IF NOT EXISTS markets.tokenpair (
 );
 
 CREATE TABLE IF NOT EXISTS markets.trade (
-  epoch_h int,
-  tradeId text,
   exchange text,
-  timestamp timestamp,
+  pair frozen<tokenpair>,
   type text,
-  pairInitializer frozen<tokenpair>,
+  epochHour bigint,
+  timestamp timestamp,
+  tradeId text,
   baseAmount decimal,
   quoteAmount decimal,
-  spotPrice decimal,
-  reverted boolean,
-
-  PRIMARY KEY (epoch_h, exchange, pairInitializer, tradeId)
+  price decimal,
+  PRIMARY KEY ((exchange, pair, epochHour), timestamp)
 )
 WITH CLUSTERING ORDER BY (
-  exchange ASC,
-  pairInitializer ASC
+  timestamp DESC
+);
+
+CREATE TABLE IF NOT EXISTS markets.order (
+  exchange text,
+  pair frozen<tokenpair>,
+  type text,
+  epochHour bigint,
+  timestamp timestamp,
+  orderId text,
+  amount decimal,
+  price decimal,
+  PRIMARY KEY ((exchange, pair, epochHour), timestamp)
+)
+WITH CLUSTERING ORDER BY (
+  timestamp DESC
 );

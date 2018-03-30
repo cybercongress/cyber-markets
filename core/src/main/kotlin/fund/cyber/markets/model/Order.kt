@@ -2,20 +2,22 @@ package fund.cyber.markets.model
 
 
 import java.math.BigDecimal
+import java.util.*
 
 data class Order (
-        val type: OrderType,
         val exchange: String,
-        val baseToken: String,
-        val quoteToken: String,
-        val spotPrice: BigDecimal,
-        val amount: BigDecimal
+        val pair: TokensPair,
+        val type: OrderType,
+        val timestamp: Date,
+        val epochHour: Long,
+        val orderId: String,
+        val amount: BigDecimal,
+        val price: BigDecimal
 )
 
 data class OrdersBatch (
-        val baseToken: String,
         val exchange: String,
-        val quoteToken: String,
+        val pair: TokensPair,
         val orders: List<Order> = ArrayList()
 )
 

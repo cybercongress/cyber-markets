@@ -47,7 +47,7 @@ class OrdersBroadcaster(
 
     private fun updateOrderBook(orders: List<Order>) {
         orders.forEach { newOrder ->
-            orderBook.merge(newOrder.spotPrice, newOrder) { _, newOrder ->
+            orderBook.merge(newOrder.price, newOrder) { _, newOrder ->
                 if (newOrder.amount == BigDecimal.ZERO) null else newOrder
             }
         }
