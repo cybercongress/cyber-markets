@@ -6,7 +6,7 @@ buildscript {
         jacksonVersion = "2.9.2"
         httpClientVersion = "4.5.5"
         kafkaVersion = "1.0.0"
-        web3jVersion = "2.3.1"
+        web3jVersion = "3.3.1"
         rxkotlinVersion = "2.2.0"
         reactorVersion = "3.1.3.RELEASE"
         xchangeStreamVersion = "4.3.2"
@@ -143,6 +143,8 @@ subprojects {
             dependency("info.bitrich.xchange-stream:xchange-bitstamp:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-gdax:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-poloniex2:$xchangeStreamVersion")
+
+            dependency("org.web3j:core:$web3jVersion")
         }
     }
 
@@ -209,7 +211,6 @@ project(":exchanges-connector") {
         compile("org.springframework.boot:spring-boot-starter")
         compile("org.springframework.kafka:spring-kafka")
 
-
         //missing hitbtc connector
         compile("info.bitrich.xchange-stream:xchange-stream-core")
         compile("info.bitrich.xchange-stream:xchange-binance")
@@ -217,6 +218,8 @@ project(":exchanges-connector") {
         compile("info.bitrich.xchange-stream:xchange-bitstamp")
         compile("info.bitrich.xchange-stream:xchange-gdax")
         compile("info.bitrich.xchange-stream:xchange-poloniex2")
+
+        compile("org.web3j:core")
     }
 }
 

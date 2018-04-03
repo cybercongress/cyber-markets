@@ -93,12 +93,6 @@ abstract class BaseXchangeConnector: ExchangeConnector {
         }
     }
 
-    override fun subscribeAll() {
-        subscribeTrades()
-        subscribeOrders()
-        subscribeOrderBook()
-    }
-
     override fun updateTokensPairs() {
         log.warn("Update tokens pair for $exchangeName exchange not implemented yet")
     }
