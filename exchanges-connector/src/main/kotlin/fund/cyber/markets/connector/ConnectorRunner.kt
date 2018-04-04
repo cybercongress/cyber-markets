@@ -43,7 +43,7 @@ class ConnectorRunner {
             "POLONIEX" -> applicationContext.getBean(PoloniexConnector::class.java)
             "GDAX" -> applicationContext.getBean(GdaxConnector::class.java)
             "ETHERDELTA" -> applicationContext.getBean(EtherdeltaConnector::class.java)
-            //todo: missing hitbtc and etherdelta exchanges
+            //todo: missing hitbtc exchange
             //"HITBTC" -> HitBtcConnector
             else -> null
         }

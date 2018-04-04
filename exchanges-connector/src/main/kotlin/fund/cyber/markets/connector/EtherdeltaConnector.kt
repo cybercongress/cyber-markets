@@ -2,14 +2,12 @@ package fund.cyber.markets.connector
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
-import fund.cyber.markets.connector.configuration.ORDERS_TOPIC_PREFIX
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
 import fund.cyber.markets.connector.etherdelta.EtherdeltaContract
 import fund.cyber.markets.connector.etherdelta.EtherdeltaToken
 import fund.cyber.markets.connector.etherdelta.ParityTokenRegistryContract
 import fund.cyber.markets.helpers.MILLIS_TO_HOURS
 import fund.cyber.markets.helpers.convert
-import fund.cyber.markets.model.Order
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
@@ -42,7 +40,6 @@ class EtherdeltaConnector : ExchangeConnector {
 
     private val exchangeName = "ETHERDELTA"
     private val tradesTopicName by lazy { TRADES_TOPIC_PREFIX + exchangeName }
-    private val ordersTopicName by lazy { ORDERS_TOPIC_PREFIX + exchangeName }
 
     private lateinit var web3j: Web3j
     private lateinit var exchangeTokensPairs: MutableMap<String, EtherdeltaToken>
@@ -54,9 +51,6 @@ class EtherdeltaConnector : ExchangeConnector {
 
     @Autowired
     private lateinit var tradeKafkaTemplate: KafkaTemplate<String, Trade>
-
-    @Autowired
-    private lateinit var orderKafkaTemplate: KafkaTemplate<String, Order>
 
     override fun connect() {
         log.info("Connecting to $exchangeName exchange")
@@ -72,7 +66,9 @@ class EtherdeltaConnector : ExchangeConnector {
 
         log.info("Connected to $exchangeName exchange")
 
-        updateTokensPairs()
+        if (!this::exchangeTokensPairs.isInitialized) {
+            updateTokensPairs()
+        }
     }
 
     override fun disconnect() {
@@ -80,48 +76,43 @@ class EtherdeltaConnector : ExchangeConnector {
     }
 
     override fun isAlive(): Boolean {
-        //TODO("not implemented")
         return true
     }
 
     override fun subscribeTrades() {
         log.info("Subscribing for trades from $exchangeName exchange")
+        try {
+            var block = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf("latest"), false).send()
 
-        var block = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf("latest"), false).send()
+            etherdeltaContract.tradeEventObservable(DefaultBlockParameter.valueOf("latest"), DefaultBlockParameter.valueOf("latest"))
+                    .subscribe { tradeEvent ->
 
-        etherdeltaContract.tradeEventObservable(DefaultBlockParameter.valueOf("latest"), DefaultBlockParameter.valueOf("latest"))
-                .subscribe { tradeEvent ->
-
-                    if (block.block.hash != tradeEvent.log!!.blockHash) {
-                         block = web3j.ethGetBlockByHash(tradeEvent.log!!.blockHash!!, false).send()
-                    }
-
-                    val getToken = exchangeTokensPairs[tradeEvent.tokenGet]
-                    val giveToken = exchangeTokensPairs[tradeEvent.tokenGive]
-
-                    if (getToken == null || giveToken == null) {
-                        val missedTokenAddress = if (getToken == null) {
-                            tradeEvent.tokenGet
-                        } else {
-                            tradeEvent.tokenGive
+                        if (block.block.hash != tradeEvent.log!!.blockHash) {
+                            block = web3j.ethGetBlockByHash(tradeEvent.log!!.blockHash!!, false).send()
                         }
-                        log.warn("Token not found in token list: $missedTokenAddress")
-                    } else {
-                        val trade = convertTrade(tradeEvent, block)
-                        log.debug("{}", trade)
 
-                        tradeKafkaTemplate.send(tradesTopicName, trade)
+                        val getToken = exchangeTokensPairs[tradeEvent.tokenGet]
+                        val giveToken = exchangeTokensPairs[tradeEvent.tokenGive]
+
+                        if (getToken == null || giveToken == null) {
+                            val missedTokenAddress = if (getToken == null) {
+                                tradeEvent.tokenGet
+                            } else {
+                                tradeEvent.tokenGive
+                            }
+                            log.warn("Token not found in token list: $missedTokenAddress")
+                        } else {
+                            val trade = convertTrade(tradeEvent, block)
+                            log.debug("{}", trade)
+
+                            tradeKafkaTemplate.send(tradesTopicName, trade)
+                        }
+
                     }
-
-                }
-    }
-
-    override fun subscribeOrders() {
-        //TODO("not implemented")
-    }
-
-    override fun subscribeOrderBook() {
-        //TODO("not implemented")
+        } catch (e: Exception) {
+            log.error("An error occurred subscribing trades from $exchangeName exchange. Reconnecting...", e)
+            reconnect()
+        }
     }
 
     private fun convertTrade(tradeEvent: EtherdeltaContract.TradeEventResponse, block: EthBlock): Trade? {
