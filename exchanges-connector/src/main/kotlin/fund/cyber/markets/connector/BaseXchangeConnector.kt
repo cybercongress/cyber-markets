@@ -27,7 +27,6 @@ abstract class BaseXchangeConnector: ExchangeConnector {
         val subscription = ProductSubscription.create()
         exchangeTokensPairs.forEach { pair ->
             subscription.addTrades(pair)
-            subscription.addOrderbook(pair)
         }
 
         exchange.connect(
