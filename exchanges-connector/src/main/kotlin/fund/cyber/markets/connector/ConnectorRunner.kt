@@ -3,6 +3,7 @@ package fund.cyber.markets.connector
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,6 +14,9 @@ class ConnectorRunner {
 
     @Autowired
     private lateinit var configuration: ConnectorConfiguration
+
+    @Autowired
+    private lateinit var retryTemplate: RetryTemplate
 
     private val connectors = mutableSetOf<ExchangeConnector>()
 
@@ -25,8 +29,7 @@ class ConnectorRunner {
         }
 
         connectors.forEach { connector ->
-            connector.connect()
-            connector.subscribeAll()
+            retryTemplate.execute<Any, Exception> { connector.start() }
         }
     }
 
@@ -39,12 +42,12 @@ class ConnectorRunner {
     private fun getExchangeConnectorBean(exchangeName: String): ExchangeConnector? {
         return when (exchangeName) {
             "BITFINEX" -> applicationContext.getBean(BitfinexConnector::class.java)
+            "BINANCE" -> applicationContext.getBean(BinanceConnector::class.java)
             "BITSTAMP" -> applicationContext.getBean(BitstampConnector::class.java)
             "POLONIEX" -> applicationContext.getBean(PoloniexConnector::class.java)
             "GDAX" -> applicationContext.getBean(GdaxConnector::class.java)
+            "HITBTC" -> applicationContext.getBean(HitBtcConnector::class.java)
             "ETHERDELTA" -> applicationContext.getBean(EtherdeltaConnector::class.java)
-            //todo: missing hitbtc exchange
-            //"HITBTC" -> HitBtcConnector
             else -> null
         }
     }

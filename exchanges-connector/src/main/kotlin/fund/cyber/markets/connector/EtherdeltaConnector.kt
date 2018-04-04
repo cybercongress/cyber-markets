@@ -81,11 +81,13 @@ class EtherdeltaConnector : ExchangeConnector {
 
     override fun subscribeTrades() {
         log.info("Subscribing for trades from $exchangeName exchange")
-        try {
-            var block = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf("latest"), false).send()
 
-            etherdeltaContract.tradeEventObservable(DefaultBlockParameter.valueOf("latest"), DefaultBlockParameter.valueOf("latest"))
-                    .subscribe { tradeEvent ->
+            val latestBlockParameter = DefaultBlockParameter.valueOf("latest")
+            var block = web3j.ethGetBlockByNumber(latestBlockParameter, false).send()
+
+            etherdeltaContract
+                    .tradeEventObservable(latestBlockParameter, latestBlockParameter)
+                    .subscribe{ tradeEvent ->
 
                         if (block.block.hash != tradeEvent.log!!.blockHash) {
                             block = web3j.ethGetBlockByHash(tradeEvent.log!!.blockHash!!, false).send()
@@ -106,13 +108,10 @@ class EtherdeltaConnector : ExchangeConnector {
                             log.debug("{}", trade)
 
                             tradeKafkaTemplate.send(tradesTopicName, trade)
+                            log.debug("Trade from $exchangeName: $trade")
                         }
 
                     }
-        } catch (e: Exception) {
-            log.error("An error occurred subscribing trades from $exchangeName exchange. Reconnecting...", e)
-            reconnect()
-        }
     }
 
     private fun convertTrade(tradeEvent: EtherdeltaContract.TradeEventResponse, block: EthBlock): Trade? {
