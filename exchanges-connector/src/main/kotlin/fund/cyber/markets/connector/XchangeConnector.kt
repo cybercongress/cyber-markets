@@ -8,20 +8,28 @@ import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
+import info.bitrich.xchangestream.core.StreamingExchangeFactory
 import io.reactivex.disposables.Disposable
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 
-abstract class BaseXchangeConnector: ExchangeConnector {
+class XchangeConnector: ExchangeConnector {
     private val log = LoggerFactory.getLogger(javaClass)!!
 
-    abstract val exchange: StreamingExchange
+    private lateinit var exchange: StreamingExchange
     private val exchangeName by lazy { exchange.exchangeSpecification.exchangeName.toUpperCase() }
     private val exchangeTokensPairs by lazy { exchange.exchangeSymbols }
     private val subscriptions = mutableListOf<Disposable>()
 
     private val tradesTopicName by lazy { TRADES_TOPIC_PREFIX + exchangeName }
-    abstract val tradeKafkaTemplate: KafkaTemplate<String, Trade>
+    private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
+
+    private constructor()
+
+    constructor(streamingExchangeClassName: String, kafkaTemplate: KafkaTemplate<String, Any>) : this() {
+        exchange = StreamingExchangeFactory.INSTANCE.createExchange(streamingExchangeClassName)
+        this.kafkaTemplate = kafkaTemplate
+    }
 
     override fun connect() {
         val subscription = ProductSubscription.create()
@@ -55,7 +63,7 @@ abstract class BaseXchangeConnector: ExchangeConnector {
                     .subscribe({ exchangeTrade ->
                         log.debug("$exchangeName trade: {}", exchangeTrade)
                         val trade = convertTrade(exchangeName, exchangeTrade)
-                        tradeKafkaTemplate.send(tradesTopicName, trade)
+                        kafkaTemplate.send(tradesTopicName, trade)
                     }) { throwable ->
                         log.error("Error in subscribing trades for $exchangeName", throwable)
                     }

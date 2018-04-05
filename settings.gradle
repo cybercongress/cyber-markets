@@ -6,11 +6,3 @@ include("stream-api")
 include("rest-api")
 
 include("exchanges-connector")
-
-//include("connectors:common")
-//include("connectors:bitfinex")
-//include("connectors:bitstamp")
-//include("connectors:hitbtc")
-//include("connectors:poloniex")
-//include("connectors:etherdelta")
-//include("connectors:gdax")

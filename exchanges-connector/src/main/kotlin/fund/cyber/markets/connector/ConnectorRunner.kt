@@ -1,6 +1,13 @@
 package fund.cyber.markets.connector
 
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
+import info.bitrich.xchangestream.binance.BinanceStreamingExchange
+import info.bitrich.xchangestream.bitfinex.BitfinexStreamingExchange
+import info.bitrich.xchangestream.bitstamp.BitstampStreamingExchange
+import info.bitrich.xchangestream.gdax.GDAXStreamingExchange
+import info.bitrich.xchangestream.hitbtc.HitbtcStreamingExchange
+import info.bitrich.xchangestream.poloniex2.PoloniexStreamingExchange
+import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.retry.support.RetryTemplate
@@ -8,6 +15,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class ConnectorRunner {
+
+    @Autowired
+    private lateinit var beanFactory: BeanFactory
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
@@ -41,12 +51,12 @@ class ConnectorRunner {
 
     private fun getExchangeConnectorBean(exchangeName: String): ExchangeConnector? {
         return when (exchangeName) {
-            "BITFINEX" -> applicationContext.getBean(BitfinexConnector::class.java)
-            "BINANCE" -> applicationContext.getBean(BinanceConnector::class.java)
-            "BITSTAMP" -> applicationContext.getBean(BitstampConnector::class.java)
-            "POLONIEX" -> applicationContext.getBean(PoloniexConnector::class.java)
-            "GDAX" -> applicationContext.getBean(GdaxConnector::class.java)
-            "HITBTC" -> applicationContext.getBean(HitBtcConnector::class.java)
+            "BITFINEX" -> beanFactory.getBean(XchangeConnector::class.java, BitfinexStreamingExchange::class.java.name)
+            "BINANCE" -> beanFactory.getBean(XchangeConnector::class.java, BinanceStreamingExchange::class.java.name)
+            "BITSTAMP" -> beanFactory.getBean(XchangeConnector::class.java, BitstampStreamingExchange::class.java.name)
+            "POLONIEX" -> beanFactory.getBean(XchangeConnector::class.java, PoloniexStreamingExchange::class.java.name)
+            "GDAX" -> beanFactory.getBean(XchangeConnector::class.java, GDAXStreamingExchange::class.java.name)
+            "HITBTC" -> beanFactory.getBean(XchangeConnector::class.java, HitbtcStreamingExchange::class.java.name)
             "ETHERDELTA" -> applicationContext.getBean(EtherdeltaConnector::class.java)
             else -> null
         }

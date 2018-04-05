@@ -18,14 +18,6 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   PRIMARY KEY (tokenSymbol, timestampFrom, interval)
 );
 
-CREATE TABLE IF NOT EXISTS markets.supply (
-  tokenSymbol text,
-  value decimal,
-  totalValue decimal,
-
-  PRIMARY KEY (tokenSymbol)
-);
-
 CREATE TYPE IF NOT EXISTS markets.tokenpair (
   base text,
   quote text
@@ -41,10 +33,10 @@ CREATE TABLE IF NOT EXISTS markets.trade (
   baseAmount decimal,
   quoteAmount decimal,
   price decimal,
-  PRIMARY KEY ((exchange, pair, epochHour), timestamp)
+  PRIMARY KEY ((exchange, pair, epochHour), tradeId)
 )
 WITH CLUSTERING ORDER BY (
-  timestamp DESC
+  tradeId DESC
 );
 
 CREATE TABLE IF NOT EXISTS markets.order (
@@ -56,8 +48,8 @@ CREATE TABLE IF NOT EXISTS markets.order (
   orderId text,
   amount decimal,
   price decimal,
-  PRIMARY KEY ((exchange, pair, epochHour), timestamp)
+  PRIMARY KEY ((exchange, pair, epochHour), trdadeId)
 )
 WITH CLUSTERING ORDER BY (
-  timestamp DESC
+  tradeId DESC
 );
