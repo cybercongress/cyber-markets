@@ -218,7 +218,6 @@ project(":exchanges-connector") {
         compile("org.springframework.boot:spring-boot-starter-aop")
         compile("org.springframework.kafka:spring-kafka")
 
-        //missing hitbtc connector
         compile("info.bitrich.xchange-stream:xchange-stream-core")
         compile("info.bitrich.xchange-stream:xchange-binance")
         compile("info.bitrich.xchange-stream:xchange-bitfinex")

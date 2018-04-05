@@ -50,7 +50,7 @@ class EtherdeltaConnector : ExchangeConnector {
     private lateinit var configuration: ConnectorConfiguration
 
     @Autowired
-    private lateinit var tradeKafkaTemplate: KafkaTemplate<String, Trade>
+    private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
 
     override fun connect() {
         log.info("Connecting to $exchangeName exchange")
@@ -107,7 +107,7 @@ class EtherdeltaConnector : ExchangeConnector {
                             val trade = convertTrade(tradeEvent, block)
                             log.debug("{}", trade)
 
-                            tradeKafkaTemplate.send(tradesTopicName, trade)
+                            kafkaTemplate.send(tradesTopicName, trade)
                             log.debug("Trade from $exchangeName: $trade")
                         }
 
@@ -118,14 +118,14 @@ class EtherdeltaConnector : ExchangeConnector {
         val tokenGet = exchangeTokensPairs[tradeEvent.tokenGet]
         val tokenGive = exchangeTokensPairs[tradeEvent.tokenGive]
 
-        val amountGet = if (tokenGet!!.base.compareTo(BigInteger.ZERO) == 1) {
-            BigDecimal(tradeEvent.amountGet).divide(BigDecimal(tokenGet.base))
+        val amountGet = if (tokenGet!!.base > BigInteger.ZERO) {
+            BigDecimal(tradeEvent.amountGet) / BigDecimal(tokenGet.base)
         } else {
             BigDecimal(tradeEvent.amountGet)
         }
 
         val amountGive = if (tokenGive!!.base.compareTo(BigInteger.ZERO) == 1) {
-            BigDecimal(tradeEvent.amountGive).divide(BigDecimal(tokenGive.base))
+            BigDecimal(tradeEvent.amountGive) / BigDecimal(tokenGive.base)
         } else {
             BigDecimal(tradeEvent.amountGive)
         }
