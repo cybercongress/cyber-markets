@@ -11,6 +11,8 @@ import fund.cyber.markets.helpers.convert
 import fund.cyber.markets.model.TokensPair
 import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
@@ -52,6 +54,9 @@ class EtherdeltaConnector : ExchangeConnector {
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
 
+    @Autowired
+    private lateinit var monitoring: MeterRegistry
+
     override fun connect() {
         log.info("Connecting to $exchangeName exchange")
 
@@ -82,39 +87,43 @@ class EtherdeltaConnector : ExchangeConnector {
     override fun subscribeTrades() {
         log.info("Subscribing for trades from $exchangeName exchange")
 
-            val latestBlockParameter = DefaultBlockParameter.valueOf("latest")
-            var block = web3j.ethGetBlockByNumber(latestBlockParameter, false).send()
+        val exchangeTag = Tags.of("exchange", exchangeName)
 
-            etherdeltaContract
-                    .tradeEventObservable(latestBlockParameter, latestBlockParameter)
-                    .subscribe{ tradeEvent ->
+        val latestBlockParameter = DefaultBlockParameter.valueOf("latest")
+        var block = web3j.ethGetBlockByNumber(latestBlockParameter, false).send()
 
-                        if (block.block.hash != tradeEvent.log!!.blockHash) {
-                            block = web3j.ethGetBlockByHash(tradeEvent.log!!.blockHash!!, false).send()
-                        }
+        etherdeltaContract
+                .tradeEventObservable(latestBlockParameter, latestBlockParameter)
+                .subscribe{ tradeEvent ->
 
-                        val getToken = exchangeTokensPairs[tradeEvent.tokenGet]
-                        val giveToken = exchangeTokensPairs[tradeEvent.tokenGive]
-
-                        if (getToken == null || giveToken == null) {
-                            val missedTokenAddress = if (getToken == null) {
-                                tradeEvent.tokenGet
-                            } else {
-                                tradeEvent.tokenGive
-                            }
-                            log.warn("Token not found in token list: $missedTokenAddress")
-                        } else {
-                            val trade = convertTrade(tradeEvent, block)
-                            log.debug("{}", trade)
-
-                            kafkaTemplate.send(tradesTopicName, trade)
-                            log.debug("Trade from $exchangeName: $trade")
-                        }
-
+                    if (block.block.hash != tradeEvent.log!!.blockHash) {
+                        block = web3j.ethGetBlockByHash(tradeEvent.log!!.blockHash!!, false).send()
                     }
+
+                    val getToken = exchangeTokensPairs[tradeEvent.tokenGet]
+                    val giveToken = exchangeTokensPairs[tradeEvent.tokenGive]
+
+                    if (getToken == null || giveToken == null) {
+                        val missedTokenAddress = if (getToken == null) {
+                            tradeEvent.tokenGet
+                        } else {
+                            tradeEvent.tokenGive
+                        }
+                        log.warn("Token not found in token list: $missedTokenAddress")
+                    } else {
+                        val trade = convertTrade(tradeEvent, block)
+
+                        val exchangePairTag = exchangeTag.and(Tags.of("tokens_pair", trade.pair.base + "_" + trade.pair.quote))
+                        val tradePerSecondMonitor = monitoring.counter("trade_count", exchangePairTag)
+
+                        kafkaTemplate.send(tradesTopicName, trade)
+                        log.debug("Trade from $exchangeName: $trade")
+                    }
+
+                }
     }
 
-    private fun convertTrade(tradeEvent: EtherdeltaContract.TradeEventResponse, block: EthBlock): Trade? {
+    private fun convertTrade(tradeEvent: EtherdeltaContract.TradeEventResponse, block: EthBlock): Trade {
         val tokenGet = exchangeTokensPairs[tradeEvent.tokenGet]
         val tokenGive = exchangeTokensPairs[tradeEvent.tokenGive]
 

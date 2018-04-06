@@ -17,6 +17,9 @@ buildscript {
         springKafkaVersion = "2.1.2.RELEASE"
         springCassandraVersion = "2.0.3.RELEASE"
 
+        // metrics
+        micrometerVersion = "1.0.0"
+
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
         shadowPluginVersion = "2.0.1"
@@ -150,8 +153,10 @@ subprojects {
             dependency("info.bitrich.xchange-stream:xchange-poloniex2:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-hitbtc:$xchangeStreamVersion")
 
-
             dependency("org.web3j:core:$web3jVersion")
+
+            dependency("io.micrometer:micrometer-core:$micrometerVersion")
+            dependency("io.micrometer:micrometer-registry-prometheus:$micrometerVersion")
         }
     }
 
@@ -170,12 +175,15 @@ project(":core") {
         compile("org.slf4j:slf4j-api")
         compile("ch.qos.logback:logback-classic")
 
-        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
         compile("org.jetbrains.kotlin:kotlin-reflect")
+        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
         compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 
         compile("com.fasterxml.jackson.core:jackson-databind")
+        compile("com.fasterxml.jackson.core:jackson-annotations")
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
+        compile("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+        compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
         compile("org.apache.kafka:kafka-clients")
 
@@ -215,8 +223,16 @@ project(":exchanges-connector") {
     dependencies {
         compile project(":core")
 
+        compile("org.springframework.boot:spring-boot-starter-reactor-netty")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.boot:spring-boot-starter-webflux")
         compile("org.springframework.boot:spring-boot-starter-aop")
         compile("org.springframework.kafka:spring-kafka")
+
+        compile("org.web3j:core")
+
+        compile("io.micrometer:micrometer-core:")
+        compile("io.micrometer:micrometer-registry-prometheus")
 
         compile("info.bitrich.xchange-stream:xchange-stream-core")
         compile("info.bitrich.xchange-stream:xchange-binance")
@@ -225,8 +241,6 @@ project(":exchanges-connector") {
         compile("info.bitrich.xchange-stream:xchange-gdax")
         compile("info.bitrich.xchange-stream:xchange-poloniex2")
         compile("info.bitrich.xchange-stream:xchange-hitbtc")
-
-        compile("org.web3j:core")
     }
 }
 

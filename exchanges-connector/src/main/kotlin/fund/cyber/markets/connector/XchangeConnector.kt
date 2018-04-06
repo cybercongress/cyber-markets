@@ -9,12 +9,15 @@ import fund.cyber.markets.model.TradeType
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import io.reactivex.disposables.Disposable
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 
 class XchangeConnector: ExchangeConnector {
     private val log = LoggerFactory.getLogger(javaClass)!!
+    private lateinit var monitoring: MeterRegistry
 
     private lateinit var exchange: StreamingExchange
     private val exchangeName by lazy { exchange.exchangeSpecification.exchangeName.toUpperCase() }
@@ -26,9 +29,10 @@ class XchangeConnector: ExchangeConnector {
 
     private constructor()
 
-    constructor(streamingExchangeClassName: String, kafkaTemplate: KafkaTemplate<String, Any>) : this() {
+    constructor(streamingExchangeClassName: String, kafkaTemplate: KafkaTemplate<String, Any>, meterRegistry: MeterRegistry) : this() {
         exchange = StreamingExchangeFactory.INSTANCE.createExchange(streamingExchangeClassName)
         this.kafkaTemplate = kafkaTemplate
+        this.monitoring = meterRegistry
     }
 
     override fun connect() {
@@ -57,13 +61,21 @@ class XchangeConnector: ExchangeConnector {
     }
 
     override fun subscribeTrades() {
+        log.info("Subscribing for trades from $exchangeName exchange")
+
+        val exchangeTag = Tags.of("exchange", exchangeName)
+
         exchangeTokensPairs.forEach { pair ->
+            val exchangePairTag = exchangeTag.and(Tags.of("tokens_pair", pair.base.currencyCode + "_" + pair.counter.currencyCode))
+            val tradePerSecondMonitor = monitoring.counter("trade_count", exchangePairTag)
+
             val tradeSubscription = exchange.streamingMarketDataService
                     .getTrades(pair)
                     .subscribe({ exchangeTrade ->
                         log.debug("$exchangeName trade: {}", exchangeTrade)
                         val trade = convertTrade(exchangeName, exchangeTrade)
                         kafkaTemplate.send(tradesTopicName, trade)
+                        tradePerSecondMonitor.increment()
                     }) { throwable ->
                         log.error("Error in subscribing trades for $exchangeName", throwable)
                     }
