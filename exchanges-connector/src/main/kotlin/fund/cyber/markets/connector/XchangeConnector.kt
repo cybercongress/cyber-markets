@@ -1,6 +1,12 @@
 package fund.cyber.markets.connector
 
+import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
+import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
+import fund.cyber.markets.connector.configuration.NINGTHY_FIVE_PERCENT
+import fund.cyber.markets.connector.configuration.TOKENS_PAIR_TAG
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
+import fund.cyber.markets.connector.configuration.TRADE_COUNT_METRIC
+import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
 import fund.cyber.markets.helpers.MILLIS_TO_HOURS
 import fund.cyber.markets.helpers.convert
 import fund.cyber.markets.model.TokensPair
@@ -11,9 +17,11 @@ import info.bitrich.xchangestream.core.StreamingExchange
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
 import io.reactivex.disposables.Disposable
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
+import java.util.concurrent.TimeUnit
 
 class XchangeConnector: ExchangeConnector {
     private val log = LoggerFactory.getLogger(javaClass)!!
@@ -63,19 +71,26 @@ class XchangeConnector: ExchangeConnector {
     override fun subscribeTrades() {
         log.info("Subscribing for trades from $exchangeName exchange")
 
-        val exchangeTag = Tags.of("exchange", exchangeName)
+        val exchangeTag = Tags.of(EXCHANGE_TAG, exchangeName)
 
         exchangeTokensPairs.forEach { pair ->
-            val exchangePairTag = exchangeTag.and(Tags.of("tokens_pair", pair.base.currencyCode + "_" + pair.counter.currencyCode))
-            val tradePerSecondMonitor = monitoring.counter("trade_count", exchangePairTag)
+            val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, pair.base.currencyCode + "_" + pair.counter.currencyCode))
+            val tradePerSecondMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
+            val tradeLatencyMonitor = Timer.builder(TRADE_LATENCY_METRIC)
+                    .tags(exchangeTag)
+                    .publishPercentiles(NINGTHY_FIVE_PERCENT, NINE_HUNDRED_NINGTHY_FIVE_PERCENT)
+                    .register(monitoring)
 
             val tradeSubscription = exchange.streamingMarketDataService
                     .getTrades(pair)
                     .subscribe({ exchangeTrade ->
                         log.debug("$exchangeName trade: {}", exchangeTrade)
+
+                        tradeLatencyMonitor.record(System.currentTimeMillis() - exchangeTrade.timestamp.time, TimeUnit.MILLISECONDS)
+                        tradePerSecondMonitor.increment()
+
                         val trade = convertTrade(exchangeName, exchangeTrade)
                         kafkaTemplate.send(tradesTopicName, trade)
-                        tradePerSecondMonitor.increment()
                     }) { throwable ->
                         log.error("Error in subscribing trades for $exchangeName", throwable)
                     }

@@ -2,7 +2,13 @@ package fund.cyber.markets.connector
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
+import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
+import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
+import fund.cyber.markets.connector.configuration.NINGTHY_FIVE_PERCENT
+import fund.cyber.markets.connector.configuration.TOKENS_PAIR_TAG
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
+import fund.cyber.markets.connector.configuration.TRADE_COUNT_METRIC
+import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
 import fund.cyber.markets.connector.etherdelta.EtherdeltaContract
 import fund.cyber.markets.connector.etherdelta.EtherdeltaToken
 import fund.cyber.markets.connector.etherdelta.ParityTokenRegistryContract
@@ -13,6 +19,7 @@ import fund.cyber.markets.model.Trade
 import fund.cyber.markets.model.TradeType
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
@@ -29,12 +36,14 @@ import java.math.BigInteger
 import java.math.RoundingMode
 import java.net.URL
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 private const val ETHERDELTA_CONFIG_URL = "https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/config/main.json"
 private const val ETHERDELTA_CONTRACT_ADDRESS = "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819"
 private const val PARITY_TOKEN_REGISTRY_CONTRACT_ADDRESS = "0x5F0281910Af44bFb5fC7e86A404d0304B0e042F1"
 private const val PARITY_TOKEN_REGISTRY_EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000"
+private const val ETH_SYMBOL = "ETH"
 
 @Component
 class EtherdeltaConnector : ExchangeConnector {
@@ -87,7 +96,11 @@ class EtherdeltaConnector : ExchangeConnector {
     override fun subscribeTrades() {
         log.info("Subscribing for trades from $exchangeName exchange")
 
-        val exchangeTag = Tags.of("exchange", exchangeName)
+        val exchangeTag = Tags.of(EXCHANGE_TAG, exchangeName)
+        val tradeLatencyMonitor = Timer.builder(TRADE_LATENCY_METRIC)
+                .tags(exchangeTag)
+                .publishPercentiles(NINGTHY_FIVE_PERCENT, NINE_HUNDRED_NINGTHY_FIVE_PERCENT)
+                .register(monitoring)
 
         val latestBlockParameter = DefaultBlockParameter.valueOf("latest")
         var block = web3j.ethGetBlockByNumber(latestBlockParameter, false).send()
@@ -113,8 +126,10 @@ class EtherdeltaConnector : ExchangeConnector {
                     } else {
                         val trade = convertTrade(tradeEvent, block)
 
-                        val exchangePairTag = exchangeTag.and(Tags.of("tokens_pair", trade.pair.base + "_" + trade.pair.quote))
-                        val tradePerSecondMonitor = monitoring.counter("trade_count", exchangePairTag)
+                        val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, trade.pair.base + "_" + trade.pair.quote))
+                        val tradeCountMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
+                        tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
+                        tradeCountMonitor.increment()
 
                         kafkaTemplate.send(tradesTopicName, trade)
                         log.debug("Trade from $exchangeName: $trade")
@@ -128,20 +143,20 @@ class EtherdeltaConnector : ExchangeConnector {
         val tokenGive = exchangeTokensPairs[tradeEvent.tokenGive]
 
         val amountGet = if (tokenGet!!.base > BigInteger.ZERO) {
-            BigDecimal(tradeEvent.amountGet) / BigDecimal(tokenGet.base)
+            BigDecimal(tradeEvent.amountGet).divide(BigDecimal(tokenGet.base))
         } else {
             BigDecimal(tradeEvent.amountGet)
         }
 
         val amountGive = if (tokenGive!!.base.compareTo(BigInteger.ZERO) == 1) {
-            BigDecimal(tradeEvent.amountGive) / BigDecimal(tokenGive.base)
+            BigDecimal(tradeEvent.amountGive).divide(BigDecimal(tokenGive.base))
         } else {
             BigDecimal(tradeEvent.amountGive)
         }
 
         val timestamp = Numeric.toBigInt(block.block.timestampRaw).multiply(BigInteger.valueOf(1000)).toLong()
 
-        if (tokenGive.symbol == "ETH") {
+        if (tokenGive.symbol == ETH_SYMBOL) {
             val price = amountGive.divide(amountGet, tokenGive.decimals, RoundingMode.HALF_EVEN)
 
             return Trade(exchangeName,
