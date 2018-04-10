@@ -66,6 +66,9 @@ class EtherdeltaConnector : ExchangeConnector {
     @Autowired
     private lateinit var monitoring: MeterRegistry
 
+    /**
+     * Connect to etherdelta and parity token registry smart contracts using web3j
+     */
     override fun connect() {
         log.info("Connecting to $exchangeName exchange")
 
@@ -93,6 +96,12 @@ class EtherdeltaConnector : ExchangeConnector {
         return true
     }
 
+    /**
+     * Subscribe to new trades from etherdelta using smart contract.
+     * For first, check if there are tokens with addresses from the tradeEvent in our map of tokens.
+     * If both tokens are present in our dictionary, then we convert TradeEvent from smart contract to a Trade object
+     * that we send to kafka topic.
+     */
     override fun subscribeTrades() {
         log.info("Subscribing for trades from $exchangeName exchange")
 
@@ -138,6 +147,17 @@ class EtherdeltaConnector : ExchangeConnector {
                 }
     }
 
+    /**
+     * Convert TradeEvent from smart contract to a Trade object
+     * For first convert amounts from BigInteger type to BigDecimal using
+     * @see EtherdeltaToken.base and @see EtherdeltaToken.decimals
+     * Then get a timestamp from ethereum block and create a trade object
+     *
+     * @param tradeEvent a trade from etherdelta smart contract
+     * @param block a ethereum block which @param tradeEvent was mined
+     * @return trade object
+     * @see Trade
+     */
     private fun convertTrade(tradeEvent: EtherdeltaContract.TradeEventResponse, block: EthBlock): Trade {
         val tokenGet = exchangeTokensPairs[tradeEvent.tokenGet]
         val tokenGive = exchangeTokensPairs[tradeEvent.tokenGive]
@@ -148,7 +168,7 @@ class EtherdeltaConnector : ExchangeConnector {
             BigDecimal(tradeEvent.amountGet)
         }
 
-        val amountGive = if (tokenGive!!.base.compareTo(BigInteger.ZERO) == 1) {
+        val amountGive = if (tokenGive!!.base > BigInteger.ZERO) {
             BigDecimal(tradeEvent.amountGive).divide(BigDecimal(tokenGive.base))
         } else {
             BigDecimal(tradeEvent.amountGive)
@@ -186,6 +206,9 @@ class EtherdeltaConnector : ExchangeConnector {
 
     }
 
+    /**
+     * Get ERC20 token definitions from different locations
+     */
     override fun updateTokensPairs() {
         log.info("Updating tokens pairs")
 
@@ -197,6 +220,10 @@ class EtherdeltaConnector : ExchangeConnector {
         log.info("Tokens pairs updated. Count: ${exchangeTokensPairs.size}")
     }
 
+    /**
+     * Get ERC20 token definitions from etherdelta configuration JSON file.
+     * @return a map of ERC20 token address and token definition.
+     */
     private fun getEtherdeltaConfigTokens(): MutableMap<String, EtherdeltaToken> {
         val mapper = ObjectMapper()
         val tokens = mutableMapOf<String, EtherdeltaToken>()
@@ -218,6 +245,10 @@ class EtherdeltaConnector : ExchangeConnector {
         return tokens
     }
 
+    /**
+     * Get ERC20 token definitions from parity token registry smart contract.
+     * @return a map of ERC20 token address and token definition.
+     */
     fun getParityTokenRegistryTokens(): MutableMap<String, EtherdeltaToken> {
         val tokens = mutableMapOf<String, EtherdeltaToken>()
 
@@ -240,6 +271,11 @@ class EtherdeltaConnector : ExchangeConnector {
         return tokens
     }
 
+    /**
+     * Check that @param tokenBase is valid power of 10.
+     * We need check this because parity token registry contains not valid data.
+     * @return boolean result
+     */
     fun validBase(tokenBase: String): Boolean {
         val pattern = Pattern.compile("10*")
         val matcher = pattern.matcher(tokenBase)
