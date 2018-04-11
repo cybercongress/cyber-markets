@@ -1,7 +1,6 @@
 package fund.cyber.markets.connector
 
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
-import info.bitrich.xchangestream.binance.BinanceStreamingExchange
 import info.bitrich.xchangestream.bitfinex.BitfinexStreamingExchange
 import info.bitrich.xchangestream.bitstamp.BitstampStreamingExchange
 import info.bitrich.xchangestream.gdax.GDAXStreamingExchange
@@ -52,7 +51,8 @@ class ConnectorRunner {
     private fun getExchangeConnectorBean(exchangeName: String): ExchangeConnector? {
         return when (exchangeName) {
             "BITFINEX" -> beanFactory.getBean(XchangeConnector::class.java, BitfinexStreamingExchange::class.java.name)
-            "BINANCE" -> beanFactory.getBean(XchangeConnector::class.java, BinanceStreamingExchange::class.java.name)
+            // todo: disabled until trades for binance will be implemented
+            //"BINANCE" -> beanFactory.getBean(XchangeConnector::class.java, BinanceStreamingExchange::class.java.name)
             "BITSTAMP" -> beanFactory.getBean(XchangeConnector::class.java, BitstampStreamingExchange::class.java.name)
             "POLONIEX" -> beanFactory.getBean(XchangeConnector::class.java, PoloniexStreamingExchange::class.java.name)
             "GDAX" -> beanFactory.getBean(XchangeConnector::class.java, GDAXStreamingExchange::class.java.name)

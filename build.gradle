@@ -14,8 +14,11 @@ buildscript {
         xchangeStreamVersion = "4.3.3-SNAPSHOT"
 
         springBootVersion = "2.0.0.RELEASE"
-        springKafkaVersion = "2.1.2.RELEASE"
+        springKafkaVersion = "2.1.4.RELEASE"
         springCassandraVersion = "2.0.3.RELEASE"
+
+        // metrics
+        micrometerVersion = "1.0.0"
 
         // plugins
         dependencyPluginVersion = "1.0.3.RELEASE"
@@ -114,13 +117,15 @@ subprojects {
                 exclude 'org.jetbrains.kotlin:kotlin-stdlib'
             }
 
-            dependency("org.springframework.kafka:spring-kafka:$springKafkaVersion")
-
             dependency("org.springframework.boot:spring-boot-starter:$springBootVersion")
             dependency("org.springframework.boot:spring-boot-starter-aop:$springBootVersion")
-            dependency("org.springframework:spring-boot-starter-test:$springBootVersion")
             dependency("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
             dependency("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
+
+            dependency("org.springframework.kafka:spring-kafka:$springKafkaVersion")
+            dependency("org.springframework.kafka:spring-kafka-test:$springKafkaVersion")
+
+            dependency("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
 
             dependency("org.apache.kafka:kafka-clients:$kafkaVersion")
 
@@ -150,8 +155,10 @@ subprojects {
             dependency("info.bitrich.xchange-stream:xchange-poloniex2:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-hitbtc:$xchangeStreamVersion")
 
-
             dependency("org.web3j:core:$web3jVersion")
+
+            dependency("io.micrometer:micrometer-core:$micrometerVersion")
+            dependency("io.micrometer:micrometer-registry-prometheus:$micrometerVersion")
         }
     }
 
@@ -170,12 +177,15 @@ project(":core") {
         compile("org.slf4j:slf4j-api")
         compile("ch.qos.logback:logback-classic")
 
-        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
         compile("org.jetbrains.kotlin:kotlin-reflect")
+        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
         compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 
         compile("com.fasterxml.jackson.core:jackson-databind")
+        compile("com.fasterxml.jackson.core:jackson-annotations")
         compile("com.fasterxml.jackson.module:jackson-module-kotlin")
+        compile("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+        compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
         compile("org.apache.kafka:kafka-clients")
 
@@ -215,8 +225,16 @@ project(":exchanges-connector") {
     dependencies {
         compile project(":core")
 
+        compile("org.springframework.boot:spring-boot-starter-reactor-netty")
+        compile("org.springframework.boot:spring-boot-starter-actuator")
+        compile("org.springframework.boot:spring-boot-starter-webflux")
         compile("org.springframework.boot:spring-boot-starter-aop")
         compile("org.springframework.kafka:spring-kafka")
+
+        compile("org.web3j:core")
+
+        compile("io.micrometer:micrometer-core:")
+        compile("io.micrometer:micrometer-registry-prometheus")
 
         compile("info.bitrich.xchange-stream:xchange-stream-core")
         compile("info.bitrich.xchange-stream:xchange-binance")
@@ -226,7 +244,9 @@ project(":exchanges-connector") {
         compile("info.bitrich.xchange-stream:xchange-poloniex2")
         compile("info.bitrich.xchange-stream:xchange-hitbtc")
 
-        compile("org.web3j:core")
+        testCompile("org.springframework:spring-test")
+        testCompile("org.springframework.kafka:spring-kafka-test")
+
     }
 }
 

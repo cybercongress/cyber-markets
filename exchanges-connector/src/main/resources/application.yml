@@ -1,0 +1,20 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ["metrics", "prometheus"]
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    binders:
+      jvm:
+        enabled: false
+      logback:
+        enabled: false
+      uptime:
+        enabled: true
+      processor:
+        enabled: false
+server:
+  port: 8080
