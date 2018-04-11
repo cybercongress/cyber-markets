@@ -14,7 +14,7 @@ buildscript {
         xchangeStreamVersion = "4.3.3-SNAPSHOT"
 
         springBootVersion = "2.0.0.RELEASE"
-        springKafkaVersion = "2.1.2.RELEASE"
+        springKafkaVersion = "2.1.4.RELEASE"
         springCassandraVersion = "2.0.3.RELEASE"
 
         // metrics
@@ -117,13 +117,15 @@ subprojects {
                 exclude 'org.jetbrains.kotlin:kotlin-stdlib'
             }
 
-            dependency("org.springframework.kafka:spring-kafka:$springKafkaVersion")
-
             dependency("org.springframework.boot:spring-boot-starter:$springBootVersion")
             dependency("org.springframework.boot:spring-boot-starter-aop:$springBootVersion")
-            dependency("org.springframework:spring-boot-starter-test:$springBootVersion")
             dependency("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
             dependency("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
+
+            dependency("org.springframework.kafka:spring-kafka:$springKafkaVersion")
+            dependency("org.springframework.kafka:spring-kafka-test:$springKafkaVersion")
+
+            dependency("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
 
             dependency("org.apache.kafka:kafka-clients:$kafkaVersion")
 
@@ -241,6 +243,10 @@ project(":exchanges-connector") {
         compile("info.bitrich.xchange-stream:xchange-gdax")
         compile("info.bitrich.xchange-stream:xchange-poloniex2")
         compile("info.bitrich.xchange-stream:xchange-hitbtc")
+
+        testCompile("org.springframework:spring-test")
+        testCompile("org.springframework.kafka:spring-kafka-test")
+
     }
 }
 
