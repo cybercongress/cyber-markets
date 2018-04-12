@@ -6,7 +6,7 @@ import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType
 import fund.cyber.markets.api.common.InfoCommand
 import fund.cyber.markets.api.common.UnknownCommand
 import fund.cyber.markets.api.common.WebSocketCommandsParser
-import fund.cyber.markets.model.TokensPairInitializer
+import fund.cyber.markets.common.model.TokensPairInitializer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

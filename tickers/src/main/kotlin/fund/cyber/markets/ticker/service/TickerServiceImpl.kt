@@ -2,8 +2,8 @@ package fund.cyber.markets.ticker.service
 
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.model.TokenTicker
-import fund.cyber.markets.model.Trade
+import fund.cyber.markets.common.model.TokenTicker
+import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import io.reactivex.schedulers.Schedulers
 import org.apache.kafka.clients.consumer.ConsumerRecords

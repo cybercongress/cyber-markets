@@ -1,7 +1,7 @@
 package fund.cyber.markets.api.rest.controller
 
 import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.helpers.closestSmallerMultiply
+import fund.cyber.markets.common.closestSmallerMultiply
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable

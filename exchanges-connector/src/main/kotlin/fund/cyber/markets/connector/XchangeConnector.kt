@@ -1,5 +1,10 @@
 package fund.cyber.markets.connector
 
+import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.convert
+import fund.cyber.markets.common.model.TokensPair
+import fund.cyber.markets.common.model.Trade
+import fund.cyber.markets.common.model.TradeType
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
 import fund.cyber.markets.connector.configuration.NINGTHY_FIVE_PERCENT
@@ -7,11 +12,6 @@ import fund.cyber.markets.connector.configuration.TOKENS_PAIR_TAG
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
 import fund.cyber.markets.connector.configuration.TRADE_COUNT_METRIC
 import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
-import fund.cyber.markets.helpers.MILLIS_TO_HOURS
-import fund.cyber.markets.helpers.convert
-import fund.cyber.markets.model.TokensPair
-import fund.cyber.markets.model.Trade
-import fund.cyber.markets.model.TradeType
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
