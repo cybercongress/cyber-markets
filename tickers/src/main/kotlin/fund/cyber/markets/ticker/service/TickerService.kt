@@ -1,7 +1,7 @@
 package fund.cyber.markets.ticker.service
 
-import fund.cyber.markets.model.TokenTicker
-import fund.cyber.markets.model.Trade
+import fund.cyber.markets.common.model.TokenTicker
+import fund.cyber.markets.common.model.Trade
 import org.apache.kafka.clients.consumer.ConsumerRecords
 
 interface TickerService {

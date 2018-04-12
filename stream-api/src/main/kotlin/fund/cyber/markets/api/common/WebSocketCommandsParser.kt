@@ -9,8 +9,8 @@ import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.ORDERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TICKERS
 import fund.cyber.markets.api.common.IncomingMessageSubscribeTopicType.TRADES
 import fund.cyber.markets.api.configuration.AppContext
-import fund.cyber.markets.model.TokensPair
-import fund.cyber.markets.model.TokensPairInitializer
+import fund.cyber.markets.common.model.TokensPair
+import fund.cyber.markets.common.model.TokensPairInitializer
 
 
 sealed class WebSocketCommand

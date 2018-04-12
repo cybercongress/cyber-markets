@@ -1,8 +1,8 @@
 package fund.cyber.markets.connector.configuration
 
-import fund.cyber.markets.configuration.KAFKA_BROKERS
-import fund.cyber.markets.configuration.KAFKA_BROKERS_DEFAULT
-import fund.cyber.markets.kafka.JsonSerializer
+import fund.cyber.markets.common.KAFKA_BROKERS
+import fund.cyber.markets.common.KAFKA_BROKERS_DEFAULT
+import fund.cyber.markets.common.kafka.JsonSerializer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
