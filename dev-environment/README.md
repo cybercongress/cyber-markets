@@ -21,8 +21,6 @@ docker cp dev-environment/elassandra-bootstrap.cql  elassandra-markets:/elassand
 docker exec -it elassandra-markets bash
 cqlsh -f elassandra-bootstrap.cql
 ```
-Then copy paste all content from elassandra-bootstrap.cql to interactive console and press enter. Write twice exit to 
- exit from container shell.
 
 ### Stop kafka and delete kafka data(cheat sheet)
 ```bash
