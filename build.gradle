@@ -3,12 +3,13 @@ buildscript {
     ext {
         kotlinVersion = "1.2.31"
         kotlinCoroutinesVersion = "0.19.3"
+
         jacksonVersion = "2.9.2"
         httpClientVersion = "4.5.5"
-        kafkaVersion = "1.0.0"
         web3jVersion = "3.3.1"
         rxkotlinVersion = "2.2.0"
         reactorVersion = "3.1.3.RELEASE"
+        cassandraConfluentVersion = "3.3.2"
 
         xchangeStreamCoreVersion = "4.3.2"
         xchangeStreamVersion = "4.3.3-SNAPSHOT"
@@ -33,8 +34,6 @@ buildscript {
         // logs
         slf4jVersion = "1.7.25"
         lockbackVersion = "1.2.3"
-
-        cassandraConfluentVersion = "3.3.2"
     }
 
     repositories {
@@ -127,8 +126,6 @@ subprojects {
 
             dependency("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
 
-            dependency("org.apache.kafka:kafka-clients:$kafkaVersion")
-
             dependency("org.junit.jupiter:junit-jupiter-api:$junitVersion")
             dependency("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
             dependency("org.mockito:mockito-core:$mockitoVersion")
@@ -171,7 +168,7 @@ subprojects {
     }
 }
 
-project(":core") {
+project(":common") {
 
     dependencies {
         compile("org.slf4j:slf4j-api")
@@ -187,9 +184,16 @@ project(":core") {
         compile("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
         compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
-        compile("org.apache.kafka:kafka-clients")
-
         compile("io.reactivex.rxjava2:rxkotlin")
+    }
+}
+
+project(":common-kafka") {
+
+    dependencies {
+        compile project(":common")
+
+        compile("org.springframework.kafka:spring-kafka")
     }
 }
 
@@ -197,7 +201,7 @@ project(":stream-api") {
     apply plugin: "application"
 
     dependencies {
-        compile(project(":core"))
+        compile project(":common-kafka")
         compile("io.undertow:undertow-core")
     }
 
@@ -209,7 +213,7 @@ project(":rest-api") {
     apply plugin: "org.springframework.boot"
 
     dependencies {
-        compile project(":core")
+        compile project(":common")
         compile project(":cassandra-service")
 
         compile 'org.springframework.boot:spring-boot-starter'
@@ -223,7 +227,7 @@ project(":exchanges-connector") {
     apply plugin: "org.springframework.boot"
 
     dependencies {
-        compile project(":core")
+        compile project(":common-kafka")
 
         compile("org.springframework.boot:spring-boot-starter-reactor-netty")
         compile("org.springframework.boot:spring-boot-starter-actuator")
@@ -259,7 +263,7 @@ project(":tickers") {
     }
 
     dependencies {
-        compile project(":core")
+        compile project(":common-kafka")
         compile project(":cassandra-service")
 
         compile("org.springframework.boot:spring-boot-starter")
@@ -279,7 +283,7 @@ project(":cassandra-service") {
     }
 
     dependencies {
-        compileOnly project(":core")
+        compileOnly project(":common")
 
         compileOnly("org.springframework.boot:spring-boot-starter")
 

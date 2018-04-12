@@ -6,7 +6,7 @@ import com.datastax.driver.mapping.annotations.Frozen
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
 import com.datastax.driver.mapping.annotations.UDT
-import fund.cyber.markets.model.TokenTicker
+import fund.cyber.markets.common.model.TokenTicker
 import java.math.BigDecimal
 import java.util.*
 

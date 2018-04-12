@@ -1,8 +1,8 @@
 package fund.cyber.markets.ticker.common
 
-import fund.cyber.markets.model.BaseTokens
-import fund.cyber.markets.model.TokenPrice
-import fund.cyber.markets.model.TokenTicker
+import fund.cyber.markets.common.model.BaseTokens
+import fund.cyber.markets.common.model.TokenPrice
+import fund.cyber.markets.common.model.TokenTicker
 import java.math.BigDecimal
 
 infix fun TokenTicker.addHop(hopTicker: TokenTicker) {

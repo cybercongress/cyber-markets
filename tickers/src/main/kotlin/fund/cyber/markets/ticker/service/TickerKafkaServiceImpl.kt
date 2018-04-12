@@ -1,8 +1,8 @@
 
 package fund.cyber.markets.ticker.service
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
-import fund.cyber.markets.model.TokenTickerKey
-import fund.cyber.markets.model.Trade
+import fund.cyber.markets.common.model.TokenTickerKey
+import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.ticker.configuration.TICKERS_BACKUP_TOPIC_NAME
 import fund.cyber.markets.ticker.configuration.TICKERS_TOPIC_NAME
 import io.reactivex.schedulers.Schedulers

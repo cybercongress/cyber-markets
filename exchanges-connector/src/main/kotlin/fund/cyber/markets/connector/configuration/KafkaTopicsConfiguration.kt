@@ -1,7 +1,7 @@
 package fund.cyber.markets.connector.configuration
 
-import fund.cyber.markets.configuration.KAFKA_BROKERS
-import fund.cyber.markets.configuration.KAFKA_BROKERS_DEFAULT
+import fund.cyber.markets.common.KAFKA_BROKERS
+import fund.cyber.markets.common.KAFKA_BROKERS_DEFAULT
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic

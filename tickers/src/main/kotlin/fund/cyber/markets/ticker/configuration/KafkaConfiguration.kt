@@ -1,7 +1,7 @@
 package fund.cyber.markets.ticker.configuration
 
-import fund.cyber.markets.configuration.KAFKA_BROKERS
-import fund.cyber.markets.configuration.KAFKA_BROKERS_DEFAULT
+import fund.cyber.markets.common.KAFKA_BROKERS
+import fund.cyber.markets.common.KAFKA_BROKERS_DEFAULT
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.common.config.TopicConfig

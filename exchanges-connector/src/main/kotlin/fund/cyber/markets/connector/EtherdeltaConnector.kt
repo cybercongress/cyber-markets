@@ -3,6 +3,11 @@ package fund.cyber.markets.connector
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.convert
+import fund.cyber.markets.common.model.TokensPair
+import fund.cyber.markets.common.model.Trade
+import fund.cyber.markets.common.model.TradeType
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
@@ -14,11 +19,6 @@ import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
 import fund.cyber.markets.connector.etherdelta.EtherdeltaContract
 import fund.cyber.markets.connector.etherdelta.EtherdeltaToken
 import fund.cyber.markets.connector.etherdelta.ParityTokenRegistryContract
-import fund.cyber.markets.helpers.MILLIS_TO_HOURS
-import fund.cyber.markets.helpers.convert
-import fund.cyber.markets.model.TokensPair
-import fund.cyber.markets.model.Trade
-import fund.cyber.markets.model.TradeType
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
