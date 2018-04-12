@@ -2,7 +2,7 @@ version: '3'
 services:
 
   fast-data-dev:
-    container_name: fast-data-dev-search
+    container_name: fast-data-dev-markets
     image: landoop/fast-data-dev:latest
     ports:
       - "3030:3030"
@@ -17,7 +17,7 @@ services:
       ADV_HOST: 127.0.0.1
 
   elassandra:
-    container_name: elassandra-search
+    container_name: elassandra-markets
     image: strapdata/elassandra:5.5.0.13
     ports:
       - "9042:9042"
