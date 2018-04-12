@@ -1,0 +1,44 @@
+version: '3'
+services:
+
+  fast-data-dev:
+    container_name: fast-data-dev-markets
+    image: landoop/fast-data-dev:latest
+    ports:
+      - "3030:3030"
+      - "9092:9092"
+      - "2181:2181"
+      - "9581-9584:9581-9584"
+      - "8081-8083:8081-8083"
+    environment:
+      RUNTESTS: 0
+      SAMPLEDATA: 0
+      FORWARDLOGS: 0
+      ADV_HOST: 127.0.0.1
+
+  elassandra:
+    container_name: elassandra-markets
+    image: strapdata/elassandra:5.5.0.13
+    ports:
+      - "9042:9042"
+      - "9200:9200"
+      - "7199:7199"
+    environment:
+      CASSANDRA_DC: DEVELOPMENT
+      CASSANDRA_CLUSTER_NAME: CYBER_SEARCH
+
+  prometheus:
+    container_name: prometheus
+    restart: on-failure
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    container_name: grafana
+    restart: on-failure
+    image: grafana/grafana:5.0.4
+    ports:
+      - "3000:3000"

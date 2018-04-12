@@ -39,7 +39,7 @@ WITH CLUSTERING ORDER BY (
   tradeId DESC
 );
 
-CREATE TABLE IF NOT EXISTS markets.order (
+CREATE TABLE IF NOT EXISTS "markets"."order" (
   exchange text,
   pair frozen<tokenpair>,
   type text,
@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS markets.order (
   orderId text,
   amount decimal,
   price decimal,
-  PRIMARY KEY ((exchange, pair, epochHour), trdadeId)
+  PRIMARY KEY ((exchange, pair, epochHour), orderId)
 )
 WITH CLUSTERING ORDER BY (
-  tradeId DESC
+  orderId DESC
 );
