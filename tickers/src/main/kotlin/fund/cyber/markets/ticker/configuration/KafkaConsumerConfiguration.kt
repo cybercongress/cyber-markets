@@ -2,11 +2,11 @@ package fund.cyber.markets.ticker.configuration
 
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.common.Durations
-import fund.cyber.markets.configuration.KAFKA_BROKERS
-import fund.cyber.markets.configuration.KAFKA_BROKERS_DEFAULT
-import fund.cyber.markets.kafka.JsonDeserializer
-import fund.cyber.markets.model.TokenTickerKey
-import fund.cyber.markets.model.Trade
+import fund.cyber.markets.common.KAFKA_BROKERS
+import fund.cyber.markets.common.KAFKA_BROKERS_DEFAULT
+import fund.cyber.markets.common.kafka.JsonDeserializer
+import fund.cyber.markets.common.model.TokenTickerKey
+import fund.cyber.markets.common.model.Trade
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.requests.IsolationLevel

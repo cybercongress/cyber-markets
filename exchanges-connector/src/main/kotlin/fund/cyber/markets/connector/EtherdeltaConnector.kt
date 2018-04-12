@@ -1,6 +1,13 @@
 package fund.cyber.markets.connector
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.convert
+import fund.cyber.markets.common.model.TokensPair
+import fund.cyber.markets.common.model.Trade
+import fund.cyber.markets.common.model.TradeType
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
@@ -12,11 +19,6 @@ import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
 import fund.cyber.markets.connector.etherdelta.EtherdeltaContract
 import fund.cyber.markets.connector.etherdelta.EtherdeltaToken
 import fund.cyber.markets.connector.etherdelta.ParityTokenRegistryContract
-import fund.cyber.markets.helpers.MILLIS_TO_HOURS
-import fund.cyber.markets.helpers.convert
-import fund.cyber.markets.model.TokensPair
-import fund.cyber.markets.model.Trade
-import fund.cyber.markets.model.TradeType
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
@@ -40,6 +42,7 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 private const val ETHERDELTA_CONFIG_URL = "https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/config/main.json"
+private const val MYETHERWALLET_TOKENS_URL = "https://raw.githubusercontent.com/MyEtherWallet/ethereum-lists/master/tokens/tokens-eth.json"
 private const val ETHERDELTA_CONTRACT_ADDRESS = "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819"
 private const val PARITY_TOKEN_REGISTRY_CONTRACT_ADDRESS = "0x5F0281910Af44bFb5fC7e86A404d0304B0e042F1"
 private const val PARITY_TOKEN_REGISTRY_EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -212,10 +215,12 @@ class EtherdeltaConnector : ExchangeConnector {
     override fun updateTokensPairs() {
         log.info("Updating tokens pairs")
 
-        val etherdeltaConfigTokens = getEtherdeltaConfigTokens()
         val parityTokenRegistryTokens = getParityTokenRegistryTokens()
+        val etherdeltaConfigTokens = getEtherdeltaConfigTokens()
+        val myEtherWalletTokens = getMyEtherWalletTokens()
         exchangeTokensPairs = parityTokenRegistryTokens
         exchangeTokensPairs.putAll(etherdeltaConfigTokens)
+        exchangeTokensPairs.putAll(myEtherWalletTokens)
 
         log.info("Tokens pairs updated. Count: ${exchangeTokensPairs.size}")
     }
@@ -246,10 +251,35 @@ class EtherdeltaConnector : ExchangeConnector {
     }
 
     /**
+     * Get ERC20 token definitions from MyEtherWallet token list.
+     * @return a map of ERC20 token address and token definition.
+     */
+    private fun getMyEtherWalletTokens(): MutableMap<String, EtherdeltaToken> {
+        val mapper = ObjectMapper()
+        val tokens = mutableMapOf<String, EtherdeltaToken>()
+        val base = BigInteger.TEN
+
+        val tokenListTree =  mapper.readValue<Iterable<JsonNode>>(URL(MYETHERWALLET_TOKENS_URL))
+        tokenListTree.asIterable().forEach { tokenNode ->
+
+            if (tokenNode.get("decimals").asInt() != 0) {
+                val tokenContractAddress = tokenNode.get("address").asText()
+                val tokenSymbol = tokenNode.get("symbol").asText()
+                val tokenDecimal = tokenNode.get("decimals").asInt()
+                val tokenBase = base.pow(tokenDecimal)
+
+                tokens[tokenContractAddress] = EtherdeltaToken(tokenSymbol, tokenBase, tokenDecimal)
+            }
+        }
+
+        return tokens
+    }
+
+    /**
      * Get ERC20 token definitions from parity token registry smart contract.
      * @return a map of ERC20 token address and token definition.
      */
-    fun getParityTokenRegistryTokens(): MutableMap<String, EtherdeltaToken> {
+    private fun getParityTokenRegistryTokens(): MutableMap<String, EtherdeltaToken> {
         val tokens = mutableMapOf<String, EtherdeltaToken>()
 
         val tokensCount = parityTokenRegistryContract.tokenCount().send().toLong()

@@ -1,6 +1,6 @@
 package fund.cyber.markets.ticker.processor
 
-import fund.cyber.markets.model.TokenTicker
+import fund.cyber.markets.common.model.TokenTicker
 
 interface TickerProcessor {
     fun process()

@@ -3,10 +3,10 @@ package fund.cyber.markets.cassandra.configuration
 import com.datastax.driver.core.Cluster
 import fund.cyber.markets.cassandra.repository.SupplyRepository
 import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.configuration.CASSANDRA_HOSTS
-import fund.cyber.markets.configuration.CASSANDRA_HOSTS_DEFAULT
-import fund.cyber.markets.configuration.CASSANDRA_PORT
-import fund.cyber.markets.configuration.CASSANDRA_PORT_DEFAULT
+import fund.cyber.markets.common.CASSANDRA_HOSTS
+import fund.cyber.markets.common.CASSANDRA_HOSTS_DEFAULT
+import fund.cyber.markets.common.CASSANDRA_PORT
+import fund.cyber.markets.common.CASSANDRA_PORT_DEFAULT
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean

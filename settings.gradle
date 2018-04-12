@@ -1,4 +1,5 @@
-include("core")
+include("common")
+include("common-kafka")
 include("cassandra-service")
 
 include("tickers")

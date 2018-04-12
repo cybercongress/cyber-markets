@@ -1,11 +1,11 @@
 package fund.cyber.markets.ticker.processor
 
-import fund.cyber.markets.helpers.closestSmallerMultiplyFromTs
-import fund.cyber.markets.model.BaseTokens
-import fund.cyber.markets.model.Exchanges
-import fund.cyber.markets.model.TokenPrice
-import fund.cyber.markets.model.TokenTicker
-import fund.cyber.markets.model.Trade
+import fund.cyber.markets.common.closestSmallerMultiplyFromTs
+import fund.cyber.markets.common.model.BaseTokens
+import fund.cyber.markets.common.model.Exchanges
+import fund.cyber.markets.common.model.TokenPrice
+import fund.cyber.markets.common.model.TokenTicker
+import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.ticker.common.CrossConversion
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import fund.cyber.markets.ticker.service.TickerService

@@ -1,10 +1,10 @@
 package fund.cyber.markets.ticker.configuration
 
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
-import fund.cyber.markets.configuration.KAFKA_BROKERS
-import fund.cyber.markets.configuration.KAFKA_BROKERS_DEFAULT
-import fund.cyber.markets.kafka.JsonSerializer
-import fund.cyber.markets.model.TokenTickerKey
+import fund.cyber.markets.common.KAFKA_BROKERS
+import fund.cyber.markets.common.KAFKA_BROKERS_DEFAULT
+import fund.cyber.markets.common.kafka.JsonSerializer
+import fund.cyber.markets.common.model.TokenTickerKey
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.springframework.beans.factory.annotation.Value
