@@ -96,7 +96,15 @@ class EtherdeltaConnector : ExchangeConnector {
     }
 
     override fun isAlive(): Boolean {
-        return true
+        val test: String?
+
+        try {
+            test = etherdeltaContract.accountLevelsAddr().send()
+        } catch (e: Throwable) {
+            return false
+        }
+
+        return test != null
     }
 
     /**
