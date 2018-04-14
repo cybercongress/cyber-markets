@@ -24,7 +24,7 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.ClassPathResource
+import org.springframework.context.support.GenericApplicationContext
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import org.web3j.protocol.Web3j
@@ -59,6 +59,9 @@ class EtherdeltaConnector : ExchangeConnector {
     private lateinit var exchangeTokensPairs: MutableMap<String, EtherdeltaToken>
     private lateinit var parityTokenRegistryContract: ParityTokenRegistryContract
     private lateinit var etherdeltaContract: EtherdeltaContract
+
+    @Autowired
+    private lateinit var resourceLoader: GenericApplicationContext
 
     @Autowired
     private lateinit var configuration: ConnectorConfiguration
@@ -223,10 +226,10 @@ class EtherdeltaConnector : ExchangeConnector {
     override fun updateTokensPairs() {
         log.info("Updating tokens pairs")
 
-        val parityTokenRegistryTokens = getParityTokenRegistryTokens()
+        //val parityTokenRegistryTokens = getParityTokenRegistryTokens()
         val etherdeltaConfigTokens = getEtherdeltaConfigTokens()
         val myEtherWalletTokens = getMyEtherWalletTokens()
-        exchangeTokensPairs = parityTokenRegistryTokens
+        exchangeTokensPairs = etherdeltaConfigTokens
         exchangeTokensPairs.putAll(etherdeltaConfigTokens)
         exchangeTokensPairs.putAll(myEtherWalletTokens)
 
@@ -267,7 +270,8 @@ class EtherdeltaConnector : ExchangeConnector {
         val tokens = mutableMapOf<String, EtherdeltaToken>()
         val base = BigInteger.TEN
 
-        val tokenListTree =  mapper.readValue<Iterable<JsonNode>>(ClassPathResource("tokens-eth.json").file)
+        val tokenDefinition = resourceLoader.getResource("classpath:tokens-eth.json").file
+        val tokenListTree =  mapper.readValue<Iterable<JsonNode>>(tokenDefinition)
         tokenListTree.asIterable().forEach { tokenNode ->
 
             if (tokenNode.get("decimals").asInt() != 0) {
