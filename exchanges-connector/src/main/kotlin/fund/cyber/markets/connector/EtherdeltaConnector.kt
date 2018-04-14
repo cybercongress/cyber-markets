@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ClassPathResource
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import org.web3j.protocol.Web3j
@@ -42,7 +43,6 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 private const val ETHERDELTA_CONFIG_URL = "https://raw.githubusercontent.com/etherdelta/etherdelta.github.io/master/config/main.json"
-private const val MYETHERWALLET_TOKENS_URL = "https://raw.githubusercontent.com/MyEtherWallet/ethereum-lists/master/tokens/tokens-eth.json"
 private const val ETHERDELTA_CONTRACT_ADDRESS = "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819"
 private const val PARITY_TOKEN_REGISTRY_CONTRACT_ADDRESS = "0x5F0281910Af44bFb5fC7e86A404d0304B0e042F1"
 private const val PARITY_TOKEN_REGISTRY_EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -267,7 +267,7 @@ class EtherdeltaConnector : ExchangeConnector {
         val tokens = mutableMapOf<String, EtherdeltaToken>()
         val base = BigInteger.TEN
 
-        val tokenListTree =  mapper.readValue<Iterable<JsonNode>>(URL(MYETHERWALLET_TOKENS_URL))
+        val tokenListTree =  mapper.readValue<Iterable<JsonNode>>(ClassPathResource("tokens-eth.json").file)
         tokenListTree.asIterable().forEach { tokenNode ->
 
             if (tokenNode.get("decimals").asInt() != 0) {
