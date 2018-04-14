@@ -27,7 +27,7 @@ class ConnectorRunner {
     @Autowired
     private lateinit var retryTemplate: RetryTemplate
 
-    private val connectors = mutableSetOf<ExchangeConnector>()
+    val connectors = mutableSetOf<ExchangeConnector>()
 
     fun start() {
         configuration.exchanges.forEach { exchangeName ->
