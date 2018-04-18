@@ -1,11 +1,12 @@
 # Build Stage
 FROM openjdk:8u131-jdk AS build
-COPY ./ /cm
-WORKDIR /cm
+COPY ./ /build
+WORKDIR /build
 RUN ./gradlew clean :rest-api:assemble
 
 # Container with application
 FROM openjdk:8u131-jre-alpine
 VOLUME /cyberdata
-COPY --from=build /cm/rest-api/build/install/rest-api /cyberapp
-ENTRYPOINT ["/cyberapp/bin/rest-api"]
+COPY --from=build /build/rest-api/build/libs /cyberapp/bin
+
+ENTRYPOINT ["java", "-jar", "/cyberapp/bin/rest-api.jar"]
