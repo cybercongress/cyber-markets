@@ -22,9 +22,10 @@ import fund.cyber.markets.connector.etherdelta.ParityTokenRegistryContract
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
+import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.ClassPathResource
+import org.springframework.context.support.GenericApplicationContext
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import org.web3j.protocol.Web3j
@@ -38,6 +39,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import java.net.URL
+import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -59,6 +61,9 @@ class EtherdeltaConnector : ExchangeConnector {
     private lateinit var exchangeTokensPairs: MutableMap<String, EtherdeltaToken>
     private lateinit var parityTokenRegistryContract: ParityTokenRegistryContract
     private lateinit var etherdeltaContract: EtherdeltaContract
+
+    @Autowired
+    private lateinit var resourceLoader: GenericApplicationContext
 
     @Autowired
     private lateinit var configuration: ConnectorConfiguration
@@ -267,7 +272,10 @@ class EtherdeltaConnector : ExchangeConnector {
         val tokens = mutableMapOf<String, EtherdeltaToken>()
         val base = BigInteger.TEN
 
-        val tokenListTree =  mapper.readValue<Iterable<JsonNode>>(ClassPathResource("tokens-eth.json").file)
+        val tokenDefinitionInputStream = resourceLoader.getResource("classpath:tokens-eth.json").inputStream
+        val tokenDefinitionString = IOUtils.toString(tokenDefinitionInputStream, Charset.forName("UTF-8"))
+
+        val tokenListTree =  mapper.readValue<Iterable<JsonNode>>(tokenDefinitionString)
         tokenListTree.asIterable().forEach { tokenNode ->
 
             if (tokenNode.get("decimals").asInt() != 0) {
