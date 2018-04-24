@@ -24,9 +24,6 @@ classes/
 *.swp
 *.swo
 
-# externalized configuration file
-cyber.markets.properties
-
 # Gradle
 .gradle/
 build
