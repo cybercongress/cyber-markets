@@ -16,6 +16,7 @@ import fund.cyber.markets.connector.configuration.TOKENS_PAIR_TAG
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
 import fund.cyber.markets.connector.configuration.TRADE_COUNT_METRIC
 import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
+import fund.cyber.markets.connector.etherdelta.Erc20Contract
 import fund.cyber.markets.connector.etherdelta.EtherdeltaContract
 import fund.cyber.markets.connector.etherdelta.EtherdeltaToken
 import fund.cyber.markets.connector.etherdelta.ParityTokenRegistryContract
@@ -141,25 +142,22 @@ class EtherdeltaConnector : ExchangeConnector {
                     val getToken = exchangeTokensPairs[tradeEvent.tokenGet]
                     val giveToken = exchangeTokensPairs[tradeEvent.tokenGive]
 
-                    if (getToken == null || giveToken == null) {
-                        val missedTokenAddress = if (getToken == null) {
-                            tradeEvent.tokenGet
-                        } else {
-                            tradeEvent.tokenGive
-                        }
-                        log.warn("Token not found in token list: $missedTokenAddress")
-                    } else {
-                        val trade = convertTrade(tradeEvent, block)
-
-                        val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, trade.pair.base + "_" + trade.pair.quote))
-                        val tradeCountMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
-                        tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
-                        tradeCountMonitor.increment()
-
-                        kafkaTemplate.send(tradesTopicName, trade)
-                        log.debug("Trade from $exchangeName: $trade")
+                    if (getToken == null) {
+                        getErc20TokenDefinitonByAddress(tradeEvent.tokenGet!!)
+                    }
+                    if (giveToken == null) {
+                        getErc20TokenDefinitonByAddress(tradeEvent.tokenGive!!)
                     }
 
+                    val trade = convertTrade(tradeEvent, block)
+
+                    val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, trade.pair.base + "_" + trade.pair.quote))
+                    val tradeCountMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
+                    tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
+                    tradeCountMonitor.increment()
+
+                    kafkaTemplate.send(tradesTopicName, trade)
+                    log.debug("Trade from $exchangeName: $trade")
                 }
     }
 
@@ -318,11 +316,31 @@ class EtherdeltaConnector : ExchangeConnector {
     }
 
     /**
+     * Get ERC20 token definitions from its own smart contract.
+     * @return a map of ERC20 token address and token definition.
+     */
+    private fun getErc20TokenDefinitonByAddress(address: String): EtherdeltaToken {
+        val transactionManager = ReadonlyTransactionManager(web3j, address)
+        val erc20Contract = Erc20Contract.load(address, web3j, transactionManager, Contract.GAS_PRICE, Contract.GAS_LIMIT)
+
+        val tokenSymbol = erc20Contract.symbol().send().trim()
+        val tokenDecimals = erc20Contract.decimals().send().intValueExact()
+        val tokenBase = BigInteger.TEN.pow(tokenDecimals)
+
+        val tokenDefinition = EtherdeltaToken(tokenSymbol, tokenBase, tokenDecimals)
+
+        log.info("Resolve new token: symbol=$tokenSymbol, decimals=$tokenDecimals")
+        exchangeTokensPairs[address] = tokenDefinition
+
+        return tokenDefinition
+    }
+
+    /**
      * Check that @param tokenBase is valid power of 10.
      * We need check this because parity token registry contains not valid data.
      * @return boolean result
      */
-    fun validBase(tokenBase: String): Boolean {
+    private fun validBase(tokenBase: String): Boolean {
         val pattern = Pattern.compile("10*")
         val matcher = pattern.matcher(tokenBase)
 
