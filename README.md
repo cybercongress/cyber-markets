@@ -6,9 +6,9 @@ Crawler for cryptoasset's markets
 
 ## Getting Start Useful Links
 
-* [Development Quick Start Guide](./dev-environment/README.md)
-* [Architecture Overview](http://docs.cybernode.io/cybernode/components/markets/)
-* [Api OpenAPI 3.0 Documentation](http://docs.cybersearch.io/)
+* [Development Quick Start Guide](docs/contributing/dev-environment.md)
+* [Architecture Overview](http://cybersearch.io/cybernode/components/markets/)
+* [Api OpenAPI 3.0 Documentation](http://cybersearch.io/)
 * [Docker Images](https://hub.docker.com/r/cybernode/)
 * [Kubernetes Descriptors](https://github.com/cybercongress/cybernode/tree/master/kubernetes-definitions/markets)
 
@@ -21,7 +21,7 @@ If you have any problems with or questions about cyber-markets, please contact u
 
 You are invited to contribute new features, fixes, or updates, large or small; We are always thrilled to receive pull 
  requests, and do our best to process them as fast as We can. You can find detailed information in our 
- [contribution guide](./CONTRIBUTING.md).
+ [contribution guide](docs/contributing/contributing.md).
  
 ## Changelog
 

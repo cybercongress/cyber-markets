@@ -18,10 +18,10 @@ save both you and us a lot of time. For any non-trivial change, we'll ask you to
 ## Development Workflow
 
 ### Development Setup
-Please, use [development environment setup guide](./dev-environment/README.md).
+Please, use [development environment setup guide](dev-environment.md).
 
 ### Make Changes
-Use this [Architecture Overview](http://docs.cybernode.io/cybernode/components/markets/) as a start point for making changes.
+Use this [Architecture Overview](http://cybersearch.io/cybernode/components/markets/) as a start point for making changes.
 
 ### Local Check
 
@@ -40,7 +40,7 @@ The commit messages that accompany your code changes are an important piece of d
 
 * Keep commits discrete: avoid including multiple unrelated changes in a single commit
 * Keep commits self-contained: avoid spreading a single change across multiple commits. A single commit should make sense in isolation
-* Add GitHub issue to [CHANGELOG.md](./CHANGELOG.md)
+* Add GitHub issue to [CHANGELOG.md](../../CHANGELOG.md)
 * Include GitHub issue in the commit message on a first line at the beginning. Example:
 ```
 #123 Refactor CONTRIBUTING.md
