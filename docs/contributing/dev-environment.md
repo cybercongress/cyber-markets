@@ -1,5 +1,8 @@
 # Development environment
 
+## Useful Links
+* [cheat sheet](./cheat-sheet.md)
+
 ## Prestart
 * Instal Java 8 JDK
 * Install Docker and Docker Compose
@@ -20,32 +23,6 @@ docker-compose -f dev-environment/env.yml up -d
 docker cp dev-environment/elassandra-bootstrap.cql  elassandra-markets:/elassandra-bootstrap.cql
 docker exec -it elassandra-markets bash
 cqlsh -f elassandra-bootstrap.cql
-```
-
-### Stop kafka and delete kafka data(cheat sheet)
-```bash
-docker stop fast-data-dev-markets
-docker rm fast-data-dev-markets
-```
-### Stop elassandra and delete elassandra data(cheat sheet)
-```bash
-docker stop elassandra-markets
-docker rm elassandra-markets
-```
-
-## Start required chain nodes(Examples)
-### Run parity node(cheat sheet)
-```bash
-sudo  docker run -d -p 8545:8545 --name parity_eth \
--v ${REPLACE_IT_BY_HOST_FOLDER}:/cyberdata parity/parity:stable \
---db-path /cyberdata --jsonrpc-hosts all --jsonrpc-interface all --jsonrpc-threads 4
-```
-
-### Access chains from remote machine(mars)(cheat sheet)
-```bash
-ssh -L 18332:localhost:18332 -L 8332:localhost:8332 \
--L 18545:localhost:18545 -L 8545:localhost:8545 \
-mars@staging.cyber.fund  -p 33322
 ```
 
 ## Import project to Intellij Idea
