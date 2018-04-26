@@ -1,7 +1,7 @@
 /* Gradle plugins part */
 buildscript {
     ext {
-        kotlinVersion = "1.2.31"
+        kotlinVersion = "1.2.40"
         kotlinCoroutinesVersion = "0.19.3"
 
         jacksonVersion = "2.9.2"
@@ -145,12 +145,16 @@ subprojects {
             dependency("io.projectreactor:reactor-core:$reactorVersion")
 
             dependency("info.bitrich.xchange-stream:xchange-stream-core:$xchangeStreamCoreVersion")
-            dependency("info.bitrich.xchange-stream:xchange-binance:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-bitfinex:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-bitflyer:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-binance:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-bitstamp:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-gdax:$xchangeStreamVersion")
-            dependency("info.bitrich.xchange-stream:xchange-poloniex2:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-gemini:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-hitbtc:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-okcoin:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-okex:$xchangeStreamVersion")
+            dependency("info.bitrich.xchange-stream:xchange-poloniex2:$xchangeStreamVersion")
 
             dependency("org.web3j:core:$web3jVersion")
 
@@ -241,12 +245,16 @@ project(":exchanges-connector") {
         compile("io.micrometer:micrometer-registry-prometheus")
 
         compile("info.bitrich.xchange-stream:xchange-stream-core")
-        compile("info.bitrich.xchange-stream:xchange-binance")
         compile("info.bitrich.xchange-stream:xchange-bitfinex")
+        compile("info.bitrich.xchange-stream:xchange-bitflyer")
+        compile("info.bitrich.xchange-stream:xchange-binance")
         compile("info.bitrich.xchange-stream:xchange-bitstamp")
         compile("info.bitrich.xchange-stream:xchange-gdax")
-        compile("info.bitrich.xchange-stream:xchange-poloniex2")
+        compile("info.bitrich.xchange-stream:xchange-gemini")
         compile("info.bitrich.xchange-stream:xchange-hitbtc")
+        compile("info.bitrich.xchange-stream:xchange-okcoin")
+        compile("info.bitrich.xchange-stream:xchange-okex")
+        compile("info.bitrich.xchange-stream:xchange-poloniex2")
 
         testCompile("org.springframework:spring-test")
         testCompile("org.springframework.kafka:spring-kafka-test")
