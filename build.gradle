@@ -107,7 +107,7 @@ subprojects {
             dependency("ch.qos.logback:logback-classic:$lockbackVersion")
 
             dependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-            dependency("org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlinVersion")
+            dependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
             dependency("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
             dependency("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinCoroutinesVersion")
 
@@ -153,7 +153,6 @@ subprojects {
             dependency("info.bitrich.xchange-stream:xchange-gemini:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-hitbtc:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-okcoin:$xchangeStreamVersion")
-            dependency("info.bitrich.xchange-stream:xchange-okex:$xchangeStreamVersion")
             dependency("info.bitrich.xchange-stream:xchange-poloniex2:$xchangeStreamVersion")
 
             dependency("org.web3j:core:$web3jVersion")
@@ -253,7 +252,6 @@ project(":exchanges-connector") {
         compile("info.bitrich.xchange-stream:xchange-gemini")
         compile("info.bitrich.xchange-stream:xchange-hitbtc")
         compile("info.bitrich.xchange-stream:xchange-okcoin")
-        compile("info.bitrich.xchange-stream:xchange-okex")
         compile("info.bitrich.xchange-stream:xchange-poloniex2")
 
         testCompile("org.springframework:spring-test")
