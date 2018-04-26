@@ -10,7 +10,7 @@ const val CASSANDRA_PORT = "CASSANDRA_PORT"
 const val CASSANDRA_PORT_DEFAULT = 9042
 
 const val EXCHANGES = "EXCHANGES"
-const val EXCHANGES_DEFAULT = "bitfinex,bitstamp,gdax,hitbtc,poloniex,binance,etherdelta"
+const val EXCHANGES_DEFAULT = "bitfinex,bitflyer,binance,bitstamp,gdax,gemini,hitbtc,okcoin,okex,poloniex,etherdelta"
 
 const val PARITY_URL = "PARITY_URL"
 const val PARITY_URL_DEFAULT = "http://127.0.0.1:8545"

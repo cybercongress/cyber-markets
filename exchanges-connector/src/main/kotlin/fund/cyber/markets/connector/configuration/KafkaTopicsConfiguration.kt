@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 
 const val TRADES_TOPIC_PREFIX = "TRADES-"
-const val ORDERS_TOPIC_PREFIX = "ORDERS-"
 
 const val PARTITION_NUMBER = 1
 const val REPLICATION_FACTOR = 1
@@ -54,9 +53,7 @@ class KafkaConfiguration {
         val newTopics = mutableListOf<NewTopic>()
         connectorConfiguration.exchanges.forEach { exchangeName ->
             val tradesTopic = NewTopic(TRADES_TOPIC_PREFIX + exchangeName, PARTITION_NUMBER, REPLICATION_FACTOR.toShort()).configs(topicConfigs())
-            val ordersTopic = NewTopic(ORDERS_TOPIC_PREFIX + exchangeName, PARTITION_NUMBER, REPLICATION_FACTOR.toShort()).configs(topicConfigs())
             newTopics.add(tradesTopic)
-            newTopics.add(ordersTopic)
         }
 
         kafkaClient.createTopics(newTopics)
