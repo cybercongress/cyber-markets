@@ -1,4 +1,4 @@
-package fund.cyber.markets.connector
+package fund.cyber.markets.connector.trade
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -8,6 +8,7 @@ import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.common.model.TradeType
+import fund.cyber.markets.connector.Connector
 import fund.cyber.markets.connector.configuration.ConnectorConfiguration
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
@@ -52,8 +53,8 @@ private const val PARITY_TOKEN_REGISTRY_EMPTY_ADDRESS = "0x000000000000000000000
 private const val ETH_SYMBOL = "ETH"
 
 @Component
-class EtherdeltaConnector : ExchangeConnector {
-    private val log = LoggerFactory.getLogger(EtherdeltaConnector::class.java)!!
+class EtherdeltaTradeConnector : Connector {
+    private val log = LoggerFactory.getLogger(EtherdeltaTradeConnector::class.java)!!
 
     private val exchangeName = "ETHERDELTA"
     private val tradesTopicName by lazy { TRADES_TOPIC_PREFIX + exchangeName }
@@ -119,7 +120,7 @@ class EtherdeltaConnector : ExchangeConnector {
      * If both tokens are present in our dictionary, then we convert TradeEvent from smart contract to a Trade object
      * that we send to kafka topic.
      */
-    override fun subscribeTrades() {
+    override fun subscribe() {
         log.info("Subscribing for trades from $exchangeName exchange")
 
         val exchangeTag = Tags.of(EXCHANGE_TAG, exchangeName)

@@ -14,9 +14,9 @@ class Liveness(
     @GetMapping("/liveness")
     fun isAlive(): ResponseEntity<Any> {
 
-        connectorRunner.connectors.forEach { connector ->
-            if (!connector.isAlive()) {
-                return ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+        connectorRunner.tradesConnectors.forEach { entry ->
+            if (!entry.value.isAlive()) {
+                return ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE)
             }
         }
 
