@@ -151,13 +151,15 @@ class EtherdeltaConnector : ExchangeConnector {
 
                     val trade = convertTrade(tradeEvent, block)
 
-                    val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, trade.pair.base + "_" + trade.pair.quote))
-                    val tradeCountMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
-                    tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
-                    tradeCountMonitor.increment()
+                    if (trade != null) {
+                        val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, trade.pair.base + "_" + trade.pair.quote))
+                        val tradeCountMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
+                        tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
+                        tradeCountMonitor.increment()
 
-                    kafkaTemplate.send(tradesTopicName, trade)
-                    log.debug("Trade from $exchangeName: $trade")
+                        kafkaTemplate.send(tradesTopicName, trade)
+                        log.debug("Trade from $exchangeName: $trade")
+                    }
                 }
     }
 
@@ -172,7 +174,7 @@ class EtherdeltaConnector : ExchangeConnector {
      * @return trade object
      * @see Trade
      */
-    private fun convertTrade(tradeEvent: EtherdeltaContract.TradeEventResponse, block: EthBlock): Trade {
+    private fun convertTrade(tradeEvent: EtherdeltaContract.TradeEventResponse, block: EthBlock): Trade? {
         val tokenGet = exchangeTokensPairs[tradeEvent.tokenGet]
         val tokenGive = exchangeTokensPairs[tradeEvent.tokenGive]
 
@@ -186,6 +188,10 @@ class EtherdeltaConnector : ExchangeConnector {
             BigDecimal(tradeEvent.amountGive).divide(BigDecimal(tokenGive.base))
         } else {
             BigDecimal(tradeEvent.amountGive)
+        }
+
+        if (amountGet == BigDecimal.ZERO || amountGive == BigDecimal.ZERO) {
+            return null
         }
 
         val timestamp = Numeric.toBigInt(block.block.timestampRaw).multiply(BigInteger.valueOf(1000)).toLong()
