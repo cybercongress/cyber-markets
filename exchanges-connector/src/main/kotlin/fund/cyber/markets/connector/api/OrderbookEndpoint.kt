@@ -1,7 +1,7 @@
 package fund.cyber.markets.connector.api
 
+import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.connector.ConnectorRunner
-import org.knowm.xchange.currency.CurrencyPair
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,8 +21,8 @@ class OrderbookEndpoint(
         @RequestParam(value = "pair", required = true) tokensPair: String
     ): ResponseEntity<Any> {
 
-        val pair = CurrencyPair(tokensPair.substringBefore("_"), tokensPair.substringAfter("_"))
-        val orderbook = connectors[exchange.toUpperCase()]?.orderbooks?.get(pair)
+        val pair = TokensPair(tokensPair.substringBefore("_"), tokensPair.substringAfter("_"))
+        val orderbook = connectors[exchange.toUpperCase()]?.getOrderBookSnapshot(pair)
 
         return if (orderbook == null) {
             ResponseEntity(HttpStatus.NOT_FOUND)

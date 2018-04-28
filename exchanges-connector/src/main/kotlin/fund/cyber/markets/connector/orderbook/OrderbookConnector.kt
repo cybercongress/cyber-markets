@@ -7,5 +7,5 @@ import org.knowm.xchange.dto.marketdata.OrderBook
 
 interface OrderbookConnector : Connector {
     var orderbooks: MutableMap<CurrencyPair, OrderBook>
-    fun getOrderBookSnapshot(pair: TokensPair): fund.cyber.markets.common.model.OrderBook
+    fun getOrderBookSnapshot(pair: TokensPair): fund.cyber.markets.common.model.OrderBook?
 }
