@@ -1,5 +1,6 @@
 package fund.cyber.markets.connector.orderbook
 
+import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.connector.AbstarctXchangeConnector
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
@@ -43,6 +44,10 @@ class XchangeOrderbookConnector : AbstarctXchangeConnector, OrderbookConnector {
                 }
             subscriptions.add(orderbookSubscription)
         }
+    }
+
+    override fun getOrderBookSnapshot(pair: TokensPair): fund.cyber.markets.common.model.OrderBook {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
 }
