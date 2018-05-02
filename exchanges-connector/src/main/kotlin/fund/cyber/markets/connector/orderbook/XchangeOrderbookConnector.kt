@@ -6,14 +6,20 @@ import fund.cyber.markets.common.model.Order
 import fund.cyber.markets.common.model.OrderType
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.connector.AbstarctXchangeConnector
+import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
+import fund.cyber.markets.connector.configuration.ORDERBOOK_ASK_COUNT
+import fund.cyber.markets.connector.configuration.ORDERBOOK_BID_COUNT
+import fund.cyber.markets.connector.configuration.TOKENS_PAIR_TAG
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchangeFactory
 import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import org.knowm.xchange.currency.CurrencyPair
 import org.knowm.xchange.dto.marketdata.OrderBook
 import org.knowm.xchange.dto.trade.LimitOrder
 import org.springframework.kafka.core.KafkaTemplate
 import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 
 class XchangeOrderbookConnector : AbstarctXchangeConnector, OrderbookConnector {
     override var orderbooks: MutableMap<CurrencyPair, OrderBook> = mutableMapOf()
@@ -39,12 +45,20 @@ class XchangeOrderbookConnector : AbstarctXchangeConnector, OrderbookConnector {
     override fun subscribe() {
         log.info("Subscribing for orderbooks from $exchangeName exchange")
 
+        val exchangeTag = Tags.of(EXCHANGE_TAG, exchangeName)
         exchangeTokensPairs.forEach { pair ->
+
+            val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, pair.base.currencyCode + "_" + pair.counter.currencyCode))
+            val askCountMonitor = monitoring.gauge(ORDERBOOK_ASK_COUNT, exchangePairTag, AtomicLong(0L))
+            val bidCountMonitor = monitoring.gauge(ORDERBOOK_BID_COUNT, exchangePairTag, AtomicLong(0L))
 
             val orderbookSubscription = exchange.streamingMarketDataService
                 .getOrderBook(pair)
                 .subscribe({ orderbook ->
                     orderbooks[pair] = orderbook
+
+                    askCountMonitor!!.set(orderbook.asks.size.toLong())
+                    bidCountMonitor!!.set(orderbook.bids.size.toLong())
                 }) { throwable ->
                     log.error("Error in subscribing orderbook for $exchangeName, pair $pair", throwable)
                 }
