@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit
 
 private const val ETHERDELTA_CONTRACT_ADDRESS = "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819"
 private const val ETH_SYMBOL = "ETH"
+private const val ETHERDELTA_CONNECTION_TIMEOUT_MS: Long = 5 * 60 * 1000
 
 @Component
 class EtherdeltaTradeConnector : Connector {
@@ -48,6 +49,7 @@ class EtherdeltaTradeConnector : Connector {
     private val exchangeName = "ETHERDELTA"
     private val tradesTopicName by lazy { TRADES_TOPIC_PREFIX + exchangeName }
     private lateinit var etherdeltaContract: EtherdeltaContract
+    private var lastTradeTimestamp: Long? = null
 
     @Autowired
     private lateinit var web3j: Web3j
@@ -86,15 +88,11 @@ class EtherdeltaTradeConnector : Connector {
     }
 
     override fun isAlive(): Boolean {
-        val test: String?
+        val currentTimestamp = Date().time
 
-        try {
-            test = etherdeltaContract.accountLevelsAddr().send()
-        } catch (e: Throwable) {
-            return false
-        }
+        return lastTradeTimestamp != null &&
+            currentTimestamp - lastTradeTimestamp!! < ETHERDELTA_CONNECTION_TIMEOUT_MS
 
-        return test != null
     }
 
     /**
@@ -180,6 +178,7 @@ class EtherdeltaTradeConnector : Connector {
         }
 
         val timestamp = Numeric.toBigInt(block.block.timestampRaw).multiply(BigInteger.valueOf(1000)).toLong()
+        lastTradeTimestamp = timestamp
 
         if (tokenGive.symbol == ETH_SYMBOL) {
             val price = amountGive.divide(amountGet, tokenGive.decimals, RoundingMode.HALF_EVEN)
