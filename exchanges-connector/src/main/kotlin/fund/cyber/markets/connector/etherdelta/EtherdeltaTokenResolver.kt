@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.stereotype.Component
 import org.web3j.protocol.Web3j
-import org.web3j.tx.Contract
 import org.web3j.tx.ReadonlyTransactionManager
+import org.web3j.tx.gas.ContractGasProvider
+import org.web3j.tx.gas.DefaultGasProvider
 import java.math.BigInteger
 import java.net.URL
 import java.nio.charset.Charset
@@ -31,6 +32,8 @@ class EtherdeltaTokenResolver {
 
     @Autowired
     private lateinit var resourceLoader: GenericApplicationContext
+
+    private val gasProvider: ContractGasProvider = DefaultGasProvider()
 
     /**
      * Get ERC20 token definitions from different sources
@@ -119,7 +122,7 @@ class EtherdeltaTokenResolver {
         try {
             val transactionManager = ReadonlyTransactionManager(web3j, PARITY_TOKEN_REGISTRY_CONTRACT_ADDRESS)
             val parityTokenRegistryContract = ParityTokenRegistryContract.load(PARITY_TOKEN_REGISTRY_CONTRACT_ADDRESS,
-                web3j, transactionManager, Contract.GAS_PRICE, Contract.GAS_LIMIT)
+                web3j, transactionManager, gasProvider.getGasPrice(null), gasProvider.getGasLimit(null))
 
             val tokensCount = parityTokenRegistryContract.tokenCount().send().toLong()
             for (index in 0 until tokensCount) {
@@ -152,7 +155,7 @@ class EtherdeltaTokenResolver {
 
         try {
             val transactionManager = ReadonlyTransactionManager(web3j, address)
-            val erc20Contract = Erc20Contract.load(address, web3j, transactionManager, Contract.GAS_PRICE, Contract.GAS_LIMIT)
+            val erc20Contract = Erc20Contract.load(address, web3j, transactionManager, gasProvider.getGasPrice(null), gasProvider.getGasLimit(null))
 
             val tokenSymbol = erc20Contract.symbol().send().trim()
             val tokenDecimals = erc20Contract.decimals().send().intValueExact()
