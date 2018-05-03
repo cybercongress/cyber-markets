@@ -28,7 +28,7 @@ class KafkaConfiguration {
     private lateinit var kafkaBrokers: String
 
     @Autowired
-    private lateinit var connectorConfiguration: ConnectorConfiguration
+    private lateinit var exchanges: Set<String>
 
     @Bean
     fun kafkaAdmin(): KafkaAdmin {
@@ -51,7 +51,7 @@ class KafkaConfiguration {
         val kafkaClient = AdminClient.create(kafkaAdmin().config)
 
         val newTopics = mutableListOf<NewTopic>()
-        connectorConfiguration.exchanges.forEach { exchangeName ->
+        exchanges.forEach { exchangeName ->
             val tradesTopic = NewTopic(TRADES_TOPIC_PREFIX + exchangeName, PARTITION_NUMBER, REPLICATION_FACTOR.toShort()).configs(topicConfigs())
             newTopics.add(tradesTopic)
         }
