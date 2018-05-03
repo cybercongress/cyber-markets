@@ -11,7 +11,6 @@ import fund.cyber.markets.common.model.Exchanges.HITBTC
 import fund.cyber.markets.common.model.Exchanges.OKCOIN
 import fund.cyber.markets.common.model.Exchanges.OKEX
 import fund.cyber.markets.common.model.Exchanges.POLONIEX
-import fund.cyber.markets.connector.configuration.ConnectorConfiguration
 import fund.cyber.markets.connector.orderbook.OrderbookConnector
 import fund.cyber.markets.connector.orderbook.XchangeOrderbookConnector
 import fund.cyber.markets.connector.trade.EtherdeltaTradeConnector
@@ -27,9 +26,8 @@ import info.bitrich.xchangestream.okcoin.OkCoinStreamingExchange
 import info.bitrich.xchangestream.okcoin.OkExStreamingExchange
 import info.bitrich.xchangestream.poloniex2.PoloniexStreamingExchange
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
+import org.springframework.context.support.GenericApplicationContext
 import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Component
 
@@ -41,13 +39,10 @@ class ConnectorRunner {
     val log = LoggerFactory.getLogger(javaClass)!!
 
     @Autowired
-    private lateinit var beanFactory: BeanFactory
+    private lateinit var applicationContext: GenericApplicationContext
 
     @Autowired
-    private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
-    private lateinit var configuration: ConnectorConfiguration
+    private lateinit var exchanges: Set<String>
 
     @Autowired
     private lateinit var retryTemplate: RetryTemplate
@@ -56,7 +51,7 @@ class ConnectorRunner {
     val orderbookConnectors = mutableMapOf<String, OrderbookConnector>()
 
     fun start() {
-        configuration.exchanges.forEach { exchangeName ->
+        exchanges.forEach { exchangeName ->
             addConnectorBean(exchangeName)
         }
 
@@ -81,6 +76,7 @@ class ConnectorRunner {
 
         var tradeConnector: Connector? = null
         var orderbookConnector: OrderbookConnector? = null
+        val beanFactory = applicationContext.beanFactory
 
         when (exchangeName) {
             BITFINEX -> {
