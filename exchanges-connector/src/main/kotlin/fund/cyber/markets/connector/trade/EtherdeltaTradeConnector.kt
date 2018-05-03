@@ -24,10 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.DefaultBlockParameter
+import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.response.EthBlock
-import org.web3j.tx.Contract
 import org.web3j.tx.ReadonlyTransactionManager
+import org.web3j.tx.gas.ContractGasProvider
+import org.web3j.tx.gas.DefaultGasProvider
 import org.web3j.utils.Numeric
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -58,15 +59,17 @@ class EtherdeltaTradeConnector : Connector {
     @Autowired
     private lateinit var monitoring: MeterRegistry
 
+    private val gasProvider: ContractGasProvider = DefaultGasProvider()
+
     /**
      * Connect to etherdelta and parity token registry smart contracts using web3j
      */
     override fun connect() {
         log.info("Connecting to $exchangeName exchange")
 
-        val gasPrice = web3j.ethGasPrice().send()
         val etherdeltaTransactionManager = ReadonlyTransactionManager(web3j, ETHERDELTA_CONTRACT_ADDRESS)
-        etherdeltaContract = EtherdeltaContract.load(ETHERDELTA_CONTRACT_ADDRESS, web3j, etherdeltaTransactionManager, gasPrice.gasPrice, Contract.GAS_LIMIT)
+        etherdeltaContract = EtherdeltaContract.load(ETHERDELTA_CONTRACT_ADDRESS, web3j,
+            etherdeltaTransactionManager, gasProvider.getGasPrice(null), gasProvider.getGasLimit(null))
 
         log.info("Connected to $exchangeName exchange")
         updateTokensPairs()
@@ -107,11 +110,10 @@ class EtherdeltaTradeConnector : Connector {
                 .publishPercentiles(NINGTHY_FIVE_PERCENT, NINE_HUNDRED_NINGTHY_FIVE_PERCENT)
                 .register(monitoring)
 
-        val latestBlockParameter = DefaultBlockParameter.valueOf("latest")
-        var block = web3j.ethGetBlockByNumber(latestBlockParameter, false).send()
+        var block = web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send()
 
         etherdeltaContract
-                .tradeEventObservable(latestBlockParameter, latestBlockParameter)
+                .tradeEventObservable(DefaultBlockParameterName.LATEST, DefaultBlockParameterName.LATEST)
                 .subscribe{ tradeEvent ->
 
                     if (block.block.hash != tradeEvent.log!!.blockHash) {
