@@ -21,7 +21,9 @@ class ConnectorConfiguration(
     @Value("\${$PARITY_URL:$PARITY_URL_DEFAULT}")
     val parityUrl: String
 ) {
-    val exchanges: Set<String> = exchangesProperty.split(",").map { it.trim().toUpperCase() }.toSet()
+
+    @Bean
+    fun exchanges(): Set<String> = exchangesProperty.split(",").map { it.trim().toUpperCase() }.toSet()
 
     @Bean
     fun web3j(): Web3j {
