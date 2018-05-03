@@ -1,12 +1,12 @@
 /* Gradle plugins part */
 buildscript {
     ext {
-        kotlinVersion = "1.2.40"
+        kotlinVersion = "1.2.41"
         kotlinCoroutinesVersion = "0.19.3"
 
         jacksonVersion = "2.9.2"
         httpClientVersion = "4.5.5"
-        web3jVersion = "3.3.1"
+        web3jVersion = "3.4.0"
         rxkotlinVersion = "2.2.0"
         reactorVersion = "3.1.3.RELEASE"
         cassandraConfluentVersion = "3.3.2"

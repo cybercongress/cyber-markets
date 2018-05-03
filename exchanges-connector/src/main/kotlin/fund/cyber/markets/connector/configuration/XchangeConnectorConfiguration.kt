@@ -1,6 +1,7 @@
 package fund.cyber.markets.connector.configuration
 
-import fund.cyber.markets.connector.XchangeConnector
+import fund.cyber.markets.connector.orderbook.XchangeOrderbookConnector
+import fund.cyber.markets.connector.trade.XchangeTradeConnector
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,8 +18,14 @@ class XchangeConnectorConfiguration(
     @Bean
     @Scope("prototype")
     @Lazy(true)
-    fun xChangeConnector(streamingExchangeClassName: String): XchangeConnector {
-        return XchangeConnector(streamingExchangeClassName, kafkaTemplate, meterRegistry)
+    fun xChangeTradeConnector(streamingExchangeClassName: String): XchangeTradeConnector {
+        return XchangeTradeConnector(streamingExchangeClassName, kafkaTemplate, meterRegistry)
     }
 
+    @Bean
+    @Scope("prototype")
+    @Lazy(true)
+    fun xChangeOrderbookConnector(streamingExchangeClassName: String): XchangeOrderbookConnector {
+        return XchangeOrderbookConnector(streamingExchangeClassName, kafkaTemplate, meterRegistry)
+    }
 }

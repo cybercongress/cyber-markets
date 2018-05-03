@@ -8,9 +8,9 @@ data class Order (
         val exchange: String,
         val pair: TokensPair,
         val type: OrderType,
-        val timestamp: Date,
+        val timestamp: Long,
         val epochHour: Long,
-        val orderId: String,
+        val orderId: String?,
         val amount: BigDecimal,
         val price: BigDecimal
 )
@@ -22,7 +22,7 @@ data class OrdersBatch (
 )
 
 enum class OrderType {
-    SELL,
-    BUY,
+    BID,
+    ASK,
     UNKNOWN
 }

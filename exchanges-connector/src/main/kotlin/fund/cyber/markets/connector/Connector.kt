@@ -1,20 +1,19 @@
 package fund.cyber.markets.connector
 
-interface ExchangeConnector {
+interface Connector {
     fun start() {
         connect()
-        subscribeAll()
+        subscribe()
     }
-    fun connect()
-    fun disconnect()
+
     fun restart() {
         disconnect()
         start()
     }
+
+    fun subscribe()
+    fun connect()
+    fun disconnect()
     fun isAlive(): Boolean
-    fun subscribeTrades()
-    fun subscribeAll() {
-        subscribeTrades()
-    }
     fun updateTokensPairs()
 }
