@@ -88,8 +88,7 @@ class ConnectorRunner {
                 orderbookConnector = beanFactory.getBean(XCHANGE_ORDERBOOK_CONNECTOR_CLASS, BitflyerStreamingExchange::class.java.name)
             }
             BINANCE -> {
-                // todo: disabled until trades for binance will be implemented
-                //tradeConnector = beanFactory.getBean(XCHANGE_TRADE_CONNECTOR_CLASS, BinanceStreamingExchange::class.java.name)
+                tradeConnector = beanFactory.getBean(XCHANGE_TRADE_CONNECTOR_CLASS, BinanceStreamingExchange::class.java.name)
                 orderbookConnector = beanFactory.getBean(XCHANGE_ORDERBOOK_CONNECTOR_CLASS, BinanceStreamingExchange::class.java.name)
             }
             BITSTAMP -> {
