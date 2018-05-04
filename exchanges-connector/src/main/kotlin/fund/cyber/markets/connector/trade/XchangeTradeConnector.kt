@@ -10,6 +10,8 @@ import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
 import fund.cyber.markets.connector.configuration.NINGTHY_FIVE_PERCENT
 import fund.cyber.markets.connector.configuration.TOKENS_PAIR_TAG
+import fund.cyber.markets.connector.configuration.TOKEN_TAG
+import fund.cyber.markets.connector.configuration.TRADE_COUNT_BY_TOKEN_METRIC
 import fund.cyber.markets.connector.configuration.TRADE_COUNT_METRIC
 import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
 import info.bitrich.xchangestream.core.ProductSubscription
@@ -44,6 +46,12 @@ class XchangeTradeConnector: AbstarctXchangeConnector {
 
         exchangeTokensPairs.forEach { pair ->
             val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, pair.base.currencyCode + "_" + pair.counter.currencyCode))
+            val baseTokenTag = exchangeTag.and(Tags.of(TOKEN_TAG, pair.base.currencyCode))
+            val quoteTokenTag = exchangeTag.and(Tags.of(TOKEN_TAG, pair.counter.currencyCode))
+
+            val baseTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, baseTokenTag)
+            val quoteTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, quoteTokenTag)
+
             val tradePerSecondMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
             val tradeLatencyMonitor = Timer.builder(TRADE_LATENCY_METRIC)
                     .tags(exchangeTag)
@@ -57,6 +65,8 @@ class XchangeTradeConnector: AbstarctXchangeConnector {
 
                         tradeLatencyMonitor.record(System.currentTimeMillis() - exchangeTrade.timestamp.time, TimeUnit.MILLISECONDS)
                         tradePerSecondMonitor.increment()
+                        baseTokenMonitor.increment()
+                        quoteTokenMonitor.increment()
 
                         val trade = convertTrade(exchangeName, exchangeTrade)
                         kafkaTemplate.send(tradesTopicName, trade)
