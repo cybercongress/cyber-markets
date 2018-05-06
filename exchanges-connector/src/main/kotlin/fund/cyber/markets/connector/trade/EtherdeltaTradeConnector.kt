@@ -10,7 +10,9 @@ import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
 import fund.cyber.markets.connector.configuration.NINGTHY_FIVE_PERCENT
 import fund.cyber.markets.connector.configuration.TOKENS_PAIR_TAG
+import fund.cyber.markets.connector.configuration.TOKEN_TAG
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
+import fund.cyber.markets.connector.configuration.TRADE_COUNT_BY_TOKEN_METRIC
 import fund.cyber.markets.connector.configuration.TRADE_COUNT_METRIC
 import fund.cyber.markets.connector.configuration.TRADE_LATENCY_METRIC
 import fund.cyber.markets.connector.etherdelta.EtherdeltaContract
@@ -122,9 +124,17 @@ class EtherdeltaTradeConnector : Connector {
 
                     if (trade != null) {
                         val exchangePairTag = exchangeTag.and(Tags.of(TOKENS_PAIR_TAG, trade.pair.base + "_" + trade.pair.quote))
+                        val baseTokenTag = exchangeTag.and(Tags.of(TOKEN_TAG, trade.pair.base))
+                        val quoteTokenTag = exchangeTag.and(Tags.of(TOKEN_TAG, trade.pair.quote))
+
                         val tradeCountMonitor = monitoring.counter(TRADE_COUNT_METRIC, exchangePairTag)
+                        val baseTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, baseTokenTag)
+                        val quoteTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, quoteTokenTag)
+
                         tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
                         tradeCountMonitor.increment()
+                        baseTokenMonitor.increment()
+                        quoteTokenMonitor.increment()
 
                         kafkaTemplate.send(tradesTopicName, trade)
                         log.debug("Trade from $exchangeName: $trade")
