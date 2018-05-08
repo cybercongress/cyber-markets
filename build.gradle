@@ -178,7 +178,7 @@ project(":common") {
         compile("ch.qos.logback:logback-classic")
 
         compile("org.jetbrains.kotlin:kotlin-reflect")
-        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
+        compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 
         compile("com.fasterxml.jackson.core:jackson-databind")
@@ -194,7 +194,7 @@ project(":common") {
 project(":common-kafka") {
 
     dependencies {
-        compile project(":common")
+        compileOnly project(":common")
 
         compile("org.springframework.kafka:spring-kafka")
     }
@@ -204,6 +204,7 @@ project(":stream-api") {
     apply plugin: "application"
 
     dependencies {
+        compile project(":common")
         compile project(":common-kafka")
         compile("io.undertow:undertow-core")
     }
@@ -230,6 +231,7 @@ project(":exchanges-connector") {
     apply plugin: "org.springframework.boot"
 
     dependencies {
+        compile project(":common")
         compile project(":common-kafka")
 
         compile("org.springframework.boot:spring-boot-starter-reactor-netty")
@@ -269,11 +271,11 @@ project(":tickers") {
     }
 
     dependencies {
+        compile project(":common")
         compile project(":common-kafka")
         compile project(":cassandra-service")
 
         compile("org.springframework.boot:spring-boot-starter")
-        compile("org.springframework.kafka:spring-kafka")
 
         testCompile("org.springframework.boot:spring-boot-starter-test")
     }
@@ -296,4 +298,18 @@ project(":cassandra-service") {
         compile("com.datastax.cassandra:cassandra-driver-core")
         compile("com.datastax.cassandra:cassandra-driver-mapping")
     }
+}
+
+project(":storer") {
+
+    apply plugin: "org.springframework.boot"
+
+    dependencies {
+        compile project(":common")
+        compile project(":common-kafka")
+        compile project(":cassandra-service")
+
+        compile("org.springframework.boot:spring-boot-starter")
+    }
+
 }

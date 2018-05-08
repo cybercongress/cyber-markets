@@ -3,6 +3,7 @@ package fund.cyber.markets.cassandra.configuration
 import com.datastax.driver.core.Cluster
 import fund.cyber.markets.cassandra.repository.SupplyRepository
 import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.cassandra.repository.TradeRepository
 import fund.cyber.markets.common.CASSANDRA_HOSTS
 import fund.cyber.markets.common.CASSANDRA_HOSTS_DEFAULT
 import fund.cyber.markets.common.CASSANDRA_PORT
@@ -44,5 +45,10 @@ class CassandraRepositoryConfiguration(
     @Bean
     fun supplyRepository(): SupplyRepository {
         return SupplyRepository(cassandraCluster())
+    }
+
+    @Bean
+    fun tradeRepository(): TradeRepository {
+        return TradeRepository(cassandraCluster())
     }
 }
