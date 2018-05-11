@@ -5,7 +5,7 @@ import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.Order
 import fund.cyber.markets.common.model.OrderType
 import fund.cyber.markets.common.model.TokensPair
-import fund.cyber.markets.connector.AbstarctXchangeConnector
+import fund.cyber.markets.connector.AbstractXchangeConnector
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.ORDERBOOK_SIZE_METRIC
 import fund.cyber.markets.connector.configuration.ORDER_TYPE_TAG
@@ -21,7 +21,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
-class XchangeOrderbookConnector : AbstarctXchangeConnector, OrderbookConnector {
+class XchangeOrderbookConnector : AbstractXchangeConnector, OrderbookConnector {
     override var orderbooks: MutableMap<CurrencyPair, OrderBook> = mutableMapOf()
 
     private constructor()

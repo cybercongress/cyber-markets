@@ -25,7 +25,7 @@ class XchangeConnectorConfiguration(
     @Bean
     @Scope("prototype")
     @Lazy(true)
-    fun xChangeOrderbookConnector(streamingExchangeClassName: String): XchangeOrderbookConnector {
+    fun xChangeOrderBookConnector(streamingExchangeClassName: String): XchangeOrderbookConnector {
         return XchangeOrderbookConnector(streamingExchangeClassName, kafkaTemplate, meterRegistry)
     }
 }

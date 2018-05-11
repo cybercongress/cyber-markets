@@ -5,7 +5,7 @@ import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.common.model.TradeType
-import fund.cyber.markets.connector.AbstarctXchangeConnector
+import fund.cyber.markets.connector.AbstractXchangeConnector
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
 import fund.cyber.markets.connector.configuration.NINGTHY_FIVE_PERCENT
@@ -22,7 +22,7 @@ import io.micrometer.core.instrument.Timer
 import org.springframework.kafka.core.KafkaTemplate
 import java.util.concurrent.TimeUnit
 
-class XchangeTradeConnector: AbstarctXchangeConnector {
+class XchangeTradeConnector: AbstractXchangeConnector {
     private constructor()
 
     constructor(streamingExchangeClassName: String, kafkaTemplate: KafkaTemplate<String, Any>, meterRegistry: MeterRegistry) : this() {

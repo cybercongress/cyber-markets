@@ -309,7 +309,9 @@ project(":storer") {
         compile project(":common-kafka")
         compile project(":cassandra-service")
 
-        compile("org.springframework.boot:spring-boot-starter")
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.springframework.boot:spring-boot-starter-webflux'
+        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
     }
 
 }

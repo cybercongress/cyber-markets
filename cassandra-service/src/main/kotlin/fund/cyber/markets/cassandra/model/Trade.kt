@@ -3,8 +3,6 @@ package fund.cyber.markets.cassandra.model
 import com.datastax.driver.mapping.annotations.ClusteringColumn
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
-import com.datastax.driver.mapping.annotations.UDT
-import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
 import java.math.BigDecimal
 import java.util.*
@@ -37,16 +35,5 @@ data class CqlTrade(
         baseAmount = trade.baseAmount,
         quoteAmount = trade.quoteAmount,
         price = trade.price
-    )
-}
-
-@UDT(name = "tokenpair")
-data class CqlTokensPair(
-    val base: String,
-    val quote: String
-) {
-    constructor(pair: TokensPair): this(
-        base = pair.base,
-        quote = pair.quote
     )
 }

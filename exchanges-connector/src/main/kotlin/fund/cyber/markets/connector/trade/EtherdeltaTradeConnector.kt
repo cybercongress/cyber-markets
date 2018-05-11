@@ -209,4 +209,14 @@ class EtherdeltaTradeConnector : Connector {
         }
     }
 
+    override fun getTokensPairs(): Set<TokensPair> {
+        val pairs = mutableSetOf<TokensPair>()
+
+        etherdeltaTokenResolver.exchangeTokensPairs.forEach { _, etherdeltaToken ->
+            pairs.add(TokensPair(etherdeltaToken.symbol, ETH_SYMBOL))
+        }
+
+        return pairs
+    }
+
 }

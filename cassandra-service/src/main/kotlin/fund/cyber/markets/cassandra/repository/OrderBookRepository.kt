@@ -6,32 +6,34 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.JdkFutureAdapters
 import fund.cyber.markets.cassandra.configuration.MARKETS_KEYSPACE
 import fund.cyber.markets.cassandra.configuration.PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST
-import fund.cyber.markets.cassandra.model.CqlTokenSupply
+import fund.cyber.markets.cassandra.model.CqlOrderBook
+import fund.cyber.markets.cassandra.model.CqlTokensPair
 import io.reactivex.Flowable
+import java.util.*
 
-class SupplyRepository(cassandra: Cluster) {
+class OrderBookRepository(cassandra: Cluster) {
 
     private val session = cassandra.connect(MARKETS_KEYSPACE)
     private val manager = MappingManager(session)
-    private val supplyMapper by lazy { manager.mapper(CqlTokenSupply::class.java) }
+    private val mapper by lazy { manager.mapper(CqlOrderBook::class.java) }
 
-    fun save(tokenSupply: CqlTokenSupply) {
-        supplyMapper.save(tokenSupply)
+    fun save(orderBook: CqlOrderBook) {
+        mapper.save(orderBook)
     }
 
-    fun saveAll(tokenSupplies: List<CqlTokenSupply>) {
-        Flowable.fromIterable(tokenSupplies)
+    fun saveAll(orderBooks: List<CqlOrderBook>) {
+        Flowable.fromIterable(orderBooks)
                 .buffer(PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST)
                 .blockingForEach { entitiesChunk ->
                     val futures = entitiesChunk
-                            .map { entity -> supplyMapper.saveAsync(entity) }
+                            .map { entity -> mapper.saveAsync(entity) }
                             .map { future ->  JdkFutureAdapters.listenInPoolThread(future) }
                     Futures.allAsList(futures).get()
                 }
     }
 
-    fun get(token: String): CqlTokenSupply? {
-        return supplyMapper.get(token)
+    fun get(exchange: String, pair: CqlTokensPair, epochHour: Long, timestamp: Long): CqlOrderBook? {
+        return mapper.get(exchange, pair, epochHour, Date(timestamp))
     }
 
 }

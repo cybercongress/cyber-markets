@@ -4,6 +4,18 @@ CREATE TYPE IF NOT EXISTS markets.tokenprice (
   value decimal
 );
 
+CREATE TYPE IF NOT EXISTS markets.tokenpair (
+  base text,
+  quote text
+);
+
+CREATE TYPE IF NOT EXISTS markets.orderbook_order (
+  type text,
+  timestamp timestamp,
+  amount decimal,
+  price decimal,
+);
+
 CREATE TABLE IF NOT EXISTS markets.ticker (
   tokenSymbol text,
 
@@ -16,11 +28,6 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   price frozen<map<text, map<text, tokenprice>>>,
 
   PRIMARY KEY (tokenSymbol, timestampFrom, interval)
-);
-
-CREATE TYPE IF NOT EXISTS markets.tokenpair (
-  base text,
-  quote text
 );
 
 CREATE TABLE IF NOT EXISTS markets.trade (
@@ -52,4 +59,17 @@ CREATE TABLE IF NOT EXISTS "markets"."order" (
 )
 WITH CLUSTERING ORDER BY (
   orderId DESC
+);
+
+CREATE TABLE IF NOT EXISTS markets.orderbook (
+  exchange text,
+  pair frozen<tokenpair>,
+  epochHour bigint,
+  timestamp timestamp,
+  bids frozen<list<orderbook_order>>,
+  asks frozen<list<orderbook_order>>,
+  PRIMARY KEY ((exchange, pair, epochHour), timestamp)
+)
+WITH CLUSTERING ORDER BY (
+  timestamp DESC
 );

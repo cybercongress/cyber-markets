@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
 @RestController
-class OrderbookEndpoint(
+class OrderBookEndpoint(
         private val orderBookService: OrderBookService
 ) {
 
     @GetMapping("/orderbook")
-    fun getOrderbook(
+    fun getOrderBook(
         @RequestParam(value = "exchange", required = true) exchange: String,
         @RequestParam(value = "pair", required = true) tokensPair: String
     ): Mono<ResponseEntity<OrderBook>> {
