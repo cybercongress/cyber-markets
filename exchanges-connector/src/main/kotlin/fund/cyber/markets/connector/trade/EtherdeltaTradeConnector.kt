@@ -1,6 +1,6 @@
 package fund.cyber.markets.connector.trade
 
-import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.MILLIS_TO_MINUTES
 import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
@@ -187,7 +187,7 @@ class EtherdeltaTradeConnector : Connector {
                     TokensPair(tokenGet.symbol, tokenGive.symbol),
                     TradeType.BID,
                     Date(timestamp),
-                    timestamp convert MILLIS_TO_HOURS,
+                    timestamp convert MILLIS_TO_MINUTES,
                     tradeEvent.log!!.transactionHash,
                     amountGet,
                     amountGive,
@@ -200,7 +200,7 @@ class EtherdeltaTradeConnector : Connector {
                     TokensPair(tokenGive.symbol, tokenGet.symbol),
                     TradeType.ASK,
                     Date(timestamp),
-                    timestamp convert MILLIS_TO_HOURS,
+                    timestamp convert MILLIS_TO_MINUTES,
                     tradeEvent.log!!.transactionHash,
                     amountGive,
                     amountGet,

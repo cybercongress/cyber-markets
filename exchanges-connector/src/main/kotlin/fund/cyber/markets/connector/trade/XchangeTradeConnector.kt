@@ -1,6 +1,6 @@
 package fund.cyber.markets.connector.trade
 
-import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.MILLIS_TO_MINUTES
 import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
@@ -83,7 +83,7 @@ class XchangeTradeConnector: AbstractXchangeConnector {
                 TokensPair(exchangeTrade.currencyPair.base.currencyCode, exchangeTrade.currencyPair.counter.currencyCode),
                 TradeType.valueOf(exchangeTrade.type.name),
                 exchangeTrade.timestamp,
-                exchangeTrade.timestamp.time convert MILLIS_TO_HOURS,
+                exchangeTrade.timestamp.time convert MILLIS_TO_MINUTES,
                 exchangeTrade.id,
                 exchangeTrade.originalAmount,
                 exchangeTrade.originalAmount.multiply(exchangeTrade.price),

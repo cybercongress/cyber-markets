@@ -31,8 +31,8 @@ class TradeRepository(cassandra: Cluster) {
                 }
     }
 
-    fun get(exchange: String, pair: CqlTokensPair, epochHour: Long, tradeId: String): CqlTrade? {
-        return mapper.get(exchange, pair, epochHour, tradeId)
+    fun get(exchange: String, pair: CqlTokensPair, epochMinute: Long, tradeId: String): CqlTrade? {
+        return mapper.get(exchange, pair, epochMinute, tradeId)
     }
 
 }

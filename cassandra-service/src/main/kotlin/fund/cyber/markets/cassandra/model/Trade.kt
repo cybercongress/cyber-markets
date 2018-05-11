@@ -18,7 +18,7 @@ data class CqlTrade(
     val type: String,
     val timestamp: Date,
     @PartitionKey(2)
-    val epochHour: Long,
+    val epochMinute: Long,
     @ClusteringColumn(0)
     val tradeId: String,
     val baseAmount: BigDecimal,
@@ -30,7 +30,7 @@ data class CqlTrade(
         pair = CqlTokensPair(trade.pair),
         type = trade.type.toString(),
         timestamp = trade.timestamp,
-        epochHour = trade.epochHour,
+        epochMinute = trade.epochMinute,
         tradeId = trade.tradeId,
         baseAmount = trade.baseAmount,
         quoteAmount = trade.quoteAmount,

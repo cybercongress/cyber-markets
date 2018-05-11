@@ -2,7 +2,9 @@ package fund.cyber.markets.api.rest.controller
 
 import fund.cyber.markets.cassandra.model.CqlOrderBook
 import fund.cyber.markets.cassandra.repository.OrderBookRepository
+import fund.cyber.markets.common.MILLIS_TO_HOURS
 import fund.cyber.markets.common.closestSmallerMultiply
+import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.rest.service.ConnectorService
@@ -45,7 +47,7 @@ class RawDataController {
 
         if (ts != null) {
             val nearestTs = nearestOrderBookTimestamp(ts)
-            val epochHour = nearestTs / 1000 / 60 / 60
+            val epochHour = nearestTs convert MILLIS_TO_HOURS
             orderBook = orderBookRepository.getNearlest(exchange.toUpperCase(), TokensPair(pair), epochHour, nearestTs)
         } else {
             val requestUri = connectorService.connectorsMap[exchange.toUpperCase()] + ORDERBOOK_PATH
