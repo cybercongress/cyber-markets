@@ -1,7 +1,10 @@
 package fund.cyber.markets.api.rest.controller
 
 import fund.cyber.markets.cassandra.model.CqlOrderBook
+import fund.cyber.markets.cassandra.model.CqlTokensPair
+import fund.cyber.markets.cassandra.model.CqlTrade
 import fund.cyber.markets.cassandra.repository.OrderBookRepository
+import fund.cyber.markets.cassandra.repository.TradeRepository
 import fund.cyber.markets.common.MILLIS_TO_HOURS
 import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.common.convert
@@ -35,6 +38,9 @@ class RawDataController {
     @Autowired
     private lateinit var orderBookRepository: OrderBookRepository
 
+    @Autowired
+    private lateinit var tradeRepository: TradeRepository
+
     private val restTemplate = RestTemplate()
 
     @GetMapping("/orderbook")
@@ -48,7 +54,7 @@ class RawDataController {
         if (ts != null) {
             val nearestTs = nearestOrderBookTimestamp(ts)
             val epochHour = nearestTs convert MILLIS_TO_HOURS
-            orderBook = orderBookRepository.getNearlest(exchange.toUpperCase(), TokensPair(pair), epochHour, nearestTs)
+            orderBook = orderBookRepository.getNearlest(exchange.toUpperCase(), CqlTokensPair(pair), epochHour, nearestTs)
         } else {
             val requestUri = connectorService.connectorsMap[exchange.toUpperCase()] + ORDERBOOK_PATH
 
@@ -75,6 +81,21 @@ class RawDataController {
 
     private fun nearestOrderBookTimestamp(ts: Long): Long {
         return closestSmallerMultiply(ts, ORDERBOOK_SNAPSHOT_PERIOD)
+    }
+
+    @GetMapping("/trade")
+    fun getTrades(
+        @RequestParam exchange: String,
+        @RequestParam pair: String,
+        @RequestParam epochMin: Long
+    ): Mono<ResponseEntity<List<CqlTrade>>> {
+        val trades = tradeRepository.get(exchange.toUpperCase(), CqlTokensPair(pair), epochMin)
+
+        return if (trades != null && trades.isNotEmpty()) {
+            ok().body(trades).toMono()
+        } else {
+            notFound().build<List<CqlTrade>>().toMono()
+        }
     }
 
 }

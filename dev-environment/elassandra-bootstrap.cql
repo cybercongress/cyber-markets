@@ -40,10 +40,10 @@ CREATE TABLE IF NOT EXISTS markets.trade (
   baseAmount decimal,
   quoteAmount decimal,
   price decimal,
-  PRIMARY KEY ((exchange, pair, epochMinute), tradeId)
+  PRIMARY KEY ((exchange, pair), epochMinute)
 )
 WITH CLUSTERING ORDER BY (
-  tradeId DESC
+  epochMinute DESC
 );
 
 CREATE TABLE IF NOT EXISTS "markets"."order" (

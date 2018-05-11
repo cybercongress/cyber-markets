@@ -12,6 +12,6 @@ import java.util.*
 interface OrderBookAccessor {
 
     @Query("SELECT * FROM markets.orderbook " +
-        "WHERE exchange=:exchange AND pair=:pair AND epochHour=:epochHour AND timestamp>=:timestamp;\n")
+        "WHERE exchange=:exchange AND pair=:pair AND epochHour=:epochHour AND timestamp>=:timestamp;")
     fun getNearlest(@Param exchange: String, @Param pair: CqlTokensPair, @Param epochHour: Long, @Param timestamp: Date): Result<CqlOrderBook>
 }
