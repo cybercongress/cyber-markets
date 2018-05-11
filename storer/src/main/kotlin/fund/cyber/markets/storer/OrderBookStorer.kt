@@ -21,14 +21,12 @@ class OrderBookStorer {
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
 
     fun start() {
-        scheduler.scheduleAtFixedRate(orderBookResolver,initDelay(), ORDERBOOK_SNAPSHOT_PERIOD, TimeUnit.MILLISECONDS)
+        scheduler.scheduleAtFixedRate(orderBookResolver, initDelay(), ORDERBOOK_SNAPSHOT_PERIOD, TimeUnit.MILLISECONDS)
     }
 
     fun initDelay(): Long {
         val currentMillis = System.currentTimeMillis()
-        val periodMillis = TimeUnit.MINUTES.toMillis(ORDERBOOK_SNAPSHOT_PERIOD)
-
-        return closestSmallerMultiply(currentMillis, periodMillis) + periodMillis - currentMillis
+        return closestSmallerMultiply(currentMillis, ORDERBOOK_SNAPSHOT_PERIOD) + ORDERBOOK_SNAPSHOT_PERIOD - currentMillis
     }
 }
 

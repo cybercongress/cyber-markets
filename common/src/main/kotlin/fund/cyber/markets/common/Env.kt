@@ -9,8 +9,8 @@ const val CASSANDRA_HOSTS_DEFAULT = "localhost"
 const val CASSANDRA_PORT = "CASSANDRA_PORT"
 const val CASSANDRA_PORT_DEFAULT = 9042
 
-const val EXCHANGES_CONNECTOR_API_URL = "EXCHANGES_CONNECTOR_API_URL"
-const val EXCHANGES_CONNECTOR_API_URL_DEFAULT = "http://localhost:8080"
+const val EXCHANGES_CONNECTOR_API_URLS = "EXCHANGES_CONNECTOR_API_URLS"
+const val EXCHANGES_CONNECTOR_API_URLS_DEFAULT = "http://localhost:8080"
 
 const val EXCHANGES = "EXCHANGES"
 const val EXCHANGES_DEFAULT = "bitfinex,bitflyer,binance,bitstamp,gdax,gemini,hitbtc,okcoin,okex,poloniex,etherdelta"
