@@ -3,8 +3,8 @@ package fund.cyber.markets.storer
 import fund.cyber.markets.cassandra.model.CqlOrderBook
 import fund.cyber.markets.cassandra.repository.OrderBookRepository
 import fund.cyber.markets.common.closestSmallerMultiply
+import fund.cyber.markets.common.rest.service.ConnectorService
 import fund.cyber.markets.storer.configuration.ORDERBOOK_SNAPSHOT_PERIOD
-import fund.cyber.markets.storer.service.ConnectorService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

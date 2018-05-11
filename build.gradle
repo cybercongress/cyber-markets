@@ -200,6 +200,17 @@ project(":common-kafka") {
     }
 }
 
+project(":common-rest-api") {
+
+    dependencies {
+        compileOnly project(":common")
+
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.springframework.boot:spring-boot-starter-webflux'
+        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
+    }
+}
+
 project(":stream-api") {
     apply plugin: "application"
 
@@ -218,11 +229,8 @@ project(":rest-api") {
 
     dependencies {
         compile project(":common")
+        compile project(":common-rest-api")
         compile project(":cassandra-service")
-
-        compile 'org.springframework.boot:spring-boot-starter'
-        compile 'org.springframework.boot:spring-boot-starter-webflux'
-        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
     }
 }
 
@@ -307,11 +315,8 @@ project(":storer") {
     dependencies {
         compile project(":common")
         compile project(":common-kafka")
+        compile project(":common-rest-api")
         compile project(":cassandra-service")
-
-        compile 'org.springframework.boot:spring-boot-starter'
-        compile 'org.springframework.boot:spring-boot-starter-webflux'
-        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
     }
 
 }

@@ -12,4 +12,8 @@ data class CqlTokensPair(
         base = pair.base,
         quote = pair.quote
     )
+
+    constructor(pair: String): this(
+        pair.substringBefore("_"), pair.substringAfter("_")
+    )
 }

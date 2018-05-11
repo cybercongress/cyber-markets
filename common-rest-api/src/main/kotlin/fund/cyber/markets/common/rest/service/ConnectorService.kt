@@ -1,4 +1,4 @@
-package fund.cyber.markets.storer.service
+package fund.cyber.markets.common.rest.service
 
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.TokensPair
@@ -21,8 +21,8 @@ class ConnectorService {
     @Autowired
     private lateinit var connectorApiUrls: List<String>
 
-    private val connectorsMap = mutableMapOf<String, String>()
     private val restTemplate = RestTemplate()
+    val connectorsMap = mutableMapOf<String, String>()
 
     @PostConstruct
     fun initConnectorsMap() {
