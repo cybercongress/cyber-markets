@@ -1,4 +1,4 @@
-CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','DEVELOPMENT' : 1};
+CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','PRODUCTION' : 1};
 
 CREATE TYPE IF NOT EXISTS markets.tokenprice (
   value decimal
@@ -40,10 +40,10 @@ CREATE TABLE IF NOT EXISTS markets.trade (
   baseAmount decimal,
   quoteAmount decimal,
   price decimal,
-  PRIMARY KEY ((exchange, pair), epochMinute)
+  PRIMARY KEY ((exchange, pair, epochMinute), tradeId)
 )
 WITH CLUSTERING ORDER BY (
-  epochMinute DESC
+  tradeId DESC
 );
 
 CREATE TABLE IF NOT EXISTS "markets"."order" (
