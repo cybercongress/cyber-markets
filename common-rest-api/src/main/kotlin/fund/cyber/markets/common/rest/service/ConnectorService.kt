@@ -60,18 +60,20 @@ class ConnectorService {
     }
 
     fun getTokensPairsByExchange(exchange: String): Set<TokensPair>? {
-        val apiUrl = connectorsMap[exchange]
-        val requestUri = apiUrl + EXCHANGE_TOKENS_PAIRS_PATH
-
-        val parameters = mutableMapOf<String, String>().apply {
-            put("exchangeName", exchange)
-        }
-
         var pairs: Array<TokensPair>? = null
-        try {
-            pairs = restTemplate.getForObject<Array<TokensPair>>(requestUri, Array<TokensPair>::class.java, parameters)
-        } catch (e: HttpClientErrorException) {
-            log.error("Cannot get tokens pairs for $exchange exchange. Status code: {}", e.rawStatusCode)
+        val apiUrl = connectorsMap[exchange]
+
+        if (apiUrl != null) {
+            val requestUri = apiUrl + EXCHANGE_TOKENS_PAIRS_PATH
+            val parameters = mutableMapOf<String, String>().apply {
+                put("exchangeName", exchange)
+            }
+
+            try {
+                pairs = restTemplate.getForObject<Array<TokensPair>>(requestUri, Array<TokensPair>::class.java, parameters)
+            } catch (e: HttpClientErrorException) {
+                log.error("Cannot get tokens pairs for $exchange exchange. Status code: {}", e.rawStatusCode)
+            }
         }
 
         return pairs?.toSet()
@@ -79,19 +81,22 @@ class ConnectorService {
     }
 
     fun getOrderBook(exchange: String, pair: TokensPair): OrderBook? {
-        val apiUrl = connectorsMap[exchange]
-        val requestUri = apiUrl + ORDERBOOK_PATH
-        val pairString = pair.base + "_" + pair.quote
-
-        val builder = UriComponentsBuilder.fromUriString(requestUri)
-            .queryParam("exchange", exchange)
-            .queryParam("pair", pairString)
-
         var orderBook: OrderBook? = null
-        try {
-            orderBook = restTemplate.getForObject<OrderBook>(builder.toUriString(), OrderBook::class.java)
-        } catch (e: HttpClientErrorException) {
-            log.error("Cannot get order book from $exchange and pair: $pair. Response status code: {}", e.rawStatusCode)
+        val apiUrl = connectorsMap[exchange]
+
+        if (apiUrl != null) {
+            val requestUri = apiUrl + ORDERBOOK_PATH
+            val pairString = pair.base + "_" + pair.quote
+
+            val builder = UriComponentsBuilder.fromUriString(requestUri)
+                .queryParam("exchange", exchange)
+                .queryParam("pair", pairString)
+
+            try {
+                orderBook = restTemplate.getForObject<OrderBook>(builder.toUriString(), OrderBook::class.java)
+            } catch (e: HttpClientErrorException) {
+                log.error("Cannot get order book from $exchange and pair: $pair. Response status code: {}", e.rawStatusCode)
+            }
         }
 
         return orderBook
