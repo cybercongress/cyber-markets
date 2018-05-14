@@ -35,7 +35,7 @@ class ConnectorInfoController {
     fun getTrades(
         @PathVariable exchangeName: String
     ): Mono<ResponseEntity<Set<TokensPair>>> {
-        val pairs = connectorService.getTokensPairsByExchange(exchangeName)
+        val pairs = connectorService.getTokensPairsByExchange(exchangeName.toUpperCase())
 
         return if (pairs != null && pairs.isNotEmpty()) {
             ok().body(pairs).toMono()

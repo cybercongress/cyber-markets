@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity.ok
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.RestTemplate
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
 
@@ -36,8 +35,6 @@ class RawDataController {
     @Autowired
     private lateinit var tradeRepository: TradeRepository
 
-    private val restTemplate = RestTemplate()
-
     @GetMapping("/orderbook")
     fun getOrderBook(
         @RequestParam exchange: String,
@@ -49,10 +46,10 @@ class RawDataController {
         if (ts != null) {
             val nearestTs = nearestOrderBookTimestamp(ts)
             val epochHour = nearestTs convert MILLIS_TO_HOURS
-            orderBook = orderBookRepository.getNearlest(exchange.toUpperCase(), CqlTokensPair(pair), epochHour, nearestTs)
+            orderBook = orderBookRepository.getNearlest(exchange.toUpperCase(), CqlTokensPair(pair.toUpperCase()), epochHour, nearestTs)
         } else {
-            val tokensPair = TokensPair(pair)
-            val currentOrderBook = connectorService.getOrderBook(exchange, tokensPair)
+            val tokensPair = TokensPair(pair.toUpperCase())
+            val currentOrderBook = connectorService.getOrderBook(exchange.toUpperCase(), tokensPair)
             if (currentOrderBook != null) {
                 orderBook = CqlOrderBook(exchange, tokensPair, currentOrderBook)
             }
@@ -75,7 +72,7 @@ class RawDataController {
         @RequestParam pair: String,
         @RequestParam epochMin: Long
     ): Mono<ResponseEntity<List<CqlTrade>>> {
-        val trades = tradeRepository.get(exchange.toUpperCase(), CqlTokensPair(pair), epochMin)
+        val trades = tradeRepository.get(exchange.toUpperCase(), CqlTokensPair(pair.toUpperCase()), epochMin)
 
         return if (trades != null && trades.isNotEmpty()) {
             ok().body(trades).toMono()
