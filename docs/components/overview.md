@@ -23,10 +23,10 @@
  index on source cassandra data.
  
 ## Exchanges Connector
-Collect raw data from centralized and decentalized exchanges such as trades, orderbooks and put it to kafka.
+Collect raw data from centralized and decentralized exchanges such as trades, order books and put it to kafka.
 
 ## Storer
-Writes data from kafka topics or directly from exchanges-connector to cassandra ckuster
+Writes data from kafka topics or directly from exchanges-connector to cassandra cluster
 
 ## Tickers
 Calculate tickers, prices, etc and aggregate raw data which collecting exchanges connectors module
