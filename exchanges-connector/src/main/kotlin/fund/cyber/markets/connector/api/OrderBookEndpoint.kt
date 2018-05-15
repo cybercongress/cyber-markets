@@ -18,13 +18,11 @@ class OrderBookEndpoint(
 
     @GetMapping("/orderbook")
     fun getOrderBook(
-        @RequestParam(value = "exchange", required = true) exchange: String,
-        @RequestParam(value = "pair", required = true) tokensPair: String
+        @RequestParam(required = true) exchange: String,
+        @RequestParam(required = true) pair: String
     ): Mono<ResponseEntity<OrderBook>> {
 
-        val pair = TokensPair(tokensPair.substringBefore("_"), tokensPair.substringAfter("_"))
-
-        return orderBookService.getOrderBook(exchange, pair)
+        return orderBookService.getOrderBook(exchange.toUpperCase(), TokensPair(pair.toUpperCase()))
             .map { orderBook ->
                 ok().body(orderBook)
             }

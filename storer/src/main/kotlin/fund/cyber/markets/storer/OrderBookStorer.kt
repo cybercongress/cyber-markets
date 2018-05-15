@@ -4,29 +4,32 @@ import fund.cyber.markets.cassandra.model.CqlOrderBook
 import fund.cyber.markets.cassandra.repository.OrderBookRepository
 import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.common.rest.service.ConnectorService
-import fund.cyber.markets.storer.configuration.ORDERBOOK_SNAPSHOT_PERIOD
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 @Component
-class OrderBookStorer {
-
-    @Autowired
-    private lateinit var orderBookResolver: OrderBookResolverTask
-
+class OrderBookStorer(
+    private val orderBookResolver: OrderBookResolverTask,
+    private val orderBookSnapshotPeriod: Long,
+    private val saveOrderBooks: Boolean
+) {
+    private val log = LoggerFactory.getLogger(javaClass)!!
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
 
     fun start() {
-        scheduler.scheduleAtFixedRate(orderBookResolver, initDelay(), ORDERBOOK_SNAPSHOT_PERIOD, TimeUnit.MILLISECONDS)
+        if (saveOrderBooks) {
+            scheduler.scheduleAtFixedRate(orderBookResolver, initDelay(), orderBookSnapshotPeriod, TimeUnit.MILLISECONDS)
+        } else {
+            log.info("Saving of order books to the database was disabled.")
+        }
     }
 
     fun initDelay(): Long {
         val currentMillis = System.currentTimeMillis()
-        return closestSmallerMultiply(currentMillis, ORDERBOOK_SNAPSHOT_PERIOD) + ORDERBOOK_SNAPSHOT_PERIOD - currentMillis
+        return closestSmallerMultiply(currentMillis, orderBookSnapshotPeriod) + orderBookSnapshotPeriod - currentMillis
     }
 }
 

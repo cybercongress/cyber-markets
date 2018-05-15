@@ -9,6 +9,8 @@ import fund.cyber.markets.cassandra.configuration.MARKETS_KEYSPACE
 import fund.cyber.markets.cassandra.configuration.PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST
 import fund.cyber.markets.cassandra.model.CqlOrderBook
 import fund.cyber.markets.cassandra.model.CqlTokensPair
+import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.convert
 import io.reactivex.Flowable
 import java.util.*
 
@@ -38,8 +40,8 @@ class OrderBookRepository(cassandra: Cluster) {
         return mapper.get(exchange, pair, epochHour, Date(timestamp))
     }
 
-    fun getNearlest(exchange: String, pair: CqlTokensPair, epochHour: Long, timestamp: Long): CqlOrderBook? {
-        return accessor.getNearlest(exchange, pair, epochHour, Date(timestamp)).firstOrNull()
+    fun getNearest(exchange: String, pair: CqlTokensPair, timestamp: Long): CqlOrderBook? {
+        return accessor.getNearest(exchange, pair, timestamp convert MILLIS_TO_HOURS, Date(timestamp)).firstOrNull()
     }
 
 }

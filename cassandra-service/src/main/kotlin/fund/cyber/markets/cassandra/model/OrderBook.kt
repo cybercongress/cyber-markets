@@ -5,8 +5,8 @@ import com.datastax.driver.mapping.annotations.Frozen
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
 import com.datastax.driver.mapping.annotations.UDT
-import fund.cyber.markets.common.model.Order
 import fund.cyber.markets.common.model.OrderBook
+import fund.cyber.markets.common.model.OrderMin
 import fund.cyber.markets.common.model.TokensPair
 import java.math.BigDecimal
 import java.util.*
@@ -28,29 +28,29 @@ data class CqlOrderBook(
     val timestamp: Date,
 
     @Frozen
-    val bids: List<CqlBaseOrder>,
+    val bids: List<CqlOrderMin>,
 
     @Frozen
-    val asks: List<CqlBaseOrder>
+    val asks: List<CqlOrderMin>
 ) {
     constructor(exchange: String, pair: TokensPair, orderBook: OrderBook): this(
         exchange = exchange,
         pair = CqlTokensPair(pair),
         epochHour = orderBook.timestamp / 1000 / 60 / 60,
         timestamp = Date(orderBook.timestamp),
-        bids = orderBook.bids.map { order -> CqlBaseOrder(order) },
-        asks = orderBook.asks.map { order -> CqlBaseOrder(order) }
+        bids = orderBook.bids.map { order -> CqlOrderMin(order) },
+        asks = orderBook.asks.map { order -> CqlOrderMin(order) }
     )
 }
 
 @UDT(name = "orderbook_order")
-data class CqlBaseOrder(
+data class CqlOrderMin(
     val type: String,
     val timestamp: Date,
     val amount: BigDecimal,
     val price: BigDecimal
 ) {
-    constructor(order: Order): this(
+    constructor(order: OrderMin): this(
         type = order.type.toString(),
         timestamp = Date(order.timestamp),
         amount = order.amount,

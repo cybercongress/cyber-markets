@@ -5,9 +5,6 @@ import fund.cyber.markets.cassandra.model.CqlTokensPair
 import fund.cyber.markets.cassandra.model.CqlTrade
 import fund.cyber.markets.cassandra.repository.OrderBookRepository
 import fund.cyber.markets.cassandra.repository.TradeRepository
-import fund.cyber.markets.common.MILLIS_TO_HOURS
-import fund.cyber.markets.common.closestSmallerMultiply
-import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.rest.service.ConnectorService
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,9 +41,7 @@ class RawDataController {
         var orderBook: CqlOrderBook? = null
 
         if (ts != null) {
-            val nearestTs = nearestOrderBookTimestamp(ts)
-            val epochHour = nearestTs convert MILLIS_TO_HOURS
-            orderBook = orderBookRepository.getNearlest(exchange.toUpperCase(), CqlTokensPair(pair.toUpperCase()), epochHour, nearestTs)
+            orderBook = orderBookRepository.getNearest(exchange.toUpperCase(), CqlTokensPair(pair.toUpperCase()), ts)
         } else {
             val tokensPair = TokensPair(pair.toUpperCase())
             val currentOrderBook = connectorService.getOrderBook(exchange.toUpperCase(), tokensPair)
@@ -60,10 +55,6 @@ class RawDataController {
         } else {
             notFound().build<CqlOrderBook>().toMono()
         }
-    }
-
-    private fun nearestOrderBookTimestamp(ts: Long): Long {
-        return closestSmallerMultiply(ts, ORDERBOOK_SNAPSHOT_PERIOD)
     }
 
     @GetMapping("/trade")

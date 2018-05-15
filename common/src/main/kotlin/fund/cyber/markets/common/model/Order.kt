@@ -5,8 +5,8 @@ import java.math.BigDecimal
 import java.util.*
 
 data class OrderMin(
-    val type: String,
-    val timestamp: Date,
+    val type: OrderType,
+    val timestamp: Long,
     val amount: BigDecimal,
     val price: BigDecimal
 )
