@@ -7,8 +7,9 @@
 | Elassandra                 | 1 - N | Data Back                                          |                               |                           |          |
 | Exchanges Connector        | 1 - N | Connect to CEXs/DEXs for raw data                  |                               | 8080:/actuator/metrics    |          |
 | Tickers                    | 1 - N | Calculate Tickers From Raw Data                    |                               |                           |          |
-| Markets REST Api           | 1 - N | Rest Api To Markets Entities                       |                               |                           |   y      |
-| Markets Stream             | 1 - N | Web Socket Api To Markets Entities                 |                               |                           |   y      |
+| Storer                     | 1     | Write data to database                             |                               |                           |          |
+| Markets REST API           | 1 - N | Rest Api To Markets Entities                       |                               |                           |   y      |
+| Markets Stream API         | 1 - N | Web Socket Api To Markets Entities                 |                               |                           |   y      |
 | Markets Api Docs           | 1 - N | Markets Api Docs Based On Swagger                  |                               |                           |   y      |
 
 ![Basic Overview](images/architecture.png)
@@ -23,6 +24,9 @@
  
 ## Exchanges Connector
 Collect raw data from centralized and decentalized exchanges such as trades, orderbooks and put it to kafka.
+
+## Storer
+Writes data from kafka topics or directly from exchanges-connector to cassandra ckuster
 
 ## Tickers
 Calculate tickers, prices, etc and aggregate raw data which collecting exchanges connectors module
