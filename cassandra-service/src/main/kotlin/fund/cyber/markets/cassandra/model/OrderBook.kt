@@ -5,6 +5,8 @@ import com.datastax.driver.mapping.annotations.Frozen
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
 import com.datastax.driver.mapping.annotations.UDT
+import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.OrderMin
 import fund.cyber.markets.common.model.TokensPair
@@ -36,7 +38,7 @@ data class CqlOrderBook(
     constructor(exchange: String, pair: TokensPair, orderBook: OrderBook): this(
         exchange = exchange,
         pair = CqlTokensPair(pair),
-        epochHour = orderBook.timestamp / 1000 / 60 / 60,
+        epochHour = orderBook.timestamp convert MILLIS_TO_HOURS,
         timestamp = Date(orderBook.timestamp),
         bids = orderBook.bids.map { order -> CqlOrderMin(order) },
         asks = orderBook.asks.map { order -> CqlOrderMin(order) }
