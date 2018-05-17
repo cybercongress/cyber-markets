@@ -1,6 +1,6 @@
 package fund.cyber.markets.connector.orderbook
 
-import fund.cyber.markets.common.model.OrderMin
+import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.OrderType
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.connector.AbstractXchangeConnector
@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
 
 class XchangeOrderbookConnector : AbstractXchangeConnector, OrderbookConnector {
-    override var orderbooks: ConcurrentMap<CurrencyPair, OrderBook> = ConcurrentHashMap()
+    override val orderbooks: ConcurrentMap<CurrencyPair, OrderBook> = ConcurrentHashMap()
 
     private constructor()
 
@@ -70,8 +70,8 @@ class XchangeOrderbookConnector : AbstractXchangeConnector, OrderbookConnector {
         val orderBook = orderbooks[CurrencyPair(pair.base, pair.quote)] ?: return null
         val timestamp: Long = orderBook.timeStamp?.time ?: Date().time
 
-        val asks = mutableListOf<OrderMin>()
-        val bids = mutableListOf<OrderMin>()
+        val asks = mutableListOf<OrderSummary>()
+        val bids = mutableListOf<OrderSummary>()
 
         orderBook.asks.forEach { xchangeOrder ->
             asks.add(convertOrder(xchangeOrder, OrderType.ASK, timestamp))
@@ -84,10 +84,10 @@ class XchangeOrderbookConnector : AbstractXchangeConnector, OrderbookConnector {
         return fund.cyber.markets.common.model.OrderBook(asks, bids, timestamp)
     }
 
-    private fun convertOrder(xchangeOrder: LimitOrder, type: OrderType, orderBookTimestamp: Long): OrderMin {
+    private fun convertOrder(xchangeOrder: LimitOrder, type: OrderType, orderBookTimestamp: Long): OrderSummary {
         val timestamp: Long = xchangeOrder.timestamp?.time ?: orderBookTimestamp
 
-        return OrderMin(
+        return OrderSummary(
             type,
             timestamp,
             xchangeOrder.originalAmount,

@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
 
 @RestController
-class InfoEndpoint1 {
+class ConnectorInfoController {
 
     @Autowired
     private lateinit var exchanges: Set<String>

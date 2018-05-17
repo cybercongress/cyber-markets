@@ -4,7 +4,7 @@ package fund.cyber.markets.common.model
 import java.math.BigDecimal
 import java.util.*
 
-data class OrderMin(
+data class OrderSummary(
     val type: OrderType,
     val timestamp: Long,
     val amount: BigDecimal,

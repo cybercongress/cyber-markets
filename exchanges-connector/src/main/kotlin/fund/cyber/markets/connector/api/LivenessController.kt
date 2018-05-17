@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class LivenessEndpoint(
+class LivenessController(
         private val connectorRunner: ConnectorRunner
 ) {
 

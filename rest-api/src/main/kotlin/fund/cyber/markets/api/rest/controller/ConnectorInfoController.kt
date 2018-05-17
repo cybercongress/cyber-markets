@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import reactor.core.publisher.toMono
 
 
 @RestController
@@ -22,26 +21,23 @@ class ConnectorInfoController {
     @GetMapping("/exchanges")
     fun getExchanges(): Mono<ResponseEntity<Set<String>>> {
 
-        val exchanges = connectorService.getExchanges()
-
-        return if (exchanges != null) {
-            ok().body(exchanges).toMono()
-        } else {
-            notFound().build<Set<String>>().toMono()
-        }
+        return connectorService.getExchanges()
+            .map { exchangesSet ->
+                ok().body(exchangesSet)
+            }
+            .defaultIfEmpty(notFound().build())
     }
 
     @GetMapping("/exchange/{exchangeName}/pairs")
-    fun getTrades(
+    fun getPairs(
         @PathVariable exchangeName: String
     ): Mono<ResponseEntity<Set<TokensPair>>> {
-        val pairs = connectorService.getTokensPairsByExchange(exchangeName.toUpperCase())
 
-        return if (pairs != null && pairs.isNotEmpty()) {
-            ok().body(pairs).toMono()
-        } else {
-            notFound().build<Set<TokensPair>>().toMono()
-        }
+        return connectorService.getTokensPairsByExchange(exchangeName.toUpperCase())
+            .map { pairsSet ->
+                ok().body(pairsSet)
+            }
+            .defaultIfEmpty(notFound().build())
     }
 
 }

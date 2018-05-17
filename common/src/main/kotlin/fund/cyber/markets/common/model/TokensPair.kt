@@ -10,4 +10,8 @@ data class TokensPair(
     constructor(pair: String) : this(
         pair.substringBefore("_"), pair.substringAfter("_")
     )
+
+    fun pairString(): String {
+        return base + "_" + quote
+    }
 }

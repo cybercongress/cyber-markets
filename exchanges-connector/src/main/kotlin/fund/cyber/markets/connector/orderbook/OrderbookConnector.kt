@@ -7,6 +7,6 @@ import org.knowm.xchange.dto.marketdata.OrderBook
 import java.util.concurrent.ConcurrentMap
 
 interface OrderbookConnector : Connector {
-    var orderbooks: ConcurrentMap<CurrencyPair, OrderBook>
+    val orderbooks: ConcurrentMap<CurrencyPair, OrderBook>
     fun getOrderBookSnapshot(pair: TokensPair): fund.cyber.markets.common.model.OrderBook?
 }

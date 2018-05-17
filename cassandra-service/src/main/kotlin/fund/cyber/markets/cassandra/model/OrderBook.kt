@@ -8,7 +8,7 @@ import com.datastax.driver.mapping.annotations.UDT
 import fund.cyber.markets.common.MILLIS_TO_HOURS
 import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.OrderBook
-import fund.cyber.markets.common.model.OrderMin
+import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.TokensPair
 import java.math.BigDecimal
 import java.util.*
@@ -52,7 +52,7 @@ data class CqlOrderMin(
     val amount: BigDecimal,
     val price: BigDecimal
 ) {
-    constructor(order: OrderMin): this(
+    constructor(order: OrderSummary): this(
         type = order.type.toString(),
         timestamp = Date(order.timestamp),
         amount = order.amount,
