@@ -19,24 +19,23 @@ class ConnectorInfoController {
     private lateinit var connectorService: ConnectorService
 
     @GetMapping("/exchanges")
-    fun getExchanges(): Mono<ResponseEntity<Set<String>>> {
+    fun getExchanges(): Mono<ResponseEntity<List<String>>> {
 
         return connectorService.getExchanges()
-            .map { exchangesSet ->
-                ok().body(exchangesSet)
-            }
-            .defaultIfEmpty(notFound().build())
+            .collectList()
+            .map { exchangeList -> ok().body(exchangeList) }
+            .defaultIfEmpty(notFound().build()
+        )
     }
 
     @GetMapping("/exchange/{exchangeName}/pairs")
     fun getPairs(
         @PathVariable exchangeName: String
-    ): Mono<ResponseEntity<Set<TokensPair>>> {
+    ): Mono<ResponseEntity<List<TokensPair>>> {
 
         return connectorService.getTokensPairsByExchange(exchangeName.toUpperCase())
-            .map { pairsSet ->
-                ok().body(pairsSet)
-            }
+            .collectList()
+            .map { pairs -> ok().body(pairs) }
             .defaultIfEmpty(notFound().build())
     }
 

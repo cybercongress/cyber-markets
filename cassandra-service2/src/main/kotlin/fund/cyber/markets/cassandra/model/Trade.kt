@@ -1,28 +1,25 @@
 package fund.cyber.markets.cassandra.model
 
+import com.datastax.driver.mapping.annotations.ClusteringColumn
+import com.datastax.driver.mapping.annotations.PartitionKey
+import com.datastax.driver.mapping.annotations.Table
 import fund.cyber.markets.common.model.Trade
-import org.springframework.data.cassandra.core.cql.Ordering
-import org.springframework.data.cassandra.core.cql.PrimaryKeyType
-import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn
-import org.springframework.data.cassandra.core.mapping.Table
 import java.math.BigDecimal
 import java.util.*
 
-@Table("trade")
+@Table(keyspace = "markets", name = "trade",
+    readConsistency = "QUORUM", writeConsistency = "QUORUM",
+    caseSensitiveKeyspace = false, caseSensitiveTable = false)
 data class CqlTrade(
-
-    @PrimaryKeyColumn(ordinal = 0, type = PrimaryKeyType.PARTITIONED, value = "exchange")
+    @PartitionKey(0)
     val exchange: String,
-
-    @PrimaryKeyColumn(ordinal = 1, type = PrimaryKeyType.PARTITIONED, value = "pair")
+    @PartitionKey(1)
     val pair: CqlTokensPair,
     val type: String,
     val timestamp: Date,
-
-    @PrimaryKeyColumn(ordinal = 2, type = PrimaryKeyType.PARTITIONED, value = "epochminute")
+    @PartitionKey(2)
     val epochMinute: Long,
-
-    @PrimaryKeyColumn(ordinal = 2, type = PrimaryKeyType.CLUSTERED, value = "tradeid", ordering = Ordering.DESCENDING)
+    @ClusteringColumn(0)
     val tradeId: String,
     val baseAmount: BigDecimal,
     val quoteAmount: BigDecimal,
@@ -32,7 +29,7 @@ data class CqlTrade(
         exchange = trade.exchange,
         pair = CqlTokensPair(trade.pair),
         type = trade.type.toString(),
-        timestamp = Date(trade.timestamp),
+        timestamp = trade.timestamp,
         epochMinute = trade.epochMinute,
         tradeId = trade.tradeId,
         baseAmount = trade.baseAmount,

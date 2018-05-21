@@ -1,54 +1,103 @@
 package fund.cyber.markets.cassandra.configuration
 
-import com.datastax.driver.core.Cluster
-import fund.cyber.markets.cassandra.repository.OrderBookRepository
-import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.cassandra.repository.TradeRepository
+import com.datastax.driver.core.HostDistance
+import com.datastax.driver.core.PoolingOptions
+import fund.cyber.markets.cassandra.common.defaultKeyspaceSpecification
 import fund.cyber.markets.common.CASSANDRA_HOSTS
 import fund.cyber.markets.common.CASSANDRA_HOSTS_DEFAULT
 import fund.cyber.markets.common.CASSANDRA_PORT
 import fund.cyber.markets.common.CASSANDRA_PORT_DEFAULT
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
+import org.springframework.data.cassandra.ReactiveSession
+import org.springframework.data.cassandra.config.AbstractReactiveCassandraConfiguration
+import org.springframework.data.cassandra.core.cql.keyspace.CreateKeyspaceSpecification
+import org.springframework.data.cassandra.repository.config.EnableReactiveCassandraRepositories
 
 const val MAX_CONCURRENT_REQUESTS = 8182
-const val PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST = MAX_CONCURRENT_REQUESTS / 8
+const val MAX_PER_ROUTE = 16
+const val MAX_TOTAL = 32
+
+const val ENTITY_BASE_PACKAGE = "fund.cyber.markets.cassandra.model"
 const val MARKETS_KEYSPACE = "markets"
 
 @Configuration
-class CassandraRepositoryConfiguration(
-        @Value("\${$CASSANDRA_HOSTS:$CASSANDRA_HOSTS_DEFAULT}")
-        private val cassandraHosts: String,
-        @Value("\${$CASSANDRA_PORT:$CASSANDRA_PORT_DEFAULT}")
-        private val cassandraPort: Int
-) {
+@EnableReactiveCassandraRepositories(
+    basePackages = [ENTITY_BASE_PACKAGE]
+)
+class CassandraRepositoriesConfiguration(
+    @Value("\${$CASSANDRA_HOSTS:$CASSANDRA_HOSTS_DEFAULT}")
+    private val cassandraHosts: String,
+    @Value("\${$CASSANDRA_PORT:$CASSANDRA_PORT_DEFAULT}")
+    private val cassandraPort: Int
+) : AbstractReactiveCassandraConfiguration() {
 
-    private val log = LoggerFactory.getLogger(CassandraRepositoryConfiguration::class.java)!!
+    override fun getKeyspaceName(): String = MARKETS_KEYSPACE
 
-    @Bean
-    fun cassandraCluster(): Cluster {
-        log.info("Cassandra hosts: {}; Cassandra port: {}", cassandraHosts, cassandraPort)
+    override fun getEntityBasePackages(): Array<String> = arrayOf(ENTITY_BASE_PACKAGE)
 
-        return Cluster.builder()
-                .addContactPoints(cassandraHosts)
-                .withPort(cassandraPort)
-                .build().init()!!
+    override fun getKeyspaceCreations(): List<CreateKeyspaceSpecification> {
+        return listOf(defaultKeyspaceSpecification(MARKETS_KEYSPACE))
     }
 
-    @Bean
-    fun tickerRepository(): TickerRepository {
-        return TickerRepository(cassandraCluster())
-    }
+    override fun getPoolingOptions() = PoolingOptions()
+        .setMaxRequestsPerConnection(HostDistance.LOCAL, MAX_CONCURRENT_REQUESTS)
+        .setMaxRequestsPerConnection(HostDistance.REMOTE, MAX_CONCURRENT_REQUESTS)!!
+
+    override fun getPort() = cassandraPort
+    override fun getContactPoints() = cassandraHosts
 
     @Bean
-    fun tradeRepository(): TradeRepository {
-        return TradeRepository(cassandraCluster())
+    @Primary
+    override fun reactiveSession(): ReactiveSession {
+        return super.reactiveSession()
     }
 
-    @Bean
-    fun orderBookRepository(): OrderBookRepository {
-        return OrderBookRepository(cassandraCluster())
-    }
 }
+
+/*//val Chain.keyspace: String get() = lowerCaseName
+
+const val REPOSITORY_NAME_DELIMETER = "__"
+
+fun mappingContext(cluster: Cluster, keyspace: String, basePackage: String): CassandraMappingContext {
+
+    val mappingContext = CassandraMappingContext()
+
+    mappingContext.setInitialEntitySet(CassandraEntityClassScanner.scan(basePackage))
+    mappingContext.setUserTypeResolver(SimpleUserTypeResolver(cluster, keyspace))
+
+    return mappingContext
+}
+
+fun getKeyspaceSession(cluster: Cluster,
+                       keyspace: String,
+                       converter: MappingCassandraConverter) = CassandraSessionFactoryBean()
+    .apply {
+        setCluster(cluster)
+        setConverter(converter)
+        setKeyspaceName(keyspace)
+        schemaAction = SchemaAction.NONE
+    }
+
+@Configuration
+class CassandraConfiguration {
+    private val defaultHttpHeaders = listOf(BasicHeader("Keep-Alive", "timeout=10, max=1024"))
+    private val connectionManager = PoolingHttpClientConnectionManager().apply {
+        defaultMaxPerRoute = MAX_PER_ROUTE
+        maxTotal = MAX_TOTAL
+    }
+
+    @Bean
+    fun httpClient() = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setConnectionManagerShared(true)
+        .setDefaultHeaders(defaultHttpHeaders)
+        .build()!!
+
+    @Bean
+    fun migrationsLoader(resourceLoader: GenericApplicationContext) = DefaultMigrationsLoader(
+        resourceLoader = resourceLoader
+    )
+}*/

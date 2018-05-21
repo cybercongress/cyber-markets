@@ -1,7 +1,6 @@
 package fund.cyber.markets.api.rest.controller
 
 import fund.cyber.markets.cassandra.repository.TickerRepository
-import fund.cyber.markets.common.closestSmallerMultiply
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,9 +23,9 @@ class TickerController {
             @RequestParam timestamp: Long
             ): Flux<Any> {
 
-        val ticker = tickersRepository.getTicker(tokenSymbol, interval, closestSmallerMultiply(timestamp, interval))
+        //val ticker = tickersRepository.findById(tokenSymbol, interval, closestSmallerMultiply(timestamp, interval))
 
-        return Flux.just(ticker ?: "No data")
+        return Flux.just("No data")
     }
 
 }

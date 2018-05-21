@@ -131,7 +131,7 @@ class EtherdeltaTradeConnector : Connector {
                         val baseTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, baseTokenTag)
                         val quoteTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, quoteTokenTag)
 
-                        tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
+                        tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp, TimeUnit.MILLISECONDS)
                         tradeCountMonitor.increment()
                         baseTokenMonitor.increment()
                         quoteTokenMonitor.increment()
@@ -186,7 +186,7 @@ class EtherdeltaTradeConnector : Connector {
             return Trade(exchangeName,
                     TokensPair(tokenGet.symbol, tokenGive.symbol),
                     TradeType.BID,
-                    Date(timestamp),
+                    timestamp,
                     timestamp convert MILLIS_TO_MINUTES,
                     tradeEvent.log!!.transactionHash,
                     amountGet,
@@ -199,7 +199,7 @@ class EtherdeltaTradeConnector : Connector {
             return Trade(exchangeName,
                     TokensPair(tokenGive.symbol, tokenGet.symbol),
                     TradeType.ASK,
-                    Date(timestamp),
+                    timestamp,
                     timestamp convert MILLIS_TO_MINUTES,
                     tradeEvent.log!!.transactionHash,
                     amountGive,

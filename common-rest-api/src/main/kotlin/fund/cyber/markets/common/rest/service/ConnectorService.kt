@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toFlux
 import javax.annotation.PostConstruct
 
 const val ORDERBOOK_PATH = "/orderbook"
@@ -28,63 +30,55 @@ class ConnectorService {
     @PostConstruct
     fun initConnectorsMap() {
         connectorApiUrls.forEach { url ->
-            getExchanges(url)?.forEach { exchange ->
+            getExchanges(url).block()?.forEach { exchange ->
                 connectorsMap[exchange] = url
             }
         }
+        log.info("Connectors count: ${connectorsMap.values.toSet().size}. Exchanges count: ${connectorsMap.size}")
+        log.debug("Connectors map: $connectorsMap")
     }
 
-    fun getExchanges(connectorApiUrl: String): Set<String>? {
-        val requestUri = connectorApiUrl + EXCHANGES_SET_PATH
+    private fun getExchanges(connectorApiUrl: String): Mono<Set<String>> {
+        return Mono.create<Set<String>> { monisink ->
+            val requestUri = connectorApiUrl + EXCHANGES_SET_PATH
 
-        var exchanges: Array<String>? = null
-        try {
-            exchanges = restTemplate.getForObject<Array<String>>(requestUri, Array<String>::class.java)
-        } catch (e: HttpClientErrorException) {
-            log.error("Cannot get list of connected exchanges from $connectorApiUrl", e)
-        }
-
-        return exchanges?.toSet()
-    }
-
-    fun getExchanges(): Mono<Set<String>> {
-        return Mono.create { monoSink ->
-            val exchanges = mutableSetOf<String>()
-
-            connectorApiUrls.forEach { url ->
-                val connectorExchanges = getExchanges(url)
-                if (connectorExchanges != null) {
-                    exchanges.addAll(connectorExchanges)
-                }
-            }
-
-            monoSink.success(exchanges)
-        }
-    }
-
-    fun getTokensPairsByExchange(exchange: String): Mono<Set<TokensPair>> {
-
-        return Mono.create<Set<TokensPair>> { monoSink ->
-            val apiUrl = connectorsMap[exchange]
-
-            if (apiUrl != null) {
-                val requestUri = apiUrl + EXCHANGE_TOKENS_PAIRS_PATH
-                val parameters = mutableMapOf<String, String>().apply {
-                    put("exchangeName", exchange)
-                }
-
-                try {
-                    val pairs = restTemplate.getForObject<Array<TokensPair>>(requestUri, Array<TokensPair>::class.java, parameters)
-                    monoSink.success(pairs?.toSet())
-                } catch (e: HttpClientErrorException) {
-                    log.error("Cannot get tokens pairs for $exchange exchange. Status code: {}", e.rawStatusCode)
-                    monoSink.error(e)
-                }
-            } else {
-                monoSink.success()
+            try {
+                monisink.success(restTemplate.getForObject<Array<String>>(requestUri, Array<String>::class.java)?.toSet())
+            } catch (e: HttpClientErrorException) {
+                log.error("Cannot get list of connected exchanges from $connectorApiUrl", e)
+                monisink.error(e)
             }
         }
+    }
 
+    fun getExchanges(): Flux<String> {
+        return connectorApiUrls.toFlux().flatMap { url ->
+            getExchanges(url)
+        }.flatMap { set -> Flux.fromIterable(set) }
+    }
+
+    fun getTokensPairsByExchange(exchange: String): Flux<TokensPair> {
+        val apiUrl = connectorsMap[exchange]
+
+        if (apiUrl != null) {
+            val requestUri = apiUrl + EXCHANGE_TOKENS_PAIRS_PATH
+            val parameters = mutableMapOf<String, String>().apply {
+                put("exchangeName", exchange)
+            }
+
+            try {
+                val exchangePairs = restTemplate.getForObject<Array<TokensPair>>(requestUri, Array<TokensPair>::class.java, parameters)
+                if (exchangePairs != null) {
+                    return exchangePairs.toFlux()
+                }
+            } catch (e: HttpClientErrorException) {
+                log.error("Cannot get tokens pairs for $exchange exchange. Status code: {}", e.rawStatusCode)
+            }
+        } else {
+            log.warn("Unknown exchange: $exchange")
+        }
+
+        return Flux.empty()
     }
 
     fun getOrderBook(exchange: String, pair: TokensPair): Mono<OrderBook> {

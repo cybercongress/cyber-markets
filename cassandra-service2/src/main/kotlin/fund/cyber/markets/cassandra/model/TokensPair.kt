@@ -1,9 +1,9 @@
 package fund.cyber.markets.cassandra.model
 
+import com.datastax.driver.mapping.annotations.UDT
 import fund.cyber.markets.common.model.TokensPair
-import org.springframework.data.cassandra.core.mapping.UserDefinedType
 
-@UserDefinedType("tokenpair")
+@UDT(name = "tokenpair")
 data class CqlTokensPair(
     val base: String,
     val quote: String

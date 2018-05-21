@@ -82,7 +82,7 @@ class XchangeTradeConnector: AbstractXchangeConnector {
                 exchangeName.toUpperCase(),
                 TokensPair(exchangeTrade.currencyPair.base.currencyCode, exchangeTrade.currencyPair.counter.currencyCode),
                 TradeType.valueOf(exchangeTrade.type.name),
-                exchangeTrade.timestamp,
+                exchangeTrade.timestamp.time,
                 exchangeTrade.timestamp.time convert MILLIS_TO_MINUTES,
                 exchangeTrade.id,
                 exchangeTrade.originalAmount,

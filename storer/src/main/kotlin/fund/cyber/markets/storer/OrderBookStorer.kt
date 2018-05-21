@@ -37,27 +37,24 @@ class OrderBookStorer(
 class OrderBookResolverTask(
     private val connectorService: ConnectorService,
     private val orderBookRepository: OrderBookRepository
-): Runnable {
+) : Runnable {
     private val log = LoggerFactory.getLogger(javaClass)!!
 
     override fun run() {
         log.info("Saving order book snapshots")
 
-        val exchanges = connectorService.getExchanges()
-        if (exchanges == null) {
-            log.error("Cannot get list of exchanges")
-            return
-        }
+        connectorService.getExchanges().flatMap { exchange ->
 
-        exchanges.forEach { exchange ->
-            connectorService.getTokensPairsByExchange(exchange)?.forEach { pair ->
-                val orderBook = connectorService.getOrderBook(exchange, pair)
+            connectorService.getTokensPairsByExchange(exchange).flatMap { pair ->
 
-                if (orderBook != null) {
+                connectorService.getOrderBook(exchange, pair).flatMap { orderBook ->
+
                     orderBookRepository.save(CqlOrderBook(exchange, pair, orderBook))
+
                 }
             }
-        }
+
+        }.collectList().block()
 
     }
 

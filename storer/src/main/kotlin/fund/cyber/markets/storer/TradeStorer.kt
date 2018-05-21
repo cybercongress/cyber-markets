@@ -13,7 +13,7 @@ class TradeStorer(
 
     @KafkaListener(id = "tradeListener", topicPattern = "TRADES-.*")
     fun tradeListener(trades: List<Trade>) {
-        tradeRepository.saveAll(trades.map { trade -> CqlTrade(trade) })
+        tradeRepository.saveAll(trades.map { trade -> CqlTrade(trade) }).collectList().block()
     }
 
 }

@@ -1,52 +1,51 @@
 package fund.cyber.markets.cassandra.model
 
-import com.datastax.driver.mapping.annotations.ClusteringColumn
-import com.datastax.driver.mapping.annotations.Frozen
-import com.datastax.driver.mapping.annotations.PartitionKey
-import com.datastax.driver.mapping.annotations.Table
-import com.datastax.driver.mapping.annotations.UDT
 import fund.cyber.markets.common.MILLIS_TO_HOURS
 import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.TokensPair
+import org.springframework.data.cassandra.core.cql.Ordering
+import org.springframework.data.cassandra.core.cql.PrimaryKeyType
+import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn
+import org.springframework.data.cassandra.core.mapping.Table
+import org.springframework.data.cassandra.core.mapping.UserDefinedType
 import java.math.BigDecimal
 import java.util.*
 
-@Table(keyspace = "markets", name = "orderbook",
-    readConsistency = "QUORUM", writeConsistency = "QUORUM",
-    caseSensitiveKeyspace = false, caseSensitiveTable = false)
+@Table("orderbook")
 data class CqlOrderBook(
-    @PartitionKey(0)
+
+    @PrimaryKeyColumn(ordinal = 0, type = PrimaryKeyType.PARTITIONED, value = "exchange")
     val exchange: String,
 
-    @PartitionKey(1)
+    @PrimaryKeyColumn(ordinal = 1, type = PrimaryKeyType.PARTITIONED, value = "pair")
     val pair: CqlTokensPair,
 
-    @PartitionKey(2)
+    @PrimaryKeyColumn(ordinal = 2, type = PrimaryKeyType.PARTITIONED, value = "epochhour")
     val epochHour: Long,
 
-    @ClusteringColumn(0)
+    @PrimaryKeyColumn(ordinal = 0, type = PrimaryKeyType.CLUSTERED, value = "timestamp", ordering = Ordering.DESCENDING)
     val timestamp: Date,
 
-    @Frozen
-    val bids: List<CqlOrderMin>,
+    //@Frozen
+    val bids: List<CqlOrderSummary>,
 
-    @Frozen
-    val asks: List<CqlOrderMin>
+    //@Frozen
+    val asks: List<CqlOrderSummary>
 ) {
     constructor(exchange: String, pair: TokensPair, orderBook: OrderBook): this(
         exchange = exchange,
         pair = CqlTokensPair(pair),
         epochHour = orderBook.timestamp convert MILLIS_TO_HOURS,
         timestamp = Date(orderBook.timestamp),
-        bids = orderBook.bids.map { order -> CqlOrderMin(order) },
-        asks = orderBook.asks.map { order -> CqlOrderMin(order) }
+        bids = orderBook.bids.map { order -> CqlOrderSummary(order) },
+        asks = orderBook.asks.map { order -> CqlOrderSummary(order) }
     )
 }
 
-@UDT(name = "orderbook_order")
-data class CqlOrderMin(
+@UserDefinedType("orderbook_order")
+data class CqlOrderSummary(
     val type: String,
     val timestamp: Date,
     val amount: BigDecimal,

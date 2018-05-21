@@ -1,47 +1,27 @@
 package fund.cyber.markets.cassandra.repository
 
-import com.datastax.driver.core.Cluster
-import com.datastax.driver.mapping.MappingManager
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.JdkFutureAdapters
-import fund.cyber.markets.cassandra.accessor.OrderBookAccessor
-import fund.cyber.markets.cassandra.configuration.MARKETS_KEYSPACE
-import fund.cyber.markets.cassandra.configuration.PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST
+import com.datastax.driver.core.ConsistencyLevel
 import fund.cyber.markets.cassandra.model.CqlOrderBook
 import fund.cyber.markets.cassandra.model.CqlTokensPair
-import fund.cyber.markets.common.MILLIS_TO_HOURS
-import fund.cyber.markets.common.convert
-import io.reactivex.Flowable
+import org.springframework.data.cassandra.core.mapping.MapId
+import org.springframework.data.cassandra.repository.Consistency
+import org.springframework.data.cassandra.repository.Query
+import org.springframework.data.cassandra.repository.ReactiveCassandraRepository
+import org.springframework.data.repository.query.Param
+import org.springframework.stereotype.Repository
+import reactor.core.publisher.Mono
 import java.util.*
 
-class OrderBookRepository(cassandra: Cluster) {
+@Repository
+interface OrderBookRepository : ReactiveCassandraRepository<CqlOrderBook, MapId> {
 
-    private val session = cassandra.connect(MARKETS_KEYSPACE)
-    private val manager = MappingManager(session)
-    private val mapper by lazy { manager.mapper(CqlOrderBook::class.java) }
-    private val accessor by lazy { manager.createAccessor(OrderBookAccessor::class.java) }
-
-    fun save(orderBook: CqlOrderBook) {
-        mapper.save(orderBook)
-    }
-
-    fun saveAll(orderBooks: List<CqlOrderBook>) {
-        Flowable.fromIterable(orderBooks)
-                .buffer(PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST)
-                .blockingForEach { entitiesChunk ->
-                    val futures = entitiesChunk
-                            .map { entity -> mapper.saveAsync(entity) }
-                            .map { future ->  JdkFutureAdapters.listenInPoolThread(future) }
-                    Futures.allAsList(futures).get()
-                }
-    }
-
-    fun get(exchange: String, pair: CqlTokensPair, epochHour: Long, timestamp: Long): CqlOrderBook? {
-        return mapper.get(exchange, pair, epochHour, Date(timestamp))
-    }
-
-    fun getNearest(exchange: String, pair: CqlTokensPair, timestamp: Long): CqlOrderBook? {
-        return accessor.getNearest(exchange, pair, timestamp convert MILLIS_TO_HOURS, Date(timestamp)).firstOrNull()
-    }
+    @Consistency(value = ConsistencyLevel.LOCAL_QUORUM)
+    @Query("""
+        SELECT * FROM markets.orderbook
+        WHERE exchange=:exchange AND pair=:pair AND epochHour=:epochHour AND timestamp<=:timestamp""")
+    fun findLastByTimestamp(@Param("exchange") exchange: String,
+                           @Param("pair") pair: CqlTokensPair,
+                           @Param("epochHour") epochHour: Long,
+                           @Param("timestamp") timestamp: Date): Mono<CqlOrderBook>
 
 }
