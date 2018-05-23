@@ -279,6 +279,20 @@ project(":tickers") {
     }
 }
 
+project(":tickers-lambda") {
+
+    apply plugin: "org.springframework.boot"
+
+    dependencies {
+        compile project(":common")
+        compile project(":cassandra-service")
+
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.springframework.boot:spring-boot-starter-webflux'
+        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
+    }
+}
+
 project(":cassandra-service") {
 
     apply plugin: "kotlin-noarg"

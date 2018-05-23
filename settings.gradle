@@ -3,6 +3,7 @@ include("common-kafka")
 include("cassandra-service")
 
 include("tickers")
+include("tickers-lambda")
 include("stream-api")
 include("rest-api")
 
