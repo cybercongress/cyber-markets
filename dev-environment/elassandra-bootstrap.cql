@@ -1,7 +1,19 @@
-CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','DEVELOPMENT' : 1};
+CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','PRODUCTION' : 1};
 
 CREATE TYPE IF NOT EXISTS markets.tokenprice (
   value decimal
+);
+
+CREATE TYPE IF NOT EXISTS markets.tokenpair (
+  base text,
+  quote text
+);
+
+CREATE TYPE IF NOT EXISTS markets.orderbook_order (
+  type text,
+  timestamp timestamp,
+  amount decimal,
+  price decimal,
 );
 
 CREATE TABLE IF NOT EXISTS markets.ticker (
@@ -18,22 +30,17 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   PRIMARY KEY (tokenSymbol, timestampFrom, interval)
 );
 
-CREATE TYPE IF NOT EXISTS markets.tokenpair (
-  base text,
-  quote text
-);
-
 CREATE TABLE IF NOT EXISTS markets.trade (
   exchange text,
   pair frozen<tokenpair>,
   type text,
-  epochHour bigint,
+  epochMinute bigint,
   timestamp timestamp,
   tradeId text,
   baseAmount decimal,
   quoteAmount decimal,
   price decimal,
-  PRIMARY KEY ((exchange, pair, epochHour), tradeId)
+  PRIMARY KEY ((exchange, pair, epochMinute), tradeId)
 )
 WITH CLUSTERING ORDER BY (
   tradeId DESC
@@ -52,4 +59,17 @@ CREATE TABLE IF NOT EXISTS "markets"."order" (
 )
 WITH CLUSTERING ORDER BY (
   orderId DESC
+);
+
+CREATE TABLE IF NOT EXISTS markets.orderbook (
+  exchange text,
+  pair frozen<tokenpair>,
+  epochHour bigint,
+  timestamp timestamp,
+  bids frozen<list<orderbook_order>>,
+  asks frozen<list<orderbook_order>>,
+  PRIMARY KEY ((exchange, pair, epochHour), timestamp)
+)
+WITH CLUSTERING ORDER BY (
+  timestamp DESC
 );

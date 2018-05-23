@@ -1,5 +1,6 @@
 package fund.cyber.markets.connector
 
+import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
 import info.bitrich.xchangestream.core.ProductSubscription
 import info.bitrich.xchangestream.core.StreamingExchange
@@ -8,7 +9,7 @@ import io.reactivex.disposables.Disposable
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 
-abstract class AbstarctXchangeConnector : Connector {
+abstract class AbstractXchangeConnector : Connector {
     val log = LoggerFactory.getLogger(javaClass)!!
     lateinit var monitoring: MeterRegistry
 
@@ -45,5 +46,15 @@ abstract class AbstarctXchangeConnector : Connector {
 
     override fun updateTokensPairs() {
         log.warn("Update tokens pair for $exchangeName exchange not implemented yet")
+    }
+
+    override fun getTokensPairs(): Set<TokensPair> {
+        val pairs = mutableSetOf<TokensPair>()
+
+        exchangeTokensPairs.forEach { tokensPair ->
+            pairs.add(TokensPair(tokensPair.base.currencyCode, tokensPair.counter.currencyCode))
+        }
+
+        return pairs
     }
 }

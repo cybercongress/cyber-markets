@@ -1,6 +1,6 @@
 package fund.cyber.markets.connector.trade
 
-import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.MILLIS_TO_MINUTES
 import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
@@ -131,7 +131,7 @@ class EtherdeltaTradeConnector : Connector {
                         val baseTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, baseTokenTag)
                         val quoteTokenMonitor = monitoring.counter(TRADE_COUNT_BY_TOKEN_METRIC, quoteTokenTag)
 
-                        tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp.time, TimeUnit.MILLISECONDS)
+                        tradeLatencyMonitor.record(System.currentTimeMillis() - trade.timestamp, TimeUnit.MILLISECONDS)
                         tradeCountMonitor.increment()
                         baseTokenMonitor.increment()
                         quoteTokenMonitor.increment()
@@ -186,8 +186,8 @@ class EtherdeltaTradeConnector : Connector {
             return Trade(exchangeName,
                     TokensPair(tokenGet.symbol, tokenGive.symbol),
                     TradeType.BID,
-                    Date(timestamp),
-                    timestamp convert MILLIS_TO_HOURS,
+                    timestamp,
+                    timestamp convert MILLIS_TO_MINUTES,
                     tradeEvent.log!!.transactionHash,
                     amountGet,
                     amountGive,
@@ -199,14 +199,24 @@ class EtherdeltaTradeConnector : Connector {
             return Trade(exchangeName,
                     TokensPair(tokenGive.symbol, tokenGet.symbol),
                     TradeType.ASK,
-                    Date(timestamp),
-                    timestamp convert MILLIS_TO_HOURS,
+                    timestamp,
+                    timestamp convert MILLIS_TO_MINUTES,
                     tradeEvent.log!!.transactionHash,
                     amountGive,
                     amountGet,
                     price
             )
         }
+    }
+
+    override fun getTokensPairs(): Set<TokensPair> {
+        val pairs = mutableSetOf<TokensPair>()
+
+        etherdeltaTokenResolver.exchangeTokensPairs.forEach { _, etherdeltaToken ->
+            pairs.add(TokensPair(etherdeltaToken.symbol, ETH_SYMBOL))
+        }
+
+        return pairs
     }
 
 }

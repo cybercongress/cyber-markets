@@ -25,7 +25,7 @@ private const val PARITY_TOKEN_REGISTRY_EMPTY_ADDRESS = "0x000000000000000000000
 class EtherdeltaTokenResolver {
     private val log = LoggerFactory.getLogger(EtherdeltaTokenResolver::class.java)!!
 
-    private lateinit var exchangeTokensPairs: MutableMap<String, EtherdeltaToken>
+    lateinit var exchangeTokensPairs: MutableMap<String, EtherdeltaToken>
 
     @Autowired
     private lateinit var web3j: Web3j

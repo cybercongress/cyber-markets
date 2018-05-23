@@ -1,10 +1,12 @@
 include("common")
 include("common-kafka")
+include("common-rest-api")
 include("cassandra-service")
+
+include("exchanges-connector")
+include("storer")
 
 include("tickers")
 include("tickers-lambda")
 include("stream-api")
 include("rest-api")
-
-include("exchanges-connector")

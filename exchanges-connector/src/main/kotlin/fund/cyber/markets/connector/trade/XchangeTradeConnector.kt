@@ -1,11 +1,11 @@
 package fund.cyber.markets.connector.trade
 
-import fund.cyber.markets.common.MILLIS_TO_HOURS
+import fund.cyber.markets.common.MILLIS_TO_MINUTES
 import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.common.model.TradeType
-import fund.cyber.markets.connector.AbstarctXchangeConnector
+import fund.cyber.markets.connector.AbstractXchangeConnector
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.NINE_HUNDRED_NINGTHY_FIVE_PERCENT
 import fund.cyber.markets.connector.configuration.NINGTHY_FIVE_PERCENT
@@ -22,7 +22,7 @@ import io.micrometer.core.instrument.Timer
 import org.springframework.kafka.core.KafkaTemplate
 import java.util.concurrent.TimeUnit
 
-class XchangeTradeConnector: AbstarctXchangeConnector {
+class XchangeTradeConnector: AbstractXchangeConnector {
     private constructor()
 
     constructor(streamingExchangeClassName: String, kafkaTemplate: KafkaTemplate<String, Any>, meterRegistry: MeterRegistry) : this() {
@@ -82,8 +82,8 @@ class XchangeTradeConnector: AbstarctXchangeConnector {
                 exchangeName.toUpperCase(),
                 TokensPair(exchangeTrade.currencyPair.base.currencyCode, exchangeTrade.currencyPair.counter.currencyCode),
                 TradeType.valueOf(exchangeTrade.type.name),
-                exchangeTrade.timestamp,
-                exchangeTrade.timestamp.time convert MILLIS_TO_HOURS,
+                exchangeTrade.timestamp.time,
+                exchangeTrade.timestamp.time convert MILLIS_TO_MINUTES,
                 exchangeTrade.id,
                 exchangeTrade.originalAmount,
                 exchangeTrade.originalAmount.multiply(exchangeTrade.price),
