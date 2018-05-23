@@ -97,6 +97,21 @@ jobs:
             docker tag cybernode/cm-rest-api:$CIRCLE_TAG cybernode/cm-rest-api:latest
             docker push cybernode/cm-rest-api:latest
 
+  deploy_storer_image:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Build storer docker image
+          command: |
+            docker build -t cybernode/cm-storer:$CIRCLE_TAG -f ./storer/Dockerfile ./
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push cybernode/cm-storer:$CIRCLE_TAG
+            docker tag cybernode/cm-storer:$CIRCLE_TAG cybernode/cm-storer:latest
+            docker push cybernode/cm-storer:latest
+
 workflows:
   version: 2
 
@@ -119,6 +134,10 @@ workflows:
           requires:
             - build_project
       - deploy_rest-api_image:
+          <<: *release_filter
+          requires:
+            - build_project
+      - deploy_storer_image:
           <<: *release_filter
           requires:
             - build_project

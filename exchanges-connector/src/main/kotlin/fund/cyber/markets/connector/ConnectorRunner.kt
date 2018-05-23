@@ -72,6 +72,15 @@ class ConnectorRunner {
         }
     }
 
+    fun exchangesConnectors(): Map<String, Connector> {
+        val connectedExchanges = mutableMapOf<String, Connector>()
+
+        tradesConnectors.forEach { exchangeName, connector -> connectedExchanges[exchangeName] = connector }
+        orderbookConnectors.forEach { exchangeName, connector -> connectedExchanges[exchangeName] = connector }
+
+        return connectedExchanges
+    }
+
     private fun addConnectorBean(exchangeName: String) {
 
         var tradeConnector: Connector? = null

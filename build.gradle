@@ -16,7 +16,7 @@ buildscript {
 
         springBootVersion = "2.0.0.RELEASE"
         springKafkaVersion = "2.1.4.RELEASE"
-        springCassandraVersion = "2.0.3.RELEASE"
+        springCassandraVersion = "2.0.6.RELEASE"
 
         // metrics
         micrometerVersion = "1.0.0"
@@ -134,8 +134,8 @@ subprojects {
             }
             dependency("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 
-            //dependency("org.springframework.data:spring-data-cassandra:$springCassandraVersion")
-            //dependency("org.springframework.data:spring-data-commons:$springCassandraVersion")
+            dependency("org.springframework.data:spring-data-cassandra:$springCassandraVersion")
+            dependency("org.springframework.data:spring-data-commons:$springCassandraVersion")
             dependency("com.datastax.cassandra:cassandra-driver-core:$cassandraConfluentVersion")
             dependency("com.datastax.cassandra:cassandra-driver-mapping:$cassandraConfluentVersion")
 
@@ -178,7 +178,7 @@ project(":common") {
         compile("ch.qos.logback:logback-classic")
 
         compile("org.jetbrains.kotlin:kotlin-reflect")
-        compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
+        compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         compile("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 
         compile("com.fasterxml.jackson.core:jackson-databind")
@@ -194,9 +194,20 @@ project(":common") {
 project(":common-kafka") {
 
     dependencies {
-        compile project(":common")
+        compileOnly project(":common")
 
         compile("org.springframework.kafka:spring-kafka")
+    }
+}
+
+project(":common-rest-api") {
+
+    dependencies {
+        compileOnly project(":common")
+
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.springframework.boot:spring-boot-starter-webflux'
+        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
     }
 }
 
@@ -204,6 +215,7 @@ project(":stream-api") {
     apply plugin: "application"
 
     dependencies {
+        compile project(":common")
         compile project(":common-kafka")
         compile("io.undertow:undertow-core")
     }
@@ -217,11 +229,8 @@ project(":rest-api") {
 
     dependencies {
         compile project(":common")
+        compile project(":common-rest-api")
         compile project(":cassandra-service")
-
-        compile 'org.springframework.boot:spring-boot-starter'
-        compile 'org.springframework.boot:spring-boot-starter-webflux'
-        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
     }
 }
 
@@ -230,6 +239,7 @@ project(":exchanges-connector") {
     apply plugin: "org.springframework.boot"
 
     dependencies {
+        compile project(":common")
         compile project(":common-kafka")
 
         compile("org.springframework.boot:spring-boot-starter-reactor-netty")
@@ -269,11 +279,11 @@ project(":tickers") {
     }
 
     dependencies {
+        compile project(":common")
         compile project(":common-kafka")
         compile project(":cassandra-service")
 
         compile("org.springframework.boot:spring-boot-starter")
-        compile("org.springframework.kafka:spring-kafka")
 
         testCompile("org.springframework.boot:spring-boot-starter-test")
     }
@@ -283,17 +293,25 @@ project(":cassandra-service") {
 
     apply plugin: "kotlin-noarg"
 
-    noArg {
-        annotation("com.datastax.driver.mapping.annotations.Table")
-        annotation("com.datastax.driver.mapping.annotations.UDT")
-    }
-
     dependencies {
         compileOnly project(":common")
+        compile 'io.projectreactor:reactor-core'
 
-        compileOnly("org.springframework.boot:spring-boot-starter")
-
-        compile("com.datastax.cassandra:cassandra-driver-core")
-        compile("com.datastax.cassandra:cassandra-driver-mapping")
+        compile 'org.springframework.data:spring-data-cassandra'
+        compile 'com.datastax.cassandra:cassandra-driver-core'
+        compile 'com.datastax.cassandra:cassandra-driver-mapping'
     }
+}
+
+project(":storer") {
+
+    apply plugin: "org.springframework.boot"
+
+    dependencies {
+        compile project(":common")
+        compile project(":common-kafka")
+        compile project(":common-rest-api")
+        compile project(":cassandra-service")
+    }
+
 }

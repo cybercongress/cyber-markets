@@ -1,48 +1,47 @@
 package fund.cyber.markets.cassandra.configuration
 
-import com.datastax.driver.core.Cluster
-import fund.cyber.markets.cassandra.repository.SupplyRepository
-import fund.cyber.markets.cassandra.repository.TickerRepository
+import com.datastax.driver.core.HostDistance
+import com.datastax.driver.core.PoolingOptions
+import fund.cyber.markets.cassandra.common.defaultKeyspaceSpecification
 import fund.cyber.markets.common.CASSANDRA_HOSTS
 import fund.cyber.markets.common.CASSANDRA_HOSTS_DEFAULT
 import fund.cyber.markets.common.CASSANDRA_PORT
 import fund.cyber.markets.common.CASSANDRA_PORT_DEFAULT
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.cassandra.config.AbstractReactiveCassandraConfiguration
+import org.springframework.data.cassandra.core.cql.keyspace.CreateKeyspaceSpecification
+import org.springframework.data.cassandra.repository.config.EnableReactiveCassandraRepositories
 
 const val MAX_CONCURRENT_REQUESTS = 8182
-const val PREFERRED_CONCURRENT_REQUEST_TO_SAVE_ENTITIES_LIST = MAX_CONCURRENT_REQUESTS / 8
+
+const val ENTITY_BASE_PACKAGE = "fund.cyber.markets.cassandra.model"
 const val MARKETS_KEYSPACE = "markets"
 
 @Configuration
-class CassandraRepositoryConfiguration(
-        @Value("\${$CASSANDRA_HOSTS:$CASSANDRA_HOSTS_DEFAULT}")
-        private val cassandraHosts: String,
-        @Value("\${$CASSANDRA_PORT:$CASSANDRA_PORT_DEFAULT}")
-        private val cassandraPort: Int
-) {
+@EnableReactiveCassandraRepositories(
+    basePackages = [ENTITY_BASE_PACKAGE]
+)
+class CassandraConfiguration(
+    @Value("\${$CASSANDRA_HOSTS:$CASSANDRA_HOSTS_DEFAULT}")
+    private val cassandraHosts: String,
+    @Value("\${$CASSANDRA_PORT:$CASSANDRA_PORT_DEFAULT}")
+    private val cassandraPort: Int
+) : AbstractReactiveCassandraConfiguration() {
 
-    private val log = LoggerFactory.getLogger(CassandraRepositoryConfiguration::class.java)!!
+    override fun getKeyspaceName(): String = MARKETS_KEYSPACE
 
-    @Bean
-    fun cassandraCluster(): Cluster {
-        log.info("Cassandra hosts: {}; Cassandra port: {}", cassandraHosts, cassandraPort)
+    override fun getEntityBasePackages(): Array<String> = arrayOf(ENTITY_BASE_PACKAGE)
 
-        return Cluster.builder()
-                .addContactPoints(cassandraHosts)
-                .withPort(cassandraPort)
-                .build().init()!!
+    override fun getKeyspaceCreations(): List<CreateKeyspaceSpecification> {
+        return listOf(defaultKeyspaceSpecification(MARKETS_KEYSPACE))
     }
 
-    @Bean
-    fun tickerRepository(): TickerRepository {
-        return TickerRepository(cassandraCluster())
-    }
+    override fun getPoolingOptions() = PoolingOptions()
+        .setMaxRequestsPerConnection(HostDistance.LOCAL, MAX_CONCURRENT_REQUESTS)
+        .setMaxRequestsPerConnection(HostDistance.REMOTE, MAX_CONCURRENT_REQUESTS)!!
 
-    @Bean
-    fun supplyRepository(): SupplyRepository {
-        return SupplyRepository(cassandraCluster())
-    }
+    override fun getPort() = cassandraPort
+    override fun getContactPoints() = cassandraHosts
+
 }

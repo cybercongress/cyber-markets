@@ -1,11 +1,9 @@
 package fund.cyber.markets.connector.orderbook
 
-import fund.cyber.markets.common.MILLIS_TO_HOURS
-import fund.cyber.markets.common.convert
-import fund.cyber.markets.common.model.Order
+import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.OrderType
 import fund.cyber.markets.common.model.TokensPair
-import fund.cyber.markets.connector.AbstarctXchangeConnector
+import fund.cyber.markets.connector.AbstractXchangeConnector
 import fund.cyber.markets.connector.configuration.EXCHANGE_TAG
 import fund.cyber.markets.connector.configuration.ORDERBOOK_SIZE_METRIC
 import fund.cyber.markets.connector.configuration.ORDER_TYPE_TAG
@@ -19,10 +17,12 @@ import org.knowm.xchange.dto.marketdata.OrderBook
 import org.knowm.xchange.dto.trade.LimitOrder
 import org.springframework.kafka.core.KafkaTemplate
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
 
-class XchangeOrderbookConnector : AbstarctXchangeConnector, OrderbookConnector {
-    override var orderbooks: MutableMap<CurrencyPair, OrderBook> = mutableMapOf()
+class XchangeOrderbookConnector : AbstractXchangeConnector, OrderbookConnector {
+    override val orderbooks: ConcurrentMap<CurrencyPair, OrderBook> = ConcurrentHashMap()
 
     private constructor()
 
@@ -30,8 +30,6 @@ class XchangeOrderbookConnector : AbstarctXchangeConnector, OrderbookConnector {
         exchange = StreamingExchangeFactory.INSTANCE.createExchange(streamingExchangeClassName)
         this.kafkaTemplate = kafkaTemplate
         this.monitoring = meterRegistry
-
-        orderbooks = mutableMapOf()
     }
 
     override fun buildSubscription(): ProductSubscription {
@@ -72,29 +70,26 @@ class XchangeOrderbookConnector : AbstarctXchangeConnector, OrderbookConnector {
         val orderBook = orderbooks[CurrencyPair(pair.base, pair.quote)] ?: return null
         val timestamp: Long = orderBook.timeStamp?.time ?: Date().time
 
-        val asks = mutableListOf<Order>()
-        val bids = mutableListOf<Order>()
+        val asks = mutableListOf<OrderSummary>()
+        val bids = mutableListOf<OrderSummary>()
 
         orderBook.asks.forEach { xchangeOrder ->
-            asks.add(convertOrder(xchangeOrder, pair, OrderType.ASK, timestamp))
+            asks.add(convertOrder(xchangeOrder, OrderType.ASK, timestamp))
         }
 
         orderBook.bids.forEach { xchangeOrder ->
-            asks.add(convertOrder(xchangeOrder, pair, OrderType.BID, timestamp))
+            bids.add(convertOrder(xchangeOrder, OrderType.BID, timestamp))
         }
 
         return fund.cyber.markets.common.model.OrderBook(asks, bids, timestamp)
     }
 
-    private fun convertOrder(xchangeOrder: LimitOrder, pair: TokensPair, type: OrderType, orderBookTimestamp: Long): Order {
+    private fun convertOrder(xchangeOrder: LimitOrder, type: OrderType, orderBookTimestamp: Long): OrderSummary {
         val timestamp: Long = xchangeOrder.timestamp?.time ?: orderBookTimestamp
 
-        return Order(exchangeName,
-            pair,
+        return OrderSummary(
             type,
             timestamp,
-            timestamp convert MILLIS_TO_HOURS,
-            xchangeOrder.id,
             xchangeOrder.originalAmount,
             xchangeOrder.limitPrice)
     }
