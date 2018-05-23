@@ -30,23 +30,9 @@ class TickerHandler(
             return ServerResponse.status(HttpStatus.BAD_REQUEST).build()
         }
 
-        val exchange = try {
-            serverRequest.queryParam("exchange").get().toUpperCase()
-        } catch (e: NoSuchElementException) {
-            Exchanges.ALL
-        }
-
-        val page = try {
-            serverRequest.queryParam("page").get().toLong()
-        } catch (e: NoSuchElementException) {
-            PAGE_DEFAULT
-        }
-
-        val pageSize = try {
-            serverRequest.queryParam("pageSize").get().toLong()
-        } catch (e: NoSuchElementException) {
-            PAGE_SIZE_DEFAULT
-        }
+        val exchange = serverRequest.queryParam("exchange").orElse(Exchanges.ALL).toUpperCase()
+        val page = serverRequest.queryParam("page").orElse(PAGE_DEFAULT.toString()).toLong()
+        val pageSize = serverRequest.queryParam("pageSize").orElse(PAGE_SIZE_DEFAULT.toString()).toLong()
 
         //todo: use correct repository call
         val tickers = tickerRepository.findAll()
