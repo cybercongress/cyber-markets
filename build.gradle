@@ -270,7 +270,7 @@ project(":exchanges-connector") {
     }
 }
 
-project(":tickers") {
+project(":tickers-batch") {
 
     apply plugin: "org.springframework.boot"
 
@@ -286,20 +286,6 @@ project(":tickers") {
         compile("org.springframework.boot:spring-boot-starter")
 
         testCompile("org.springframework.boot:spring-boot-starter-test")
-    }
-}
-
-project(":tickers-lambda") {
-
-    apply plugin: "org.springframework.boot"
-
-    dependencies {
-        compile project(":common")
-        compile project(":cassandra-service")
-
-        compile 'org.springframework.boot:spring-boot-starter'
-        compile 'org.springframework.boot:spring-boot-starter-webflux'
-        compile 'org.springframework.boot:spring-boot-starter-reactor-netty'
     }
 }
 

@@ -1,12 +1,15 @@
-package fund.cyber.markets.api.rest.common
+package fund.cyber.markets.cassandra.common
 
 import fund.cyber.markets.cassandra.model.CqlOrderBook
 import fund.cyber.markets.cassandra.model.CqlOrderSummary
+import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.model.CqlTokensPair
 import fund.cyber.markets.cassandra.model.CqlTrade
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.OrderType
+import fund.cyber.markets.common.model.TokenPrice
+import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.common.model.TradeType
@@ -46,5 +49,21 @@ fun CqlOrderSummary.toOrderSummary(): OrderSummary {
         timestamp = this.timestamp.time,
         amount = this.amount,
         price = this.price
+    )
+}
+
+fun CqlTokenTicker.toTokenTicker(): TokenTicker {
+    return TokenTicker(
+        symbol = this.symbol,
+        timestampFrom = this.timestampFrom.time,
+        timestampTo = this.timestampTo.time,
+        interval = this.interval,
+        price = this.price.mapValues { (_, priceMap) ->
+            priceMap.mapValues { (_, price) ->
+                TokenPrice(price.value)
+            }.toMutableMap()
+        }.toMutableMap(),
+        volume = this.volume.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap(),
+        baseVolume = this.baseVolume.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap()
     )
 }
