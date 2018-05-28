@@ -9,7 +9,7 @@ private const val CONVERSION_SYMBOL = "BTC"
 
 @Component
 class CrossConversion(
-        val prices: MutableMap<String, MutableMap<String, MutableMap<String, BigDecimal>>> = mutableMapOf()
+    val prices: MutableMap<String, MutableMap<String, MutableMap<String, BigDecimal>>> = mutableMapOf()
 ) {
 
     private lateinit var base: String
@@ -39,6 +39,10 @@ class CrossConversion(
             tryInvertDivide() -> calcInvertDivide()
             else -> null
         }
+    }
+
+    fun invalidatePrices() {
+        prices.clear()
     }
 
     private fun tryDirect(): Boolean {

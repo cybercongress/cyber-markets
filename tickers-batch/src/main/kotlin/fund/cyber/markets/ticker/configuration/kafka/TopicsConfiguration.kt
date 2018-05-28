@@ -12,7 +12,6 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.core.KafkaAdmin
 import java.util.concurrent.TimeUnit
 
-const val TRADES_TOPIC_NAME_PATTERN = "TRADES-.*"
 const val TICKERS_TOPIC_NAME = "TICKERS"
 const val TICKERS_BACKUP_TOPIC_NAME = "TICKERS-BACKUP"
 

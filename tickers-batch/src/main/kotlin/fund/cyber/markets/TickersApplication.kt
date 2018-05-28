@@ -1,6 +1,6 @@
 package fund.cyber.markets
 
-import fund.cyber.markets.ticker.processor.TickerProcessor
+import fund.cyber.markets.ticker.processor.HistoricalTickerProcessor
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
@@ -15,8 +15,8 @@ class TickersApplication {
             val application = SpringApplication(TickersApplication::class.java)
 
             val applicationContext = application.run(*args)
-            val mainProcessor = applicationContext.getBean(TickerProcessor::class.java)
-            mainProcessor.process()
+            val processor = applicationContext.getBean(HistoricalTickerProcessor::class.java)
+            processor.start()
         }
     }
 

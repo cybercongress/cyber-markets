@@ -11,7 +11,7 @@ class HopTickerProcessorTest {
 
 */
 /*        @MockBean
-        private lateinit var tickerService: TickerServiceImpl*//*
+        private lateinit var tickerService: TickerService*//*
 
 
         @Bean
@@ -35,7 +35,7 @@ class HopTickerProcessorTest {
     private lateinit var hopTickerProcessor: HopTickerProcessor
 
     @MockBean
-    private lateinit var tickerService: TickerServiceImpl
+    private lateinit var tickerService: TickerService
 
     @Before
     fun before() {

@@ -1,10 +1,21 @@
 package fund.cyber.markets.ticker.service
 
+import fund.cyber.markets.cassandra.model.CqlTokenTicker
+import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.common.model.TokenTicker
-import fund.cyber.markets.common.model.Trade
-import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
-interface TickerService {
-    fun poll(): ConsumerRecords<String, Trade>
-    fun persist(tickers: MutableMap<String, MutableMap<Long, TokenTicker>>, currentHopFromMillis: Long)
+@Service
+class TickerService(
+    private val tickerRepository: TickerRepository
+) {
+    private val log = LoggerFactory.getLogger(TickerService::class.java)!!
+
+    fun save(tickers : MutableCollection<TokenTicker>) {
+        log.info("Saving tickers")
+
+        tickerRepository.saveAll(tickers.map { CqlTokenTicker(it) }).collectList().block()
+    }
+
 }

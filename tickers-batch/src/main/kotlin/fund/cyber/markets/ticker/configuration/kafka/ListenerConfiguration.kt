@@ -13,7 +13,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 
-private const val MAX_POLL_RECORDS = 20000
+private const val MAX_POLL_RECORDS = 1000
 
 @EnableKafka
 @Configuration

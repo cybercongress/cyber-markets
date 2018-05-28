@@ -8,7 +8,7 @@ import fund.cyber.markets.cassandra.model.CqlTrade
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.OrderType
-import fund.cyber.markets.common.model.TokenPrice
+import fund.cyber.markets.common.model.TickerPrice
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
@@ -60,7 +60,12 @@ fun CqlTokenTicker.toTokenTicker(): TokenTicker {
         interval = this.interval,
         price = this.price.mapValues { (_, priceMap) ->
             priceMap.mapValues { (_, price) ->
-                TokenPrice(price.value)
+                TickerPrice(
+                    open = price.open,
+                    close = price.close,
+                    min = price.min,
+                    max = price.max
+                )
             }.toMutableMap()
         }.toMutableMap(),
         volume = this.volume.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap(),

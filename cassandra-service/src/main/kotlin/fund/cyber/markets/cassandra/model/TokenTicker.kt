@@ -1,5 +1,6 @@
 package fund.cyber.markets.cassandra.model
 
+import fund.cyber.markets.common.model.TickerPrice
 import fund.cyber.markets.common.model.TokenTicker
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn
@@ -11,7 +12,7 @@ import java.util.*
 /**
  * TokenTicker class for cassandra
  *
- * @property price - map of  BCT_Symbol(Base Tokens) -> Exchange -> TokenPrice
+ * @property price - map of  BCT_Symbol(Base Tokens) -> Exchange -> TickerPrice
  * @property volume - map of CT_Symbol -> Exchange -> Volume
  * @property baseVolume - map of BCT_Symbol -> exchange -> TotalVolume in BCT
  */
@@ -34,7 +35,7 @@ data class CqlTokenTicker(
     //@Frozen
     val baseVolume: Map<String, Map<String, BigDecimal>>,
     //@Frozen
-    val price: Map<String, Map<String, CqlTokenPrice>>
+    val price: Map<String, Map<String, CqlTickerPrice>>
 ) {
     constructor(tokenTicker: TokenTicker) : this(
         tokenTicker.symbol,
@@ -47,10 +48,20 @@ data class CqlTokenTicker(
 
 private fun prices(tokenTicker: TokenTicker) =
     tokenTicker.price.mapValues { (_, exchangeMap) ->
-        exchangeMap.mapValues { (_, tokenPrice) -> CqlTokenPrice(tokenPrice.value!!) }
+        exchangeMap.mapValues { (_, tickerPrice) -> CqlTickerPrice(tickerPrice) }
     }
 
-@UserDefinedType("tokenprice")
-data class CqlTokenPrice(
-    var value: BigDecimal
-)
+@UserDefinedType("tickerprice")
+data class CqlTickerPrice(
+    var open: BigDecimal,
+    var close: BigDecimal,
+    var min: BigDecimal,
+    var max: BigDecimal
+) {
+    constructor(tickerPrice: TickerPrice) : this(
+        open = tickerPrice.open,
+        close = tickerPrice.close,
+        min = tickerPrice.min,
+        max = tickerPrice.max
+    )
+}

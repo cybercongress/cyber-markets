@@ -1,7 +1,10 @@
 CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','PRODUCTION' : 1};
 
-CREATE TYPE IF NOT EXISTS markets.tokenprice (
-  value decimal
+CREATE TYPE IF NOT EXISTS markets.tickerprice (
+  open decimal,
+  close decimal,
+  min decimal,
+  max decimal
 );
 
 CREATE TYPE IF NOT EXISTS markets.tokenpair (
@@ -25,7 +28,7 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
 
   volume frozen<map<text, map<text, decimal>>>,
   baseVolume frozen<map<text, map<text, decimal>>>,
-  price frozen<map<text, map<text, tokenprice>>>,
+  price frozen<map<text, map<text, tickerprice>>>,
 
   PRIMARY KEY (tokenSymbol, timestampFrom, interval)
 );
