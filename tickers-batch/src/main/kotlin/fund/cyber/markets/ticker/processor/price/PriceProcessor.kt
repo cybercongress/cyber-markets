@@ -4,7 +4,7 @@ import fund.cyber.markets.common.model.TokenPrice
 import fund.cyber.markets.common.model.TokenTicker
 
 interface PriceProcessor {
-    val priceName: String
+    val methodName: String
 
-    fun calculate(tickers: List<TokenTicker>): List<TokenPrice>?
+    fun calculate(tickers: List<TokenTicker>): List<TokenPrice>
 }

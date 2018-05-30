@@ -30,11 +30,8 @@ data class CqlTokenTicker(
     @PrimaryKeyColumn(ordinal = 2, type = PrimaryKeyType.CLUSTERED, value = "interval")
     val interval: Long,
 
-    //@Frozen
     val volume: Map<String, Map<String, BigDecimal>>,
-    //@Frozen
     val baseVolume: Map<String, Map<String, BigDecimal>>,
-    //@Frozen
     val price: Map<String, Map<String, CqlTickerPrice>>
 ) {
     constructor(tokenTicker: TokenTicker) : this(

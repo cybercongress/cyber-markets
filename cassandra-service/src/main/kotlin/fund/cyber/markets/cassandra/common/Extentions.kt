@@ -2,6 +2,7 @@ package fund.cyber.markets.cassandra.common
 
 import fund.cyber.markets.cassandra.model.CqlOrderBook
 import fund.cyber.markets.cassandra.model.CqlOrderSummary
+import fund.cyber.markets.cassandra.model.CqlTokenPrice
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.model.CqlTokensPair
 import fund.cyber.markets.cassandra.model.CqlTrade
@@ -9,6 +10,7 @@ import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.OrderType
 import fund.cyber.markets.common.model.TickerPrice
+import fund.cyber.markets.common.model.TokenPrice
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
@@ -70,5 +72,15 @@ fun CqlTokenTicker.toTokenTicker(): TokenTicker {
         }.toMutableMap(),
         volume = this.volume.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap(),
         baseVolume = this.baseVolume.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap()
+    )
+}
+
+fun CqlTokenPrice.toTokenPrice(): TokenPrice {
+    return TokenPrice(
+        symbol = this.symbol,
+        method = this.method,
+        timestampFrom = this.timestampFrom,
+        timestampTo = this.timestampTo,
+        values = this.values.mapValues { (_, value) -> value.toMutableMap()  }.toMutableMap()
     )
 }

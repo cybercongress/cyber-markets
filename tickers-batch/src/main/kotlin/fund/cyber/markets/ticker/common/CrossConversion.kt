@@ -1,11 +1,11 @@
 package fund.cyber.markets.ticker.common
 
+import fund.cyber.markets.common.model.BaseTokens
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 private const val DECIMAL_SCALE = 20
-private const val CONVERSION_SYMBOL = "BTC"
 
 @Component
 class CrossConversion(
@@ -15,6 +15,8 @@ class CrossConversion(
     private lateinit var base: String
     private lateinit var quote: String
     private lateinit var exchange: String
+
+    private val conversionSymbols = BaseTokens.values().map { it.name }
 
     /**
      * If the crypto currency does not trade directly from base to quote symbol BTC will be used for conversion
@@ -30,15 +32,33 @@ class CrossConversion(
         this.quote = quote
         this.exchange = exchange
 
-        return when {
+        var result = when {
             base == quote -> BigDecimal.ONE
             tryDirect() -> calcDirect()
             tryInvert() -> calcInvert()
-            tryMultiply() -> calcMultiply()
-            tryDivide() -> calcDivide()
-            tryInvertDivide() -> calcInvertDivide()
             else -> null
         }
+
+        if (result != null) {
+            return result
+        } else {
+
+            conversionSymbols.forEach { symbol ->
+                result = when {
+                    tryMultiply(symbol) -> calcMultiply(symbol)
+                    tryDivide(symbol) -> calcDivide(symbol)
+                    tryInvertDivide(symbol) -> calcInvertDivide(symbol)
+                    else -> null
+                }
+
+                if (result != null) {
+                    return result
+                }
+            }
+
+        }
+
+        return null
     }
 
     fun invalidatePrices() {
@@ -57,23 +77,23 @@ class CrossConversion(
         return price != null
     }
 
-    private fun tryMultiply(): Boolean {
-        val price1 = prices.get(base)?.get(CONVERSION_SYMBOL)?.get(exchange)
-        val price2 = prices.get(CONVERSION_SYMBOL)?.get(quote)?.get(exchange)
+    private fun tryMultiply(conversionSymbol: String): Boolean {
+        val price1 = prices.get(base)?.get(conversionSymbol)?.get(exchange)
+        val price2 = prices.get(conversionSymbol)?.get(quote)?.get(exchange)
 
         return price1 != null && price2 != null
     }
 
-    private fun tryDivide(): Boolean {
-        val price1 = prices.get(base)?.get(CONVERSION_SYMBOL)?.get(exchange)
-        val price2 = prices.get(quote)?.get(CONVERSION_SYMBOL)?.get(exchange)
+    private fun tryDivide(conversionSymbol: String): Boolean {
+        val price1 = prices.get(base)?.get(conversionSymbol)?.get(exchange)
+        val price2 = prices.get(quote)?.get(conversionSymbol)?.get(exchange)
 
         return price1 != null && price2 != null
     }
 
-    private fun tryInvertDivide(): Boolean {
-        val price1 = prices.get(CONVERSION_SYMBOL)?.get(quote)?.get(exchange)
-        val price2 = prices.get(CONVERSION_SYMBOL)?.get(base)?.get(exchange)
+    private fun tryInvertDivide(conversionSymbol: String): Boolean {
+        val price1 = prices.get(conversionSymbol)?.get(quote)?.get(exchange)
+        val price2 = prices.get(conversionSymbol)?.get(base)?.get(exchange)
 
         return price1 != null && price2 != null
     }
@@ -88,23 +108,23 @@ class CrossConversion(
         return BigDecimal.ONE.divide(price, DECIMAL_SCALE, RoundingMode.HALF_EVEN)
     }
 
-    private fun calcMultiply(): BigDecimal {
-        val price1 = prices.get(base)?.get(CONVERSION_SYMBOL)?.get(exchange)
-        val price2 = prices.get(CONVERSION_SYMBOL)?.get(quote)?.get(exchange)
+    private fun calcMultiply(conversionSymbol: String): BigDecimal {
+        val price1 = prices.get(base)?.get(conversionSymbol)?.get(exchange)
+        val price2 = prices.get(conversionSymbol)?.get(quote)?.get(exchange)
 
         return price1!!.multiply(price2)
     }
 
-    private fun calcDivide(): BigDecimal {
-        val price1 = prices.get(base)?.get(CONVERSION_SYMBOL)?.get(exchange)
-        val price2 = prices.get(quote)?.get(CONVERSION_SYMBOL)?.get(exchange)
+    private fun calcDivide(conversionSymbol: String): BigDecimal {
+        val price1 = prices.get(base)?.get(conversionSymbol)?.get(exchange)
+        val price2 = prices.get(quote)?.get(conversionSymbol)?.get(exchange)
 
         return price1!!.div(price2!!)
     }
 
-    private fun calcInvertDivide(): BigDecimal {
-        val price1 = prices.get(CONVERSION_SYMBOL)?.get(quote)?.get(exchange)
-        val price2 = prices.get(CONVERSION_SYMBOL)?.get(base)?.get(exchange)
+    private fun calcInvertDivide(conversionSymbol: String): BigDecimal {
+        val price1 = prices.get(conversionSymbol)?.get(quote)?.get(exchange)
+        val price2 = prices.get(conversionSymbol)?.get(base)?.get(exchange)
 
         return price1!!.div(price2!!)
     }

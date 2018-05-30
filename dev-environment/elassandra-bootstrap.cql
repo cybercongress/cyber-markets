@@ -26,11 +26,24 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   timestampTo timestamp,
   interval bigint,
 
-  volume frozen<map<text, map<text, decimal>>>,
-  baseVolume frozen<map<text, map<text, decimal>>>,
-  price frozen<map<text, map<text, tickerprice>>>,
+  volume blob,
+  baseVolume blob,
+  price blob,
 
   PRIMARY KEY (tokenSymbol, timestampFrom, interval)
+);
+
+CREATE TABLE IF NOT EXISTS markets.token_price (
+  tokenSymbol text,
+  method text,
+
+  timestampFrom bigint,
+  timestampTo bigint,
+  epochHourTo bigint,
+
+  values blob,
+
+  PRIMARY KEY ((tokenSymbol, epochHourTo), timestampTo)
 );
 
 CREATE TABLE IF NOT EXISTS markets.trade (
@@ -47,21 +60,6 @@ CREATE TABLE IF NOT EXISTS markets.trade (
 )
 WITH CLUSTERING ORDER BY (
   tradeId DESC
-);
-
-CREATE TABLE IF NOT EXISTS "markets"."order" (
-  exchange text,
-  pair frozen<tokenpair>,
-  type text,
-  epochHour bigint,
-  timestamp timestamp,
-  orderId text,
-  amount decimal,
-  price decimal,
-  PRIMARY KEY ((exchange, pair, epochHour), orderId)
-)
-WITH CLUSTERING ORDER BY (
-  orderId DESC
 );
 
 CREATE TABLE IF NOT EXISTS markets.orderbook (

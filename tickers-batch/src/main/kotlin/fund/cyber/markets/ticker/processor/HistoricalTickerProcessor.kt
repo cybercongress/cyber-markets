@@ -6,11 +6,15 @@ import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.BaseTokens
 import fund.cyber.markets.common.model.Exchanges
 import fund.cyber.markets.common.model.TickerPrice
+import fund.cyber.markets.common.model.TokenPrice
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.ticker.common.CrossConversion
+import fund.cyber.markets.ticker.processor.price.PriceProcessor
 import fund.cyber.markets.ticker.service.TickerService
+import fund.cyber.markets.ticker.service.TokenPriceService
 import fund.cyber.markets.ticker.service.TradeService
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
@@ -18,12 +22,14 @@ import java.math.BigDecimal
 class HistoricalTickerProcessor(
     private val tradeService: TradeService,
     private val tickerService: TickerService,
-    //private val windowDurations: Set<Long>,
+    private val tokenPriceService: TokenPriceService,
+    @Qualifier("windowDurations")
+    private val windowDurations: Set<Long>,
     private val crossConversion: CrossConversion,
-    private val lagFromRealTime: Long
+    private val lagFromRealTime: Long,
+    private val priceProcessors: List<PriceProcessor>
 ) {
 
-    private val windowDurations = mutableSetOf(60000L)
     private val tickers = mutableMapOf<String, TokenTicker>()
 
     fun start() {
@@ -47,9 +53,12 @@ class HistoricalTickerProcessor(
                     updateVolumes(trade, timestampFrom, duration)
 
                     BaseTokens.values().forEach { baseToken ->
-                        updateBaseVolumes(baseToken.name, trade, timestampFrom, duration)
+                        updateBaseVolumesWithPrices(baseToken.name, trade, timestampFrom, duration)
                     }
                 }
+
+                val prices = getTokenPrices(tickers.values.toList())
+                //tokenPriceService.save(prices)
 
                 tickerService.save(tickers.values)
                 tickers.clear()
@@ -60,6 +69,16 @@ class HistoricalTickerProcessor(
 
         }
 
+    }
+
+    private fun getTokenPrices(tickers: List<TokenTicker>): MutableList<TokenPrice> {
+        val prices = mutableListOf<TokenPrice>()
+
+        priceProcessors.forEach { processor ->
+            prices.addAll(processor.calculate(tickers))
+        }
+
+        return prices
     }
 
     private fun updateVolumes(trade: Trade, timestampFrom: Long, duration: Long) {
@@ -102,7 +121,7 @@ class HistoricalTickerProcessor(
         tickerQuote.volume[base]!![Exchanges.ALL] = volumeQuoteAll
     }
 
-    private fun updateBaseVolumes(baseTokenSymbol: String, trade: Trade, timestampFrom: Long, duration: Long) {
+    private fun updateBaseVolumesWithPrices(baseTokenSymbol: String, trade: Trade, timestampFrom: Long, duration: Long) {
         val base = trade.pair.base
         val quote = trade.pair.quote
         val exchange = trade.exchange
