@@ -13,7 +13,7 @@ class TickerService(
     private val log = LoggerFactory.getLogger(TickerService::class.java)!!
 
     fun save(tickers : MutableCollection<TokenTicker>) {
-        log.info("Saving tickers")
+        log.info("Saving tickers. Count: ${tickers.size}")
 
         tickerRepository.saveAll(tickers.map { CqlTokenTicker(it) }).collectList().block()
     }

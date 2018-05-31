@@ -13,7 +13,7 @@ class TokenPriceService(
     private val log = LoggerFactory.getLogger(TokenPriceService::class.java)!!
 
     fun save(prices : MutableCollection<TokenPrice>) {
-        log.info("Saving token prices")
+        log.info("Saving token prices. Count: ${prices.size}")
 
         tokenPriceRepository.saveAll(prices.map { CqlTokenPrice(it) }).collectList().block()
     }

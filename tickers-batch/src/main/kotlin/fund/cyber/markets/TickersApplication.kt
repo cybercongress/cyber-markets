@@ -1,12 +1,11 @@
 package fund.cyber.markets
 
-import fund.cyber.markets.ticker.processor.HistoricalTickerProcessor
+import fund.cyber.markets.ticker.service.TickerProcessorExecutor
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 
-@SpringBootApplication(exclude = [CassandraDataAutoConfiguration::class, KafkaAutoConfiguration::class])
+@SpringBootApplication(exclude = [CassandraDataAutoConfiguration::class])
 class TickersApplication {
 
     companion object {
@@ -15,8 +14,8 @@ class TickersApplication {
             val application = SpringApplication(TickersApplication::class.java)
 
             val applicationContext = application.run(*args)
-            val processor = applicationContext.getBean(HistoricalTickerProcessor::class.java)
-            processor.start()
+            val executor = applicationContext.getBean(TickerProcessorExecutor::class.java)
+            executor.start()
         }
     }
 

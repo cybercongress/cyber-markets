@@ -33,6 +33,13 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   PRIMARY KEY (tokenSymbol, timestampFrom, interval)
 );
 
+CREATE TABLE IF NOT EXISTS markets.trade_last_timestamp (
+  id text,
+  value bigint,
+
+  PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS markets.token_price (
   tokenSymbol text,
   method text,

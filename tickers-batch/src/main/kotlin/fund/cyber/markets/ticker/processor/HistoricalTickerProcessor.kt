@@ -1,8 +1,6 @@
 package fund.cyber.markets.ticker.processor
 
-import fund.cyber.markets.common.MINUTES_TO_MILLIS
 import fund.cyber.markets.common.closestSmallerMultiply
-import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.BaseTokens
 import fund.cyber.markets.common.model.Exchanges
 import fund.cyber.markets.common.model.TickerPrice
@@ -14,61 +12,70 @@ import fund.cyber.markets.ticker.processor.price.PriceProcessor
 import fund.cyber.markets.ticker.service.TickerService
 import fund.cyber.markets.ticker.service.TokenPriceService
 import fund.cyber.markets.ticker.service.TradeService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.util.*
 
 @Component
 class HistoricalTickerProcessor(
     private val tradeService: TradeService,
     private val tickerService: TickerService,
     private val tokenPriceService: TokenPriceService,
-    @Qualifier("windowDurations")
-    private val windowDurations: Set<Long>,
+    @Qualifier("windowIntervals")
+    private val windowIntervals: Set<Long>,
     private val crossConversion: CrossConversion,
     private val lagFromRealTime: Long,
     private val priceProcessors: List<PriceProcessor>
 ) {
+    private val log = LoggerFactory.getLogger(HistoricalTickerProcessor::class.java)!!
 
     private val tickers = mutableMapOf<String, TokenTicker>()
 
     fun start() {
+        log.info("Start historical ticker processor. Timestamp: ${Date()}")
 
-        //todo: get last timestamp
-        val startTimestamp = 25442900L convert MINUTES_TO_MILLIS
+        val startTimestamp = tradeService.getLastProcessedTimestamp()
+        var lastTimestamp = startTimestamp
 
-        windowDurations.forEach { duration ->
+        windowIntervals.forEach { interval ->
 
             crossConversion.invalidatePrices()
-            var timestampFrom = closestSmallerMultiply(startTimestamp, duration)
-            var timestampTo = timestampFrom + duration
+            var timestampFrom = closestSmallerMultiply(startTimestamp - interval, interval)
+            var timestampTo = timestampFrom + interval
 
             while (timestampTo < System.currentTimeMillis() - lagFromRealTime) {
 
                 val trades = tradeService.getTrades(timestampFrom, timestampTo)
 
+                log.debug("Start timestamp: $timestampFrom. Interval: $interval. Trades count: ${trades.size}")
+
                 updateMapOfPrices(trades)
 
                 for (trade in trades) {
-                    updateVolumes(trade, timestampFrom, duration)
+                    updateVolumes(trade, timestampFrom, interval)
 
                     BaseTokens.values().forEach { baseToken ->
-                        updateBaseVolumesWithPrices(baseToken.name, trade, timestampFrom, duration)
+                        updateBaseVolumesWithPrices(baseToken.name, trade, timestampFrom, interval)
                     }
                 }
 
                 val prices = getTokenPrices(tickers.values.toList())
-                //tokenPriceService.save(prices)
+                tokenPriceService.save(prices)
 
                 tickerService.save(tickers.values)
                 tickers.clear()
 
+                lastTimestamp = timestampTo
                 timestampFrom = timestampTo
-                timestampTo += duration
+                timestampTo += interval
             }
 
         }
 
+        tradeService.updateLastProcessedTimestamp(lastTimestamp)
+        log.info("Successfully completed tickers calculation. Timestamp: ${Date()} ")
     }
 
     private fun getTokenPrices(tickers: List<TokenTicker>): MutableList<TokenPrice> {
@@ -81,19 +88,19 @@ class HistoricalTickerProcessor(
         return prices
     }
 
-    private fun updateVolumes(trade: Trade, timestampFrom: Long, duration: Long) {
+    private fun updateVolumes(trade: Trade, timestampFrom: Long, interval: Long) {
         val base = trade.pair.base
         val quote = trade.pair.quote
         val exchange = trade.exchange
-        val timestampTo = timestampFrom + duration
+        val timestampTo = timestampFrom + interval
 
         val tickerBase = tickers
             .getOrPut(base, {
-                TokenTicker(base, timestampFrom, timestampTo, duration)
+                TokenTicker(base, timestampFrom, timestampTo, interval)
             })
         val tickerQuote = tickers
             .getOrPut(quote, {
-                TokenTicker(quote, timestampFrom, timestampTo, duration)
+                TokenTicker(quote, timestampFrom, timestampTo, interval)
             })
 
         val volumeBase = tickerBase.volume
@@ -121,19 +128,19 @@ class HistoricalTickerProcessor(
         tickerQuote.volume[base]!![Exchanges.ALL] = volumeQuoteAll
     }
 
-    private fun updateBaseVolumesWithPrices(baseTokenSymbol: String, trade: Trade, timestampFrom: Long, duration: Long) {
+    private fun updateBaseVolumesWithPrices(baseTokenSymbol: String, trade: Trade, timestampFrom: Long, interval: Long) {
         val base = trade.pair.base
         val quote = trade.pair.quote
         val exchange = trade.exchange
-        val timestampTo = timestampFrom + duration
+        val timestampTo = timestampFrom + interval
 
         val tickerBase = tickers
             .getOrPut(base, {
-                TokenTicker(base, timestampFrom, timestampTo, duration)
+                TokenTicker(base, timestampFrom, timestampTo, interval)
             })
         val tickerQuote = tickers
             .getOrPut(quote, {
-                TokenTicker(quote, timestampFrom, timestampTo, duration)
+                TokenTicker(quote, timestampFrom, timestampTo, interval)
             })
 
         val priceForBase = crossConversion.calculate(base, baseTokenSymbol, exchange) ?: BigDecimal.ZERO

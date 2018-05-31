@@ -1,6 +1,8 @@
 package fund.cyber.markets.ticker.service
 
 import fund.cyber.markets.cassandra.common.toTrade
+import fund.cyber.markets.cassandra.model.CqlTradeLastTimestamp
+import fund.cyber.markets.cassandra.repository.TradeLastTimestampRepository
 import fund.cyber.markets.cassandra.repository.TradeRepository
 import fund.cyber.markets.common.MILLIS_TO_MINUTES
 import fund.cyber.markets.common.convert
@@ -8,9 +10,12 @@ import fund.cyber.markets.common.model.Trade
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
+private const val START_TIMESTAMP_DEFAULT = 1230995705000
+
 @Service
 class TradeService(
-    private val tradeRepository: TradeRepository
+    private val tradeRepository: TradeRepository,
+    private val lastTimestampRepository: TradeLastTimestampRepository
 ) {
     private val log = LoggerFactory.getLogger(TradeService::class.java)!!
 
@@ -24,6 +29,20 @@ class TradeService(
             .defaultIfEmpty(mutableListOf())
             .block()!!
             .map { cqlTrade -> cqlTrade.toTrade() }
+    }
+
+    fun getLastProcessedTimestamp(): Long {
+        val lastTimestamp = lastTimestampRepository.findTradeLastTimestamp()
+            .defaultIfEmpty(CqlTradeLastTimestamp(value = START_TIMESTAMP_DEFAULT))
+            .block()
+
+        log.info("Last processed timestamp: $lastTimestamp")
+
+        return lastTimestamp!!.value
+    }
+
+    fun updateLastProcessedTimestamp(timestamp: Long) {
+        lastTimestampRepository.save(CqlTradeLastTimestamp(value = timestamp)).block()
     }
 
 }
