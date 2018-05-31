@@ -27,17 +27,18 @@ class TradeService(
         val epochMinuteFrom = timestampFrom convert MILLIS_TO_MINUTES
         val epochMinuteTo = (timestampTo - 1) convert MILLIS_TO_MINUTES
 
-        var trades = Flux.empty<CqlTradeTemporary>()
+        var cqlTrades = Flux.empty<CqlTradeTemporary>()
 
         for (epochMinute in epochMinuteFrom..epochMinuteTo) {
-            trades = trades.mergeWith(tradeRepository.findByEpochMinute(epochMinute))
+            cqlTrades = cqlTrades.mergeWith(tradeRepository.findByEpochMinute(epochMinute))
         }
 
-        return trades
+        return cqlTrades
             .collectList()
             .defaultIfEmpty(mutableListOf())
             .block()!!
             .map { cqlTrade -> cqlTrade.toTrade() }
+            .sortedBy { trade -> trade.timestamp }
     }
 
     fun getLastProcessedTimestamp(): Long {
