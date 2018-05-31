@@ -67,7 +67,9 @@ class HistoricalTickerProcessor(
                 tickerService.save(tickers.values)
                 tickers.clear()
 
-                lastTimestamp = timestampTo
+                if (timestampTo > lastTimestamp) {
+                    lastTimestamp = timestampTo
+                }
                 timestampFrom = timestampTo
                 timestampTo += interval
             }

@@ -3,8 +3,8 @@ package fund.cyber.markets.cassandra.repository
 import com.datastax.driver.core.ConsistencyLevel
 import fund.cyber.markets.cassandra.model.CqlTokensPair
 import fund.cyber.markets.cassandra.model.CqlTrade
+import fund.cyber.markets.cassandra.model.CqlTradeTemporary
 import org.springframework.data.cassandra.core.mapping.MapId
-import org.springframework.data.cassandra.repository.AllowFiltering
 import org.springframework.data.cassandra.repository.Consistency
 import org.springframework.data.cassandra.repository.Query
 import org.springframework.data.cassandra.repository.ReactiveCassandraRepository
@@ -22,11 +22,14 @@ interface TradeRepository : ReactiveCassandraRepository<CqlTrade, MapId> {
     fun find(@Param("exchange") exchange: String,
              @Param("pair") pair: CqlTokensPair,
              @Param("epochMinute") epochMinute: Long): Flux<CqlTrade>
+}
 
-    @AllowFiltering
+@Repository
+interface TradeTemporaryRepository : ReactiveCassandraRepository<CqlTradeTemporary, MapId> {
+
     @Consistency(value = ConsistencyLevel.LOCAL_QUORUM)
     @Query("""
-        SELECT * FROM markets.trade
-        WHERE epochMinute>=:epochMinuteFrom and epochMinute<:epochMinuteTo ALLOW FILTERING""")
-    fun findByInterval(epochMinuteFrom: Long, epochMinuteTo: Long): Flux<CqlTrade>
+        SELECT * FROM markets.trade_temporary
+        WHERE epochMinute=:epochMinute""")
+    fun findByEpochMinute(epochMinute: Long): Flux<CqlTradeTemporary>
 }

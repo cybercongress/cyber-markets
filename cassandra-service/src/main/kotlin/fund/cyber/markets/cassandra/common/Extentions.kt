@@ -6,6 +6,7 @@ import fund.cyber.markets.cassandra.model.CqlTokenPrice
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.model.CqlTokensPair
 import fund.cyber.markets.cassandra.model.CqlTrade
+import fund.cyber.markets.cassandra.model.CqlTradeTemporary
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.OrderSummary
 import fund.cyber.markets.common.model.OrderType
@@ -24,6 +25,20 @@ fun CqlTokensPair.toTokensPair(): TokensPair {
 }
 
 fun CqlTrade.toTrade(): Trade {
+    return Trade(
+        exchange = this.exchange,
+        pair = this.pair.toTokensPair(),
+        type = TradeType.valueOf(this.type),
+        timestamp = this.timestamp.time,
+        epochMinute = this.epochMinute,
+        tradeId = this.tradeId,
+        baseAmount = this.baseAmount,
+        quoteAmount = this.quoteAmount,
+        price = this.price
+    )
+}
+
+fun CqlTradeTemporary.toTrade(): Trade {
     return Trade(
         exchange = this.exchange,
         pair = this.pair.toTokensPair(),

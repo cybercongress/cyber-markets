@@ -69,6 +69,19 @@ WITH CLUSTERING ORDER BY (
   tradeId DESC
 );
 
+CREATE TABLE IF NOT EXISTS markets.trade_temporary (
+  exchange text,
+  pair frozen<tokenpair>,
+  type text,
+  epochMinute bigint,
+  timestamp timestamp,
+  tradeId text,
+  baseAmount decimal,
+  quoteAmount decimal,
+  price decimal,
+  PRIMARY KEY (epochMinute, exchange, pair, tradeId)
+) WITH default_time_to_live = 604800;
+
 CREATE TABLE IF NOT EXISTS markets.orderbook (
   exchange text,
   pair frozen<tokenpair>,
