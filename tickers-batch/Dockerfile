@@ -8,4 +8,4 @@ RUN ./gradlew clean :tickers-batch:assemble
 FROM openjdk:8u131-jre-alpine
 COPY --from=build /build/tickers-batch/build/libs /cyberapp/bin
 
-ENTRYPOINT ["java", "-jar", "/cyberapp/bin/tickers-batch.jar"]
+ENTRYPOINT exec java $JAVA_OPTS -jar /cyberapp/bin/tickers-batch.jar
