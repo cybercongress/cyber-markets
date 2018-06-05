@@ -67,7 +67,9 @@ class HistoricalTickerProcessor(
                 tickerService.save(tickers.values)
                 tickers.clear()
 
+
                 if (timestampTo > lastTimestamp) {
+                    //todo: update last processed timestamp
                     lastTimestamp = timestampTo
                 }
                 timestampFrom = timestampTo

@@ -85,8 +85,8 @@ fun CqlTokenTicker.toTokenTicker(): TokenTicker {
                 )
             }.toMutableMap()
         }.toMutableMap(),
-        volume = this.volume.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap(),
-        baseVolume = this.baseVolume.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap()
+        volume = this.volume.value.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap(),
+        baseVolume = this.baseVolume.value.mapValues { (_, map) -> map.toMutableMap() }.toMutableMap()
     )
 }
 

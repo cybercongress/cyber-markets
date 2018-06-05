@@ -4,15 +4,21 @@ import fund.cyber.markets.common.Durations
 import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.common.model.TokenPrice
 import fund.cyber.markets.common.model.TokenTicker
+import fund.cyber.markets.ticker.processor.HistoricalTickerProcessor
 import fund.cyber.markets.ticker.service.TickerService
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Component
 class VwapPriceProcessor(
     override val methodName: String = "VWAP"
 ) : PriceProcessor {
+    private val log = LoggerFactory.getLogger(HistoricalTickerProcessor::class.java)!!
 
+    @Autowired
     private lateinit var tickerService: TickerService
 
     override fun calculate(tickers: List<TokenTicker>): List<TokenPrice> {
@@ -27,9 +33,12 @@ class VwapPriceProcessor(
             val timestampTo = ticker.timestampTo - ticker.interval
             val interval = ticker.interval
 
+            log.debug("Getting previous tickers for ${ticker.symbol}")
 
             val previousTickers = tickerService.findTickersByInterval(symbol, timestampFrom, timestampTo, interval)
-            previousTickers.toMutableList().add(ticker)
+                .apply {
+                    add(ticker)
+                }
 
             val pvMap = getTotalPV(previousTickers)
 
@@ -43,11 +52,15 @@ class VwapPriceProcessor(
             pvMap.forEach { exchange, baseTokenSymbolMap ->
                 baseTokenSymbolMap.forEach { baseTokenSymbol, pv ->
 
-                    val vwapPrice = pv.totalPV.divide(pv.totalVolume)
+                    try {
+                        val vwapPrice = pv.totalPV.divide(pv.totalVolume, RoundingMode.HALF_EVEN)
 
-                    tokenPrice.values
-                        .getOrPut(exchange, { mutableMapOf() })
-                        .put(baseTokenSymbol, vwapPrice)
+                        tokenPrice.values
+                            .getOrPut(exchange, { mutableMapOf() })
+                            .put(baseTokenSymbol, vwapPrice)
+                    } catch (e: Exception) {
+                        log.warn("Cannot divide in $methodName price processor")
+                    }
                 }
             }
 

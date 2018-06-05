@@ -25,12 +25,13 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   timestampFrom timestamp,
   timestampTo timestamp,
   interval bigint,
+  epochDay bigint,
 
   volume blob,
   baseVolume blob,
   price blob,
 
-  PRIMARY KEY (tokenSymbol, timestampFrom, interval)
+  PRIMARY KEY ((tokenSymbol, epochDay, interval), timestampFrom)
 );
 
 CREATE TABLE IF NOT EXISTS markets.trade_last_timestamp (

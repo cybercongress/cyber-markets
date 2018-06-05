@@ -1,8 +1,11 @@
 package fund.cyber.markets.cassandra.model
 
+import fund.cyber.markets.common.MILLIS_TO_DAYS
+import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TickerPrice
 import fund.cyber.markets.common.model.TokenTicker
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType
+import org.springframework.data.cassandra.core.mapping.Column
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn
 import org.springframework.data.cassandra.core.mapping.Table
 import org.springframework.data.cassandra.core.mapping.UserDefinedType
@@ -20,26 +23,38 @@ import java.util.*
 @Table("ticker")
 data class CqlTokenTicker(
 
-    @PrimaryKeyColumn(ordinal = 0, type = PrimaryKeyType.PARTITIONED, value = "tokensymbol")
+    @PrimaryKeyColumn(ordinal = 0, type = PrimaryKeyType.PARTITIONED, value = "tokenSymbol")
     val symbol: String,
 
-    @PrimaryKeyColumn(ordinal = 1, type = PrimaryKeyType.CLUSTERED, value = "timestampfrom")
+    @PrimaryKeyColumn(ordinal = 1, type = PrimaryKeyType.PARTITIONED, value = "epochDay")
+    val epochDay: Long,
+
+    @PrimaryKeyColumn(ordinal = 2, type = PrimaryKeyType.CLUSTERED, value = "timestampFrom")
     var timestampFrom: Date,
+
+    @Column("timestampTo")
     var timestampTo: Date,
 
-    @PrimaryKeyColumn(ordinal = 2, type = PrimaryKeyType.CLUSTERED, value = "interval")
+    @PrimaryKeyColumn(ordinal = 3, type = PrimaryKeyType.CLUSTERED, value = "interval")
     val interval: Long,
 
-    val volume: Map<String, Map<String, BigDecimal>>,
-    val baseVolume: Map<String, Map<String, BigDecimal>>,
+    @Column("volume")
+    val volume: CqlTickerVolume,
+
+    @Column("baseVolume")
+    val baseVolume: CqlTickerVolume,
+
+    @Column("price")
     val price: Map<String, Map<String, CqlTickerPrice>>
 ) {
     constructor(tokenTicker: TokenTicker) : this(
         tokenTicker.symbol,
+        tokenTicker.timestampFrom convert MILLIS_TO_DAYS,
         Date(tokenTicker.timestampFrom),
         Date(tokenTicker.timestampTo),
-        tokenTicker.interval, tokenTicker.volume,
-        tokenTicker.baseVolume,
+        tokenTicker.interval,
+        CqlTickerVolume(tokenTicker.volume),
+        CqlTickerVolume(tokenTicker.baseVolume),
         prices(tokenTicker))
 }
 
@@ -62,3 +77,7 @@ data class CqlTickerPrice(
         max = tickerPrice.max
     )
 }
+
+data class CqlTickerVolume(
+    val value: Map<String, Map<String, BigDecimal>>
+)

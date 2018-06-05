@@ -5,6 +5,7 @@ import fund.cyber.markets.common.model.TokenPrice
 import fund.cyber.markets.common.model.TokenTicker
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Component
 class WeightedPriceProcessor(
@@ -32,13 +33,18 @@ class WeightedPriceProcessor(
                     val closePrice = tickerPrice.close
                     if (closePrice > BigDecimal.ZERO) {
 
-                        priceValue = priceValue.plus(
-                            tickerPrice.close.multiply(
-                                ticker.baseVolume[baseTokenSymbol]!![exchange]
-                            ).divide(
-                                ticker.baseVolume[baseTokenSymbol]!![Exchanges.ALL]
+                        try {
+                            priceValue = priceValue.plus(
+                                tickerPrice.close.multiply(
+                                    ticker.baseVolume[baseTokenSymbol]!![exchange]
+                                ).divide(
+                                    ticker.baseVolume[baseTokenSymbol]!![Exchanges.ALL],
+                                    RoundingMode.HALF_EVEN
+                                )
                             )
-                        )
+                        } catch (e: Exception) {
+                            e.toString()
+                        }
 
                     }
 
