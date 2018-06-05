@@ -3,6 +3,7 @@ package fund.cyber.markets.ticker.processor.price
 import fund.cyber.markets.common.model.Exchanges
 import fund.cyber.markets.common.model.TokenPrice
 import fund.cyber.markets.common.model.TokenTicker
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -11,6 +12,7 @@ import java.math.RoundingMode
 class WeightedPriceProcessor(
     override val methodName: String = "WeightedPrice"
 ) : PriceProcessor {
+    private val log = LoggerFactory.getLogger(WeightedPriceProcessor::class.java)!!
 
     override fun calculate(tickers: List<TokenTicker>): List<TokenPrice> {
 
@@ -43,7 +45,7 @@ class WeightedPriceProcessor(
                                 )
                             )
                         } catch (e: Exception) {
-                            e.toString()
+                            log.warn("Cannot divide in $methodName price processor")
                         }
 
                     }
