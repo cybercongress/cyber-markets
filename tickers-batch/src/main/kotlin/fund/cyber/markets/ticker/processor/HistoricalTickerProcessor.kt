@@ -47,29 +47,27 @@ class HistoricalTickerProcessor(
 
             while (timestampTo < System.currentTimeMillis() - lagFromRealTime) {
 
+                tickers.clear()
                 val trades = tradeService.getTrades(timestampFrom, timestampTo)
 
-                log.debug("Start timestamp: $timestampFrom. Interval: $interval. Trades count: ${trades.size}")
+                if (trades.isNotEmpty()) {
+                    log.debug("Start timestamp: $timestampFrom. Interval: $interval. Trades count: ${trades.size}")
 
-                updateMapOfPrices(trades)
+                    updateMapOfPrices(trades)
 
-                for (trade in trades) {
-                    updateVolumes(trade, timestampFrom, interval)
+                    for (trade in trades) {
+                        updateVolumes(trade, timestampFrom, interval)
 
-                    BaseTokens.values().forEach { baseToken ->
-                        updateBaseVolumesWithPrices(baseToken.name, trade, timestampFrom, interval)
+                        BaseTokens.values().forEach { baseToken ->
+                            updateBaseVolumesWithPrices(baseToken.name, trade, timestampFrom, interval)
+                        }
                     }
+
+                    tickerService.save(tickers.values)
+                    tokenPriceService.save(getTokenPrices(tickers.values.toList()))
                 }
 
-                val prices = getTokenPrices(tickers.values.toList())
-                tokenPriceService.save(prices)
-
-                tickerService.save(tickers.values)
-                tickers.clear()
-
-
                 if (timestampTo > lastTimestamp) {
-                    //todo: update last processed timestamp
                     lastTimestamp = timestampTo
                 }
                 timestampFrom = timestampTo

@@ -1,6 +1,7 @@
 package fund.cyber.markets.ticker.processor.price
 
-import fund.cyber.markets.common.Durations
+import fund.cyber.markets.cassandra.common.toTokenTicker
+import fund.cyber.markets.common.Intervals
 import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.common.model.TokenPrice
 import fund.cyber.markets.common.model.TokenTicker
@@ -29,16 +30,20 @@ class VwapPriceProcessor(
 
             // get tickers from epoch 00:00
             val symbol = ticker.symbol
-            val timestampFrom = closestSmallerMultiply(ticker.timestampFrom, Durations.DAY)
+            val timestampFrom = closestSmallerMultiply(ticker.timestampFrom, Intervals.DAY)
             val timestampTo = ticker.timestampTo - ticker.interval
             val interval = ticker.interval
 
             log.debug("Getting previous tickers for ${ticker.symbol}")
 
             val previousTickers = tickerService.findTickersByInterval(symbol, timestampFrom, timestampTo, interval)
-                .apply {
-                    add(ticker)
-                }
+                .collectList()
+                .doOnError { throwable -> log.error("Cannot get tickers for symbol: $symbol ", throwable) }
+                .defaultIfEmpty(mutableListOf())
+                .block()
+                ?.map { cqlTokenTicker -> cqlTokenTicker.toTokenTicker() }
+                ?.toMutableList()!!
+                .apply { add(ticker) }
 
             val pvMap = getTotalPV(previousTickers)
 

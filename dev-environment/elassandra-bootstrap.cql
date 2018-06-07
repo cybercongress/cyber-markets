@@ -1,4 +1,4 @@
-CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','PRODUCTION' : 1};
+CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','WITHOUT_REPLICATION' : 1};
 
 CREATE TYPE IF NOT EXISTS markets.tickerprice (
   open decimal,

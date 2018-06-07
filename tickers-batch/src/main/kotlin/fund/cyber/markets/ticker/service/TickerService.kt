@@ -1,13 +1,14 @@
 package fund.cyber.markets.ticker.service
 
-import fund.cyber.markets.cassandra.common.toTokenTicker
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.common.Intervals
 import fund.cyber.markets.common.MILLIS_TO_DAYS
 import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.TokenTicker
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import java.util.*
 
 @Service
@@ -22,25 +23,31 @@ class TickerService(
         tickerRepository.saveAll(tickers.map { CqlTokenTicker(it) }).collectList().block()
     }
 
-    fun findTickersByInterval(symbol: String, timestampFrom: Long, timestampTo: Long, interval: Long): MutableList<TokenTicker> {
+    fun findTickersByInterval(symbol: String, timestampFrom: Long, timestampTo: Long, interval: Long): Flux<CqlTokenTicker> {
 
-        return tickerRepository.find(
-            tokenSymbol = symbol,
-            epochDay = timestampFrom convert MILLIS_TO_DAYS,
-            timestampFrom = Date(timestampFrom),
-            timestampTo = Date(timestampTo),
-            interval = interval
+        var tickers = Flux.empty<CqlTokenTicker>()
+
+        val epochDay = timestampFrom convert MILLIS_TO_DAYS
+        var timestampFromVar = timestampFrom
+
+        if (interval <= Intervals.HOUR) {
+            var timestampToVar = timestampFrom + Intervals.HOUR
+
+            while (timestampTo - timestampToVar >= Intervals.HOUR) {
+                tickers = tickers.mergeWith(
+                    tickerRepository.find(symbol, epochDay, Date(timestampFromVar), Date(timestampToVar), interval)
+                )
+                timestampFromVar += Intervals.HOUR
+                timestampToVar += Intervals.HOUR
+            }
+
+        }
+
+        tickers = tickers.mergeWith(
+            tickerRepository.find(symbol, epochDay, Date(timestampFromVar), Date(timestampTo), interval)
         )
-            .collectList()
-            .doOnError { throwable ->
-                log.error("Cannot get tickers for symbol: $symbol ", throwable)
-            }
-            .defaultIfEmpty(mutableListOf())
-            .block()
-            ?.map {
-                it.toTokenTicker()
-            }
-            ?.toMutableList()!!
+
+        return tickers
     }
 
 }
