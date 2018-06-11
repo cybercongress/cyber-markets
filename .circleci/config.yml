@@ -67,6 +67,21 @@ jobs:
 #            docker tag cybernode/cm-tickers:$CIRCLE_TAG cybernode/cm-tickers:latest
 #            docker push cybernode/cm-tickers:latest
 
+  deploy_tickers-batch_image:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Build tickers-batch docker image
+          command: |
+            docker build -t cybernode/cm-tickers-batch:$CIRCLE_TAG -f ./tickers-batch/Dockerfile ./
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push cybernode/cm-tickers-batch:$CIRCLE_TAG
+            docker tag cybernode/cm-tickers-batch:$CIRCLE_TAG cybernode/cm-tickers-batch:latest
+            docker push cybernode/cm-tickers-batch:latest
+
   deploy_stream-api_image:
     <<: *defaults
     steps:
@@ -129,6 +144,10 @@ workflows:
 #          <<: *release_filter
 #          requires:
 #            - build_project
+      - deploy_tickers-batch_image:
+          <<: *release_filter
+          requires:
+            - build_project
       - deploy_stream-api_image:
           <<: *release_filter
           requires:
