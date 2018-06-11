@@ -1,5 +1,6 @@
 package fund.cyber.markets.connector
 
+import fund.cyber.markets.common.model.Token
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.connector.configuration.TRADES_TOPIC_PREFIX
 import info.bitrich.xchangestream.core.ProductSubscription
@@ -56,5 +57,16 @@ abstract class AbstractXchangeConnector : Connector {
         }
 
         return pairs
+    }
+
+    override fun getTokens(): Set<Token> {
+        val tokens = mutableSetOf<Token>()
+
+        exchangeTokensPairs.forEach { tokensPair ->
+            tokens.add(Token(tokensPair.base.displayName, tokensPair.base.currencyCode))
+            tokens.add(Token(tokensPair.counter.displayName, tokensPair.counter.currencyCode))
+        }
+
+        return tokens
     }
 }

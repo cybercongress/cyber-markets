@@ -1,5 +1,6 @@
 package fund.cyber.markets.connector
 
+import fund.cyber.markets.common.model.Token
 import fund.cyber.markets.common.model.TokensPair
 
 interface Connector {
@@ -19,4 +20,5 @@ interface Connector {
     fun isAlive(): Boolean
     fun updateTokensPairs()
     fun getTokensPairs(): Set<TokensPair>
+    fun getTokens(): Set<Token>
 }

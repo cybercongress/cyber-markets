@@ -17,12 +17,19 @@ class ConnectorApiRouter(
 
         GET("/liveness", connectorInfoHandler::isAlive)
 
-
         GET("/exchanges", connectorInfoHandler::getConnectedExchanges)
 
+        GET("/exchanges/tokens", connectorInfoHandler::getTokens)
+
+        GET("/exchanges/tokens/count", connectorInfoHandler::getTokensCount)
+
+        GET("/exchange/{exchangeName}/tokens", connectorInfoHandler::getTokensByExchange)
+
+        GET("/exchange/{exchangeName}/tokens/count", connectorInfoHandler::getTokensCountByExchange)
 
         GET("/exchange/{exchangeName}/pairs", connectorInfoHandler::getPairs)
 
+        GET("/exchange/{exchangeName}/pairs/count", connectorInfoHandler::getPairsCountByExchange)
 
         GET("/orderbook", orderBookHandler::getOrderBook)
 

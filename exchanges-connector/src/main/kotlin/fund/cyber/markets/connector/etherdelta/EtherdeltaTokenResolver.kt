@@ -3,9 +3,9 @@ package fund.cyber.markets.connector.etherdelta
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import fund.cyber.markets.common.model.Token
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.stereotype.Component
 import org.web3j.protocol.Web3j
@@ -22,18 +22,17 @@ private const val PARITY_TOKEN_REGISTRY_CONTRACT_ADDRESS = "0x5F0281910Af44bFb5f
 private const val PARITY_TOKEN_REGISTRY_EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 @Component
-class EtherdeltaTokenResolver {
+class EtherdeltaTokenResolver(
+    private val web3j: Web3j,
+    private val resourceLoader: GenericApplicationContext
+) {
     private val log = LoggerFactory.getLogger(EtherdeltaTokenResolver::class.java)!!
 
     lateinit var exchangeTokensPairs: MutableMap<String, EtherdeltaToken>
 
-    @Autowired
-    private lateinit var web3j: Web3j
-
-    @Autowired
-    private lateinit var resourceLoader: GenericApplicationContext
-
     private val gasProvider: ContractGasProvider = DefaultGasProvider()
+
+    val tradingTokens = mutableSetOf<Token>()
 
     /**
      * Get ERC20 token definitions from different sources
@@ -158,10 +157,12 @@ class EtherdeltaTokenResolver {
             val erc20Contract = Erc20Contract.load(address, web3j, transactionManager, gasProvider.getGasPrice(null), gasProvider.getGasLimit(null))
 
             val tokenSymbol = erc20Contract.symbol().send().trim()
+            val tokenName = erc20Contract.name().send().trim()
             val tokenDecimals = erc20Contract.decimals().send().intValueExact()
             val tokenBase = BigInteger.TEN.pow(tokenDecimals)
 
             tokenDefinition = EtherdeltaToken(tokenSymbol, tokenBase, tokenDecimals)
+            addTradingToken(tokenName, tokenSymbol)
 
             log.info("Resolve new token: symbol=$tokenSymbol, decimals=$tokenDecimals")
             exchangeTokensPairs[address] = tokenDefinition
@@ -173,10 +174,10 @@ class EtherdeltaTokenResolver {
     }
 
     fun resolveToken(address: String?): EtherdeltaToken? {
-        val tokenDefiniton = exchangeTokensPairs[address]
+        var tokenDefiniton = exchangeTokensPairs[address]
 
         if (tokenDefiniton == null && address != null) {
-            getTokenDefinitionByAddress(address)
+            tokenDefiniton = getTokenDefinitionByAddress(address)
         }
 
         return tokenDefiniton
@@ -194,6 +195,10 @@ class EtherdeltaTokenResolver {
         val result = (matcher.regionEnd() - matcher.regionStart()) == tokenBase.length || tokenBase == "0"
 
         return result
+    }
+
+    fun addTradingToken(name: String, symbol: String) {
+        tradingTokens.add(Token(name, symbol))
     }
 
 }
