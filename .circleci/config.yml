@@ -52,20 +52,20 @@ jobs:
             docker tag cybernode/cm-exchanges-connector:$CIRCLE_TAG cybernode/cm-exchanges-connector:latest
             docker push cybernode/cm-exchanges-connector:latest
 
-  deploy_tickers_image:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 17.11.0-ce
-      - run:
-          name: Build tickers docker image
-          command: |
-            docker build -t cybernode/cm-tickers:$CIRCLE_TAG -f ./tickers/Dockerfile ./
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push cybernode/cm-tickers:$CIRCLE_TAG
-            docker tag cybernode/cm-tickers:$CIRCLE_TAG cybernode/cm-tickers:latest
-            docker push cybernode/cm-tickers:latest
+#  deploy_tickers_image:
+#    <<: *defaults
+#    steps:
+#      - checkout
+#      - setup_remote_docker:
+#          version: 17.11.0-ce
+#      - run:
+#          name: Build tickers docker image
+#          command: |
+#            docker build -t cybernode/cm-tickers:$CIRCLE_TAG -f ./tickers/Dockerfile ./
+#            docker login -u $DOCKER_USER -p $DOCKER_PASS
+#            docker push cybernode/cm-tickers:$CIRCLE_TAG
+#            docker tag cybernode/cm-tickers:$CIRCLE_TAG cybernode/cm-tickers:latest
+#            docker push cybernode/cm-tickers:latest
 
   deploy_stream-api_image:
     <<: *defaults
