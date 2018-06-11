@@ -125,10 +125,10 @@ workflows:
           <<: *release_filter
           requires:
             - build_project
-      - deploy_tickers_image:
-          <<: *release_filter
-          requires:
-            - build_project
+#      - deploy_tickers_image:
+#          <<: *release_filter
+#          requires:
+#            - build_project
       - deploy_stream-api_image:
           <<: *release_filter
           requires:
