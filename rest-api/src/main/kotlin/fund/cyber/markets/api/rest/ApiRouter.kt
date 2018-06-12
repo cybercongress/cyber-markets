@@ -19,13 +19,21 @@ class ApiRouter(
 
         GET("/exchanges", exchangesInfoHandler::getConnectedExchanges)
 
+        GET("/exchanges/tokens", exchangesInfoHandler::getTokens)
+
+        GET("/exchanges/tokens/count", exchangesInfoHandler::getTokensCount)
+
+        GET("/exchange/{exchangeName}/tokens", exchangesInfoHandler::getTokensByExchange)
+
+        GET("/exchange/{exchangeName}/tokens/count", exchangesInfoHandler::getTokensCountByExchange)
+
         GET("/exchange/{exchangeName}/pairs", exchangesInfoHandler::getPairs)
 
         GET("/orderbook", rawDataHandler::getOrderBook)
 
         GET("/trade", rawDataHandler::getTrades)
 
-        GET("ticker", tickerHandler::getTickers)
+        GET("/ticker", tickerHandler::getTickers)
 
     }
 
