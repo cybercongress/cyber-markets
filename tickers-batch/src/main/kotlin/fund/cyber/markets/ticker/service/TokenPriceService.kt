@@ -5,6 +5,7 @@ import fund.cyber.markets.cassandra.repository.TokenPriceRepository
 import fund.cyber.markets.common.model.TokenPrice
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 
 @Service
 class TokenPriceService(
@@ -12,10 +13,10 @@ class TokenPriceService(
 ) {
     private val log = LoggerFactory.getLogger(TokenPriceService::class.java)!!
 
-    fun save(prices : MutableCollection<TokenPrice>) {
+    fun save(prices : MutableCollection<TokenPrice>): Flux<CqlTokenPrice> {
         log.info("Saving token prices. Count: ${prices.size}")
 
-        tokenPriceRepository.saveAll(prices.map { CqlTokenPrice(it) }).collectList().block()
+        return tokenPriceRepository.saveAll(prices.map { CqlTokenPrice(it) })
     }
 
 }

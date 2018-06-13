@@ -7,6 +7,7 @@ import fund.cyber.markets.common.MINUTES_TO_MILLIS
 import fund.cyber.markets.common.WINDOW_INTERVALS_MIN
 import fund.cyber.markets.common.WINDOW_INTERVALS_MIN_DEFAULT
 import fund.cyber.markets.common.convert
+import fund.cyber.markets.ticker.service.TickerCacheKey
 import org.ehcache.Cache
 import org.ehcache.CacheManager
 import org.ehcache.config.builders.CacheConfigurationBuilder
@@ -41,8 +42,8 @@ class TickersConfiguration(
     fun lagFromRealTime(): Long = lag convert MINUTES_TO_MILLIS
 
     @Bean
-    fun tickerCache(cacheManager: CacheManager): Cache<String, MutableList<CqlTokenTicker>> {
-        return cacheManager.getCache(TICKERS_CACHE_NAME, String::class.java, MutableList::class.java as Class<MutableList<CqlTokenTicker>>)
+    fun tickerCache(cacheManager: CacheManager): Cache<TickerCacheKey, MutableList<CqlTokenTicker>> {
+        return cacheManager.getCache(TICKERS_CACHE_NAME, TickerCacheKey::class.java, MutableList::class.java as Class<MutableList<CqlTokenTicker>>)
     }
 
     @Bean
@@ -54,7 +55,7 @@ class TickersConfiguration(
         return CacheManagerBuilder.newCacheManagerBuilder()
             .withCache(TICKERS_CACHE_NAME,
                 CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                    String::class.java,
+                    TickerCacheKey::class.java,
                     MutableList::class.java as Class<MutableList<CqlTokenTicker>>,
                     ResourcePoolsBuilder.newResourcePoolsBuilder().heap(TICKERS_CACHE_SIZE_GB, MemoryUnit.GB)
                 )

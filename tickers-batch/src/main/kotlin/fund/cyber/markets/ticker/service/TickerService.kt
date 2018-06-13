@@ -10,19 +10,27 @@ import org.ehcache.Cache
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.*
+
+data class TickerCacheKey(
+    val symbol: String,
+    val timestampFrom: Long,
+    val timestampTo: Long,
+    val interval: Long
+)
 
 @Service
 class TickerService(
     private val tickerRepository: TickerRepository,
-    private val cache: Cache<String, MutableList<CqlTokenTicker>>
+    private val cache: Cache<TickerCacheKey, MutableList<CqlTokenTicker>>
 ) {
     private val log = LoggerFactory.getLogger(TickerService::class.java)!!
 
-    fun save(tickers: MutableCollection<TokenTicker>) {
+    fun save(tickers: MutableCollection<TokenTicker>): Flux<CqlTokenTicker> {
         log.info("Saving tickers. Count: ${tickers.size}")
 
-        tickerRepository.saveAll(tickers.map { CqlTokenTicker(it) }).collectList().block()
+        return tickerRepository.saveAll(tickers.map { CqlTokenTicker(it) })
     }
 
     fun findTickersByInterval(symbol: String, timestampFrom: Long, timestampTo: Long, interval: Long): Flux<CqlTokenTicker> {
@@ -39,7 +47,8 @@ class TickerService(
 
                 tickers = tickers.mergeWith(
                     Flux.defer {
-                        val cachedValue = cache.get(cacheKey(symbol, timestampFromVar, timestampToVar, interval)) ?: mutableListOf()
+                        val cachedValue = cache.get(TickerCacheKey(symbol, timestampFromVar, timestampToVar, interval))
+                            ?: mutableListOf()
                         when {
                             cachedValue.isNotEmpty() -> Flux.fromIterable(cachedValue)
                             else -> Flux.empty()
@@ -47,17 +56,18 @@ class TickerService(
                     }.switchIfEmpty(
                         tickerRepository
                             .find(symbol, epochDay, Date(timestampFromVar), Date(timestampToVar), interval)
-                            .map { ticker ->
-                                val key = cacheKey(symbol, timestampFrom, timestampTo, interval)
-                                val list = cache.get(key)
+                            .flatMap { ticker ->
+                                Mono.fromCallable {
+                                    val key = TickerCacheKey(symbol, timestampFrom, timestampTo, interval)
+                                    val list = cache.get(key)
 
-                                if (list == null) {
-                                    cache.put(key, mutableListOf(ticker))
-                                } else {
-                                    list.add(ticker)
+                                    if (list == null) {
+                                        cache.put(key, mutableListOf(ticker))
+                                    } else {
+                                        list.add(ticker)
+                                    }
+                                    ticker
                                 }
-
-                                ticker
                             }
                     )
                 )
@@ -72,10 +82,6 @@ class TickerService(
         )
 
         return tickers
-    }
-
-    private fun cacheKey(symbol: String, timestampFrom: Long, timestampTo: Long, interval: Long): String {
-        return "${symbol}_${timestampFrom}_${timestampTo}_$interval"
     }
 
 }

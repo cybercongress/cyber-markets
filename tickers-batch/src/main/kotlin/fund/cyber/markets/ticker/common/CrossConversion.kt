@@ -1,6 +1,7 @@
 package fund.cyber.markets.ticker.common
 
 import fund.cyber.markets.common.model.BaseTokens
+import fund.cyber.markets.common.model.Trade
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -17,6 +18,15 @@ class CrossConversion(
     private lateinit var exchange: String
 
     private val conversionSymbols = BaseTokens.values().map { it.name }
+
+    fun updateMapOfPrices(trades: List<Trade>) {
+        trades.forEach { trade ->
+            prices
+                .getOrPut(trade.pair.base, { mutableMapOf() })
+                .getOrPut(trade.pair.quote, { mutableMapOf() })
+                .put(trade.exchange, trade.price)
+        }
+    }
 
     /**
      * If the crypto currency does not trade directly from base to quote symbol BTC will be used for conversion

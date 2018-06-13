@@ -28,8 +28,5 @@ interface TradeRepository : ReactiveCassandraRepository<CqlTrade, MapId> {
 interface TradeTemporaryRepository : ReactiveCassandraRepository<CqlTradeTemporary, MapId> {
 
     @Consistency(value = ConsistencyLevel.LOCAL_QUORUM)
-    @Query("""
-        SELECT * FROM markets.trade_temporary
-        WHERE epochMinute=:epochMinute""")
     fun findByEpochMinute(epochMinute: Long): Flux<CqlTradeTemporary>
 }

@@ -11,7 +11,7 @@ import fund.cyber.markets.common.model.Trade
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
-import java.util.*
+import reactor.core.publisher.Mono
 
 private const val START_TIMESTAMP_DEFAULT = 1230995705000
 
@@ -22,7 +22,7 @@ class TradeService(
 ) {
     private val log = LoggerFactory.getLogger(TradeService::class.java)!!
 
-    fun getTrades(timestampFrom: Long, timestampTo: Long): List<Trade> {
+    fun getTrades(timestampFrom: Long, timestampTo: Long): Flux<Trade> {
 
         val epochMinuteFrom = timestampFrom convert MILLIS_TO_MINUTES
         val epochMinuteTo = (timestampTo - 1) convert MILLIS_TO_MINUTES
@@ -34,25 +34,17 @@ class TradeService(
         }
 
         return cqlTrades
-            .collectList()
-            .defaultIfEmpty(mutableListOf())
-            .block()!!
             .map { cqlTrade -> cqlTrade.toTrade() }
-            .sortedBy { trade -> trade.timestamp }
     }
 
-    fun getLastProcessedTimestamp(): Long {
-        val lastTimestamp = lastTimestampRepository.findTradeLastTimestamp()
+    fun getLastProcessedTimestamp(): Mono<CqlTradeLastTimestamp> {
+        return lastTimestampRepository
+            .findTradeLastTimestamp()
             .defaultIfEmpty(CqlTradeLastTimestamp(value = START_TIMESTAMP_DEFAULT))
-            .block()
-
-        log.info("Last processed timestamp: ${Date(lastTimestamp!!.value)}")
-
-        return lastTimestamp.value
     }
 
-    fun updateLastProcessedTimestamp(timestamp: Long) {
-        lastTimestampRepository.save(CqlTradeLastTimestamp(value = timestamp)).block()
+    fun updateLastProcessedTimestamp(timestamp: Long): Mono<CqlTradeLastTimestamp> {
+        return lastTimestampRepository.save(CqlTradeLastTimestamp(value = timestamp))
     }
 
 }

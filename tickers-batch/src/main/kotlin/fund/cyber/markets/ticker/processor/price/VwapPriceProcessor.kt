@@ -10,6 +10,8 @@ import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
+import reactor.core.publisher.toMono
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -36,14 +38,16 @@ class VwapPriceProcessor(
 
             log.debug("Getting previous tickers for ${ticker.symbol}")
 
-            val previousTickers = tickerService.findTickersByInterval(symbol, timestampFrom, timestampTo, interval)
+            val previousTickers = Flux.merge(
+                ticker.toMono(),
+                tickerService
+                    .findTickersByInterval(symbol, timestampFrom, timestampTo, interval)
+                    .map {
+                        cqlTokenTicker -> cqlTokenTicker.toTokenTicker()
+                    }
+            )
                 .collectList()
-                .doOnError { throwable -> log.error("Cannot get tickers for symbol: $symbol ", throwable) }
-                .defaultIfEmpty(mutableListOf())
-                .block()
-                ?.map { cqlTokenTicker -> cqlTokenTicker.toTokenTicker() }
-                ?.toMutableList()!!
-                .apply { add(ticker) }
+                .block()!!
 
             val pvMap = getTotalPV(previousTickers)
 

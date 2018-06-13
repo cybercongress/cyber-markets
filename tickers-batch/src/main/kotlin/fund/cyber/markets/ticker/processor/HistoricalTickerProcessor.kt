@@ -36,8 +36,12 @@ class HistoricalTickerProcessor(
     fun start() {
         log.info("Start historical ticker processor. Timestamp: ${Date()}")
 
-        val startTimestamp = tradeService.getLastProcessedTimestamp()
+        val startTimestamp = tradeService.getLastProcessedTimestamp().block()!!.value
+
+        log.info("Last processed timestamp: ${Date(startTimestamp)}")
+
         var lastTimestamp = startTimestamp
+        val currentTimestamp = System.currentTimeMillis()
 
         windowIntervals.forEach { interval ->
 
@@ -45,15 +49,20 @@ class HistoricalTickerProcessor(
             var timestampFrom = closestSmallerMultiply(startTimestamp - interval, interval)
             var timestampTo = timestampFrom + interval
 
-            while (timestampTo < System.currentTimeMillis() - lagFromRealTime) {
+            while (timestampTo < currentTimestamp - lagFromRealTime) {
 
                 tickers.clear()
-                val trades = tradeService.getTrades(timestampFrom, timestampTo)
+                val trades = tradeService
+                    .getTrades(timestampFrom, timestampTo)
+                    .collectList()
+                    .defaultIfEmpty(mutableListOf())
+                    .block()!!
+                    .sortedBy { trade -> trade.timestamp }
 
                 if (trades.isNotEmpty()) {
                     log.debug("Start timestamp: $timestampFrom. Interval: $interval. Trades count: ${trades.size}")
 
-                    updateMapOfPrices(trades)
+                    crossConversion.updateMapOfPrices(trades)
 
                     for (trade in trades) {
                         updateVolumes(trade, timestampFrom, interval)
@@ -63,8 +72,8 @@ class HistoricalTickerProcessor(
                         }
                     }
 
-                    tickerService.save(tickers.values)
-                    tokenPriceService.save(getTokenPrices(tickers.values.toList()))
+                    tickerService.save(tickers.values).collectList().block()
+                    tokenPriceService.save(getTokenPrices(tickers.values.toList())).collectList().block()
                 }
 
                 if (timestampTo > lastTimestamp) {
@@ -76,7 +85,7 @@ class HistoricalTickerProcessor(
 
         }
 
-        tradeService.updateLastProcessedTimestamp(lastTimestamp)
+        tradeService.updateLastProcessedTimestamp(lastTimestamp).block()
         log.info("Successfully completed tickers calculation. Timestamp: ${Date()} ")
     }
 
@@ -181,16 +190,6 @@ class HistoricalTickerProcessor(
             .getOrPut(Exchanges.ALL, { BigDecimal.ZERO })
             .plus(priceForQuote.multiply(trade.quoteAmount))
         tickerQuote.baseVolume[baseTokenSymbol]!![Exchanges.ALL] = volumeQuoteBCTall
-    }
-
-    private fun updateMapOfPrices(trades: List<Trade>) {
-        val prices = crossConversion.prices
-        trades.forEach { trade ->
-            prices
-                .getOrPut(trade.pair.base, { mutableMapOf() })
-                .getOrPut(trade.pair.quote, { mutableMapOf() })
-                .put(trade.exchange, trade.price)
-        }
     }
 
 }
