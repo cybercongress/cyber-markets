@@ -9,4 +9,4 @@ FROM openjdk:8u131-jre-alpine
 VOLUME /cyberdata
 COPY --from=build /build/storer/build/libs /cyberapp/bin
 
-ENTRYPOINT ["java", "-jar", "/cyberapp/bin/storer.jar"]
+ENTRYPOINT exec java $JAVA_OPTS -jar /cyberapp/bin/storer.jar

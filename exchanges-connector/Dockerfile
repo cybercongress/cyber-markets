@@ -8,4 +8,4 @@ RUN ./gradlew clean :exchanges-connector:assemble
 FROM openjdk:8u131-jre-alpine
 COPY --from=build /build/exchanges-connector/build/libs /cyberapp/bin
 
-ENTRYPOINT ["java", "-jar", "/cyberapp/bin/exchanges-connector.jar"]
+ENTRYPOINT exec java $JAVA_OPTS -jar /cyberapp/bin/exchanges-connector.jar

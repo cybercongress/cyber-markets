@@ -9,14 +9,15 @@ buildscript {
         web3jVersion = "3.4.0"
         rxkotlinVersion = "2.2.0"
         reactorVersion = "3.1.3.RELEASE"
-        cassandraConfluentVersion = "3.3.2"
+        cassandraVersion = "3.5.0"
+        ehcacheVersion = "3.4.0"
 
         xchangeStreamCoreVersion = "4.3.2"
         xchangeStreamVersion = "4.3.3-SNAPSHOT"
 
         springBootVersion = "2.0.0.RELEASE"
         springKafkaVersion = "2.1.4.RELEASE"
-        springCassandraVersion = "2.0.6.RELEASE"
+        springCassandraVersion = "2.0.7.RELEASE"
 
         // metrics
         micrometerVersion = "1.0.0"
@@ -136,8 +137,9 @@ subprojects {
 
             dependency("org.springframework.data:spring-data-cassandra:$springCassandraVersion")
             dependency("org.springframework.data:spring-data-commons:$springCassandraVersion")
-            dependency("com.datastax.cassandra:cassandra-driver-core:$cassandraConfluentVersion")
-            dependency("com.datastax.cassandra:cassandra-driver-mapping:$cassandraConfluentVersion")
+            dependency("com.datastax.cassandra:cassandra-driver-core:$cassandraVersion")
+            dependency("com.datastax.cassandra:cassandra-driver-mapping:$cassandraVersion")
+            dependency("com.datastax.cassandra:cassandra-driver-extras:$cassandraVersion")
 
             dependency("io.reactivex.rxjava2:rxkotlin:$rxkotlinVersion") {
                 exclude 'org.jetbrains.kotlin:kotlin-stdlib'
@@ -159,6 +161,8 @@ subprojects {
 
             dependency("io.micrometer:micrometer-core:$micrometerVersion")
             dependency("io.micrometer:micrometer-registry-prometheus:$micrometerVersion")
+
+            dependency("org.ehcache:ehcache:$ehcacheVersion")
         }
     }
 
@@ -270,7 +274,7 @@ project(":exchanges-connector") {
     }
 }
 
-project(":tickers") {
+project(":tickers-batch") {
 
     apply plugin: "org.springframework.boot"
 
@@ -283,7 +287,8 @@ project(":tickers") {
         compile project(":common-kafka")
         compile project(":cassandra-service")
 
-        compile("org.springframework.boot:spring-boot-starter")
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.ehcache:ehcache'
 
         testCompile("org.springframework.boot:spring-boot-starter-test")
     }
@@ -300,6 +305,7 @@ project(":cassandra-service") {
         compile 'org.springframework.data:spring-data-cassandra'
         compile 'com.datastax.cassandra:cassandra-driver-core'
         compile 'com.datastax.cassandra:cassandra-driver-mapping'
+        compile 'com.datastax.cassandra:cassandra-driver-extras'
     }
 }
 
