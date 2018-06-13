@@ -145,7 +145,7 @@ class ConnectorService(
         return Flux.empty()
     }
 
-    fun getTokensCount(): Flux<Long> {
+    fun getTokensCount(): Mono<Long> {
 
         return connectorApiUrls.toFlux().flatMap { apiUrl ->
             WebClient
@@ -155,6 +155,10 @@ class ConnectorService(
                 .retrieve()
                 .bodyToMono(Long::class.java)
         }
+            .collectList()
+            .map {
+                it.sum()
+            }
     }
 
     fun getTokensCountByExchange(exchange: String): Mono<Long> {

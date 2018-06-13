@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.ServerResponse.notFound
 import org.springframework.web.reactive.function.server.ServerResponse.ok
 import reactor.core.publisher.Mono
-import reactor.core.publisher.toMono
 
 @Component
 class ExchangesInfoHandler(
@@ -72,15 +71,9 @@ class ExchangesInfoHandler(
     }
 
     fun getTokensCount(request: ServerRequest): Mono<ServerResponse> {
-        var count = 0L
-
-        val counts = connectorService
-            .getTokensCount()
-            .collectList()
-            .block()
 
         return ok()
-            .body(count.toMono(), Long::class.java)
+            .body(connectorService.getTokensCount(), Long::class.java)
             .switchIfEmpty(
                 notFound().build()
             )
