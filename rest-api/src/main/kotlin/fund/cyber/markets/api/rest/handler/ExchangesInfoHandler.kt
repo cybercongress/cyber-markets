@@ -1,14 +1,12 @@
 package fund.cyber.markets.api.rest.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fund.cyber.markets.common.model.Token
-import fund.cyber.markets.common.model.TokensPair
+import fund.cyber.markets.common.rest.asServerResponse
 import fund.cyber.markets.common.rest.service.ConnectorService
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.ServerResponse.notFound
 import org.springframework.web.reactive.function.server.ServerResponse.ok
 import reactor.core.publisher.Mono
 
@@ -38,22 +36,12 @@ class ExchangesInfoHandler(
             return ServerResponse.badRequest().build()
         }
 
-        val pairs = connectorService.getTokensPairsByExchange(exchange)
-
-        return ok()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(pairs, TokensPair::class.java)
-            .switchIfEmpty(
-                notFound().build()
-            )
+        return connectorService.getTokensPairsByExchange(exchange).asServerResponse()
     }
 
     fun getTokens(request: ServerRequest): Mono<ServerResponse> {
-        return ok()
-            .body(connectorService.getTokens(), Token::class.java)
-            .switchIfEmpty(
-                notFound().build()
-            )
+
+        return connectorService.getTokens().asServerResponse()
     }
 
     fun getTokensByExchange(request: ServerRequest): Mono<ServerResponse> {
@@ -63,20 +51,12 @@ class ExchangesInfoHandler(
             return ServerResponse.badRequest().build()
         }
 
-        return ok()
-            .body(connectorService.getTokensByExchange(exchange), Token::class.java)
-            .switchIfEmpty(
-                notFound().build()
-            )
+        return connectorService.getTokensByExchange(exchange).asServerResponse()
     }
 
     fun getTokensCount(request: ServerRequest): Mono<ServerResponse> {
 
-        return ok()
-            .body(connectorService.getTokensCount(), Long::class.java)
-            .switchIfEmpty(
-                notFound().build()
-            )
+        return connectorService.getTokensCount().asServerResponse()
     }
 
     fun getTokensCountByExchange(request: ServerRequest): Mono<ServerResponse> {
@@ -86,11 +66,7 @@ class ExchangesInfoHandler(
             return ServerResponse.badRequest().build()
         }
 
-        return ok()
-            .body(connectorService.getTokensCountByExchange(exchange), Long::class.java)
-            .switchIfEmpty(
-                notFound().build()
-            )
+        return connectorService.getTokensCountByExchange(exchange).asServerResponse()
     }
 
 }

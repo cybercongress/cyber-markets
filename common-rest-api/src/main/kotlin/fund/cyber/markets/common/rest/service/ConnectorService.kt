@@ -4,6 +4,13 @@ import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.StringWrapper
 import fund.cyber.markets.common.model.Token
 import fund.cyber.markets.common.model.TokensPair
+import fund.cyber.markets.common.rest.EXCHANGE_LIST
+import fund.cyber.markets.common.rest.EXCHANGE_PAIRS
+import fund.cyber.markets.common.rest.ORDER_BOOK
+import fund.cyber.markets.common.rest.TOKENS_COUNT
+import fund.cyber.markets.common.rest.TOKENS_COUNT_BY_EXCHANGE
+import fund.cyber.markets.common.rest.TOKEN_LIST
+import fund.cyber.markets.common.rest.TOKEN_LIST_BY_EXCHANGE
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.stereotype.Service

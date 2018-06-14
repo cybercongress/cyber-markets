@@ -1,4 +1,4 @@
-package fund.cyber.markets.common.rest.service
+package fund.cyber.markets.common.rest
 
 const val ORDER_BOOK                = "/orderbook"
 const val EXCHANGE_LIST             = "/exchanges"
