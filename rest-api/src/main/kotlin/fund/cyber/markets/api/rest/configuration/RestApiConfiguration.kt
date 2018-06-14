@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-const val PAGE_SIZE_DEFAULT = 10
-const val PAGE_DEFAULT = 0
 
 @Configuration
 class RestApiConfiguration(
