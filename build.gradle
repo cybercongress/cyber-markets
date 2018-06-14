@@ -1,7 +1,7 @@
 /* Gradle plugins part */
 buildscript {
     ext {
-        kotlinVersion = "1.2.41"
+        kotlinVersion = "1.2.50"
         kotlinCoroutinesVersion = "0.19.3"
 
         jacksonVersion = "2.9.2"
@@ -15,9 +15,9 @@ buildscript {
         xchangeStreamCoreVersion = "4.3.2"
         xchangeStreamVersion = "4.3.3-SNAPSHOT"
 
-        springBootVersion = "2.0.0.RELEASE"
-        springKafkaVersion = "2.1.4.RELEASE"
-        springCassandraVersion = "2.0.7.RELEASE"
+        springBootVersion = "2.0.2.RELEASE"
+        springKafkaVersion = "2.1.7.RELEASE"
+        springCassandraVersion = "2.0.8.RELEASE"
 
         // metrics
         micrometerVersion = "1.0.0"
