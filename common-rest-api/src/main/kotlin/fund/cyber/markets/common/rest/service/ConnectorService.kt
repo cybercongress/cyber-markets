@@ -24,7 +24,7 @@ import javax.annotation.PostConstruct
 
 @Service
 class ConnectorService(
-    private val connectorApiUrls: List<String>
+    private val connectorApiUrls: List<String> = mutableListOf()
 ) {
     private val log = LoggerFactory.getLogger(javaClass)!!
 
