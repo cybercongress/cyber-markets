@@ -3,6 +3,7 @@ package fund.cyber.markets.cassandra.repository
 import com.datastax.driver.core.ConsistencyLevel
 import fund.cyber.markets.cassandra.model.CqlTokensPair
 import fund.cyber.markets.cassandra.model.CqlTrade
+import fund.cyber.markets.cassandra.model.CqlTradeTemporary
 import org.springframework.data.cassandra.core.mapping.MapId
 import org.springframework.data.cassandra.repository.Consistency
 import org.springframework.data.cassandra.repository.Query
@@ -21,4 +22,11 @@ interface TradeRepository : ReactiveCassandraRepository<CqlTrade, MapId> {
     fun find(@Param("exchange") exchange: String,
              @Param("pair") pair: CqlTokensPair,
              @Param("epochMinute") epochMinute: Long): Flux<CqlTrade>
+}
+
+@Repository
+interface TradeTemporaryRepository : ReactiveCassandraRepository<CqlTradeTemporary, MapId> {
+
+    @Consistency(value = ConsistencyLevel.LOCAL_QUORUM)
+    fun findByEpochMinute(epochMinute: Long): Flux<CqlTradeTemporary>
 }

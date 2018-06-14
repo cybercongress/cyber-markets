@@ -28,10 +28,7 @@ data class CqlOrderBook(
     @PrimaryKeyColumn(ordinal = 0, type = PrimaryKeyType.CLUSTERED, value = "timestamp", ordering = Ordering.DESCENDING)
     val timestamp: Date,
 
-    //@Frozen
     val bids: List<CqlOrderSummary>,
-
-    //@Frozen
     val asks: List<CqlOrderSummary>
 ) {
     constructor(exchange: String, pair: TokensPair, orderBook: OrderBook): this(

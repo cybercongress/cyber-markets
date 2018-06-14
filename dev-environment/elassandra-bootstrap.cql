@@ -1,7 +1,10 @@
-CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','PRODUCTION' : 1};
+CREATE KEYSPACE IF NOT EXISTS markets WITH REPLICATION = {'class' : 'NetworkTopologyStrategy','WITHOUT_REPLICATION' : 1};
 
-CREATE TYPE IF NOT EXISTS markets.tokenprice (
-  value decimal
+CREATE TYPE IF NOT EXISTS markets.tickerprice (
+  open decimal,
+  close decimal,
+  min decimal,
+  max decimal
 );
 
 CREATE TYPE IF NOT EXISTS markets.tokenpair (
@@ -22,12 +25,33 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   timestampFrom timestamp,
   timestampTo timestamp,
   interval bigint,
+  epochDay bigint,
 
-  volume frozen<map<text, map<text, decimal>>>,
-  baseVolume frozen<map<text, map<text, decimal>>>,
-  price frozen<map<text, map<text, tokenprice>>>,
+  volume blob,
+  baseVolume blob,
+  price blob,
 
-  PRIMARY KEY (tokenSymbol, timestampFrom, interval)
+  PRIMARY KEY ((tokenSymbol, epochDay, interval), timestampFrom)
+);
+
+CREATE TABLE IF NOT EXISTS markets.trade_last_timestamp (
+  id text,
+  value bigint,
+
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS markets.token_price (
+  tokenSymbol text,
+  method text,
+
+  timestampFrom bigint,
+  timestampTo bigint,
+  epochHourTo bigint,
+
+  values blob,
+
+  PRIMARY KEY ((tokenSymbol, epochHourTo), timestampTo)
 );
 
 CREATE TABLE IF NOT EXISTS markets.trade (
@@ -46,20 +70,18 @@ WITH CLUSTERING ORDER BY (
   tradeId DESC
 );
 
-CREATE TABLE IF NOT EXISTS "markets"."order" (
+CREATE TABLE IF NOT EXISTS markets.trade_temporary (
   exchange text,
   pair frozen<tokenpair>,
   type text,
-  epochHour bigint,
+  epochMinute bigint,
   timestamp timestamp,
-  orderId text,
-  amount decimal,
+  tradeId text,
+  baseAmount decimal,
+  quoteAmount decimal,
   price decimal,
-  PRIMARY KEY ((exchange, pair, epochHour), orderId)
-)
-WITH CLUSTERING ORDER BY (
-  orderId DESC
-);
+  PRIMARY KEY (epochMinute, exchange, pair, tradeId)
+) WITH default_time_to_live = 604800;
 
 CREATE TABLE IF NOT EXISTS markets.orderbook (
   exchange text,
