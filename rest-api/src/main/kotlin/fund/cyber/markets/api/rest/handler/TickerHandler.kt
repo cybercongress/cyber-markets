@@ -1,7 +1,9 @@
 package fund.cyber.markets.api.rest.handler
 
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
-import fund.cyber.markets.cassandra.repository.PageableTickerRepository
+import fund.cyber.markets.cassandra.repository.TickerRepository
+import fund.cyber.markets.common.DAYS_TO_MILLIS
+import fund.cyber.markets.common.Intervals
 import fund.cyber.markets.common.MILLIS_TO_DAYS
 import fund.cyber.markets.common.MINUTES_TO_MILLIS
 import fund.cyber.markets.common.convert
@@ -18,7 +20,7 @@ const val LIMIT_DEFAULT = "100"
 
 @Component
 class TickerHandler(
-    private val tickerRepository: PageableTickerRepository
+    private val tickerRepository: TickerRepository
 ) {
 
     fun getTickers(serverRequest: ServerRequest): Mono<ServerResponse> {
@@ -26,7 +28,7 @@ class TickerHandler(
         val ts: Long
         val interval: Long
 
-        val limit = serverRequest.queryParam("symbol").orElse(LIMIT_DEFAULT).toLong()
+        val limit = serverRequest.queryParam("limit").orElse(LIMIT_DEFAULT).toLong()
         try {
             symbol = serverRequest.queryParam("symbol").get().toUpperCase()
             ts = serverRequest.queryParam("ts").get().toLong()
@@ -35,13 +37,43 @@ class TickerHandler(
             return ServerResponse.status(HttpStatus.BAD_REQUEST).build()
         }
 
-        val tickers = Flux
-            .empty<CqlTokenTicker>()
-            .concatWith(
-                tickerRepository.find(symbol, ts convert MILLIS_TO_DAYS, Date(ts), interval, limit)
-            )
+        val epochDay = ts convert MILLIS_TO_DAYS
+        val iterations = (ts - (epochDay convert DAYS_TO_MILLIS) + interval * limit) / Intervals.DAY
+
+        val dateTs = Date(ts)
+        var limitVar = limit
+
+        var tickers = Flux.empty<CqlTokenTicker>()
+        for (iteration in 0..iterations) {
+
+            val iterationLimit = getLimit(iteration, epochDay, ts, interval, limitVar)
+            limitVar -=iterationLimit
+
+            tickers = tickers
+                .concatWith(
+                    tickerRepository.find(symbol, (epochDay + iteration), dateTs, interval, iterationLimit)
+                )
+        }
 
         return tickers.asServerResponse()
+    }
+
+    private fun getLimit(iteration: Long, epochDay: Long, ts: Long, interval: Long, limit: Long): Long {
+        var limitResult: Long
+
+        if (iteration == 0L) {
+            limitResult = (((epochDay + 1) convert DAYS_TO_MILLIS) - ts) / interval
+            if (limitResult > limit) {
+                limitResult = limit
+            }
+        } else {
+            limitResult = Intervals.DAY / interval
+            if (limitResult > limit) {
+                limitResult = limit
+            }
+        }
+
+        return limitResult
     }
 
 }

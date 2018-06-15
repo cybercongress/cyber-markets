@@ -13,6 +13,8 @@ const val MINUTES_TO_MILLIS: Double = 1000.0 * 60
 const val MINUTES_TO_SECONDS: Double = 60.0
 const val MINUTES_TO_HOURS: Double = 1.0 / 60
 
+const val DAYS_TO_MILLIS: Double = 1000.0 * 60 * 60 *24
+
 infix fun Long.convert(coefficient: Double): Long {
     return (this * coefficient).toLong()
 }

@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS markets.ticker (
   price blob,
 
   PRIMARY KEY ((tokenSymbol, epochDay, interval), timestampFrom)
+)
+WITH CLUSTERING ORDER BY (
+    timestampFrom DESC
 );
 
 CREATE TABLE IF NOT EXISTS markets.trade_last_timestamp (
