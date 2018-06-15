@@ -2,6 +2,7 @@ package fund.cyber.markets.connector.trade
 
 import fund.cyber.markets.common.MILLIS_TO_MINUTES
 import fund.cyber.markets.common.convert
+import fund.cyber.markets.common.model.Token
 import fund.cyber.markets.common.model.TokensPair
 import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.common.model.TradeType
@@ -22,7 +23,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import org.web3j.protocol.Web3j
@@ -43,26 +43,19 @@ private const val ETH_SYMBOL = "ETH"
 private const val ETHERDELTA_CONNECTION_TIMEOUT_MS: Long = 5 * 60 * 1000
 
 @Component
-class EtherdeltaTradeConnector : Connector {
+class EtherdeltaTradeConnector(
+    private val web3j: Web3j,
+    private val etherdeltaTokenResolver: EtherdeltaTokenResolver,
+    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val monitoring: MeterRegistry
+) : Connector {
     private val log = LoggerFactory.getLogger(EtherdeltaTradeConnector::class.java)!!
 
     private val exchangeName = "ETHERDELTA"
     private val tradesTopicName by lazy { TRADES_TOPIC_PREFIX + exchangeName }
+
     private lateinit var etherdeltaContract: EtherdeltaContract
     private var lastTradeTimestamp: Long? = null
-
-    @Autowired
-    private lateinit var web3j: Web3j
-
-    @Autowired
-    private lateinit var etherdeltaTokenResolver: EtherdeltaTokenResolver
-
-    @Autowired
-    private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
-
-    @Autowired
-    private lateinit var monitoring: MeterRegistry
-
     private val gasProvider: ContractGasProvider = DefaultGasProvider()
 
     /**
@@ -217,6 +210,10 @@ class EtherdeltaTradeConnector : Connector {
         }
 
         return pairs
+    }
+
+    override fun getTokens(): Set<Token> {
+        return etherdeltaTokenResolver.tradingTokens
     }
 
 }
