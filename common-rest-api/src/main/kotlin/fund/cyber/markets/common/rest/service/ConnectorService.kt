@@ -2,7 +2,15 @@ package fund.cyber.markets.common.rest.service
 
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.StringWrapper
+import fund.cyber.markets.common.model.Token
 import fund.cyber.markets.common.model.TokensPair
+import fund.cyber.markets.common.rest.EXCHANGE_LIST
+import fund.cyber.markets.common.rest.EXCHANGE_PAIRS
+import fund.cyber.markets.common.rest.ORDER_BOOK
+import fund.cyber.markets.common.rest.TOKENS_COUNT
+import fund.cyber.markets.common.rest.TOKENS_COUNT_BY_EXCHANGE
+import fund.cyber.markets.common.rest.TOKEN_LIST
+import fund.cyber.markets.common.rest.TOKEN_LIST_BY_EXCHANGE
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.stereotype.Service
@@ -14,14 +22,9 @@ import reactor.core.publisher.Mono
 import reactor.core.publisher.toFlux
 import javax.annotation.PostConstruct
 
-
-const val ORDERBOOK_PATH = "/orderbook"
-const val EXCHANGES_LIST_PATH = "/exchanges"
-const val EXCHANGE_TOKENS_PAIRS_PATH = "/exchange/{exchangeName}/pairs"
-
 @Service
 class ConnectorService(
-    private val connectorApiUrls: List<String>
+    private val connectorApiUrls: List<String> = mutableListOf()
 ) {
     private val log = LoggerFactory.getLogger(javaClass)!!
 
@@ -45,7 +48,7 @@ class ConnectorService(
         try {
             return client
                 .get()
-                .uri(EXCHANGES_LIST_PATH)
+                .uri(EXCHANGE_LIST)
                 .accept(APPLICATION_JSON)
                 .retrieve()
                 .bodyToFlux(StringWrapper::class.java)
@@ -71,7 +74,7 @@ class ConnectorService(
 
                 return client
                     .get()
-                    .uri(EXCHANGE_TOKENS_PAIRS_PATH, mutableMapOf("exchangeName" to exchange))
+                    .uri(EXCHANGE_PAIRS, mutableMapOf("exchangeName" to exchange))
                     .accept(APPLICATION_JSON)
                     .retrieve()
                     .bodyToFlux(TokensPair::class.java)
@@ -93,7 +96,7 @@ class ConnectorService(
 
             try {
                 val client = WebClient.create(apiUrl)
-                val orderBookUri = UriComponentsBuilder.fromUriString(ORDERBOOK_PATH)
+                val orderBookUri = UriComponentsBuilder.fromUriString(ORDER_BOOK)
                     .queryParam("exchange", exchange)
                     .queryParam("pair", pair.pairString())
                     .toUriString()
@@ -106,6 +109,78 @@ class ConnectorService(
                     .bodyToMono(OrderBook::class.java)
             } catch (e: WebClientResponseException) {
                 log.error("Cannot get order book from $exchange for pair: $pair. Response status code: {}", e.rawStatusCode)
+            }
+
+        } else {
+            log.warn("Unknown exchange: $exchange")
+        }
+
+        return Mono.empty()
+    }
+
+    fun getTokens(): Flux<Token> {
+
+        return connectorApiUrls.toFlux().flatMap { apiUrl ->
+            WebClient
+                .create(apiUrl)
+                .get()
+                .uri(TOKEN_LIST)
+                .retrieve()
+                .bodyToFlux(Token::class.java)
+        }
+    }
+
+    fun getTokensByExchange(exchange: String): Flux<Token> {
+        val apiUrl = connectorsMap[exchange]
+
+        if (apiUrl != null) {
+            try {
+                return WebClient.create(apiUrl)
+                    .get()
+                    .uri(TOKEN_LIST_BY_EXCHANGE, exchange)
+                    .accept(APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToFlux(Token::class.java)
+            } catch (e: WebClientResponseException) {
+                log.error("Cannot get token list from $exchange. Response status code: {}", e.rawStatusCode)
+            }
+
+        } else {
+            log.warn("Unknown exchange: $exchange")
+        }
+
+        return Flux.empty()
+    }
+
+    fun getTokensCount(): Mono<Long> {
+
+        return connectorApiUrls.toFlux().flatMap { apiUrl ->
+            WebClient
+                .create(apiUrl)
+                .get()
+                .uri(TOKENS_COUNT)
+                .retrieve()
+                .bodyToMono(Long::class.java)
+        }
+            .collectList()
+            .map {
+                it.sum()
+            }
+    }
+
+    fun getTokensCountByExchange(exchange: String): Mono<Long> {
+        val apiUrl = connectorsMap[exchange]
+
+        if (apiUrl != null) {
+            try {
+                return WebClient.create(apiUrl)
+                    .get()
+                    .uri(TOKENS_COUNT_BY_EXCHANGE, exchange)
+                    .accept(APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(Long::class.java)
+            } catch (e: WebClientResponseException) {
+                log.error("Cannot get token count from $exchange. Response status code: {}", e.rawStatusCode)
             }
 
         } else {

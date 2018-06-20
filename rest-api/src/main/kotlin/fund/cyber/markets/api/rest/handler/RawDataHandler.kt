@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.ServerResponse.badRequest
 import org.springframework.web.reactive.function.server.ServerResponse.notFound
 import org.springframework.web.reactive.function.server.ServerResponse.ok
 import reactor.core.publisher.Mono
@@ -78,13 +79,11 @@ class RawDataHandler(
             pair = serverRequest.queryParam("pair").get().toUpperCase()
             epochMin = serverRequest.queryParam("epochMin").get().toLong()
         } catch (e: NoSuchElementException) {
-            return ServerResponse.status(HttpStatus.BAD_REQUEST).build()
+            return badRequest().build()
         }
 
-        val trades = tradeRepository.find(exchange, CqlTokensPair(pair), epochMin)
-
         return ok()
-            .body(trades, CqlTrade::class.java)
+            .body(tradeRepository.find(exchange, CqlTokensPair(pair), epochMin), CqlTrade::class.java)
             .switchIfEmpty(
                 notFound().build()
             )
