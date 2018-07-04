@@ -29,7 +29,7 @@ interface TickerRepository : ReactiveCassandraRepository<CqlTokenTicker, MapId> 
     @Query("""
         SELECT * FROM markets.ticker
         WHERE tokenSymbol=:tokenSymbol AND epochDay=:epochDay AND interval=:interval
-        AND timestampFrom>=:timestampFrom LIMIT :limitValue""")
+        AND timestampFrom<=:timestampFrom LIMIT :limitValue""")
     fun find(@Param("tokenSymbol") tokenSymbol: String,
              @Param("epochDay") epochDay: Long,
              @Param("timestampFrom") timestampFrom: Date,
