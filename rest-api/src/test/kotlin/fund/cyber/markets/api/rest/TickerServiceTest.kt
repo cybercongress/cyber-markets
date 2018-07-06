@@ -61,6 +61,18 @@ class TickerServiceTest {
             }.doReturn(Flux.fromIterable(
                 generateTestData(Intervals.DAY * 2, 15 * 60 * 1000, 2)
             ))
+
+            //24h interval from 00:00pm
+            on {
+                find("BTC", 1, Date(12 * 60 * 60 * 1000), Intervals.DAY, 1)
+            }.doReturn(Flux.fromIterable(
+                generateTestData(Intervals.DAY, Intervals.DAY, 1)
+            ))
+            on {
+                find("BTC", 2, Date(12 * 60 * 60 * 1000), Intervals.DAY, 1)
+            }.doReturn(Flux.fromIterable(
+                generateTestData(Intervals.DAY * 2, Intervals.DAY, 1)
+            ))
         }
 
         tickerService = TickerService(repository)
@@ -68,7 +80,7 @@ class TickerServiceTest {
 
     //1 min interval
     @Test
-    fun test1() {
+    fun minuteIntervalTest() {
 
         val tickers = tickerService
             .getTickers("BTC", 0L, Intervals.MINUTE, Intervals.DAY / Intervals.MINUTE)
@@ -80,7 +92,7 @@ class TickerServiceTest {
 
     //24h interval
     @Test
-    fun test2() {
+    fun dayIntervalTest() {
 
         val tickers = tickerService
             .getTickers("BTC", 0L, Intervals.DAY, 3)
@@ -92,7 +104,7 @@ class TickerServiceTest {
 
     //15 min interval
     @Test
-    fun test3() {
+    fun minute15IntervalTest() {
 
         val tickers = tickerService
             .getTickers("BTC", 94 * 15 * 60 * 1000, 15 * 60 * 1000, 100)
@@ -100,6 +112,18 @@ class TickerServiceTest {
             .block()
 
         Assertions.assertThat(tickers).hasSize(100)
+    }
+
+    //24h interval from 00:00pm
+    @Test
+    fun dayIntervalAfternoonTest() {
+
+        val tickers = tickerService
+            .getTickers("BTC", 12 * 60 * 60 * 1000, Intervals.DAY, 2)
+            .collectList()
+            .block()
+
+        Assertions.assertThat(tickers).hasSize(2)
     }
 
     private fun generateTestData(timestampFrom: Long, interval: Long, count: Long): MutableList<CqlTokenTicker> {

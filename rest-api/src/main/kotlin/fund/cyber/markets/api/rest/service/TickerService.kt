@@ -34,6 +34,8 @@ class TickerService(
                     .concatWith(
                         tickerRepository.find(symbol, epochDay, Date(ts), interval, iterationLimit)
                     )
+            } else {
+                tsVar = (epochDay + 1) convert DAYS_TO_MILLIS
             }
 
             tsVar += interval * iterationLimit
