@@ -1,15 +1,9 @@
 package fund.cyber.markets.api.rest.handler
 
-import fund.cyber.markets.cassandra.model.CqlOrderBook
-import fund.cyber.markets.cassandra.model.CqlTokensPair
+import fund.cyber.markets.api.rest.service.RawDataService
 import fund.cyber.markets.cassandra.model.CqlTrade
-import fund.cyber.markets.cassandra.repository.OrderBookRepository
-import fund.cyber.markets.cassandra.repository.TradeRepository
-import fund.cyber.markets.common.MILLIS_TO_HOURS
-import fund.cyber.markets.common.convert
 import fund.cyber.markets.common.model.OrderBook
 import fund.cyber.markets.common.model.TokensPair
-import fund.cyber.markets.common.rest.service.ConnectorService
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -22,9 +16,7 @@ import java.util.*
 
 @Component
 class RawDataHandler(
-    private val connectorService: ConnectorService,
-    private val orderBookRepository: OrderBookRepository,
-    private val tradeRepository: TradeRepository
+    private val rawDataService: RawDataService
 ) {
 
     fun getOrderBook(serverRequest: ServerRequest): Mono<ServerResponse> {
@@ -45,27 +37,11 @@ class RawDataHandler(
             // nothing
         }
 
-        val tokensPair = TokensPair(pair)
-
-        if (ts != null) {
-            val orderBook = orderBookRepository
-                .findLastByTimestamp(exchange, CqlTokensPair(tokensPair), ts convert MILLIS_TO_HOURS, Date(ts))
-
-            return ok()
-                .body(orderBook, CqlOrderBook::class.java)
-                .switchIfEmpty(
-                    notFound().build()
-                )
-
-        } else {
-            val orderBook = connectorService.getOrderBook(exchange, tokensPair)
-
-            return ok()
-                .body(orderBook, OrderBook::class.java)
-                .switchIfEmpty(
-                    notFound().build()
-                )
-        }
+        return ok()
+            .body(rawDataService.getOrderBook(exchange, TokensPair(pair), ts), OrderBook::class.java)
+            .switchIfEmpty(
+                notFound().build()
+            )
 
     }
 
@@ -83,7 +59,7 @@ class RawDataHandler(
         }
 
         return ok()
-            .body(tradeRepository.find(exchange, CqlTokensPair(pair), epochMin), CqlTrade::class.java)
+            .body(rawDataService.getTrades(exchange, TokensPair(pair), epochMin), CqlTrade::class.java)
             .switchIfEmpty(
                 notFound().build()
             )
