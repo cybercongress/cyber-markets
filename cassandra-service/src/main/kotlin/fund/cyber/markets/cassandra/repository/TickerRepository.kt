@@ -24,4 +24,15 @@ interface TickerRepository : ReactiveCassandraRepository<CqlTokenTicker, MapId> 
              @Param("timestampFrom") timestampFrom: Date,
              @Param("timestampTo") timestampTo: Date,
              @Param("interval") interval: Long): Flux<CqlTokenTicker>
+
+    @Consistency(value = ConsistencyLevel.LOCAL_QUORUM)
+    @Query("""
+        SELECT * FROM markets.ticker
+        WHERE tokenSymbol=:tokenSymbol AND epochDay=:epochDay AND interval=:interval
+        AND timestampFrom<=:timestampFrom LIMIT :limitValue""")
+    fun find(@Param("tokenSymbol") tokenSymbol: String,
+             @Param("epochDay") epochDay: Long,
+             @Param("timestampFrom") timestampFrom: Date,
+             @Param("interval") interval: Long,
+             @Param("limitValue") limit: Long): Flux<CqlTokenTicker>
 }
