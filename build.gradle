@@ -27,10 +27,10 @@ buildscript {
         shadowPluginVersion = "2.0.1"
 
         // tests
-        junitVersion = "5.0.3"
+        junitVersion = "5.2.0"
         junitPlatformVersion = "1.0.3"
-        mockitoVersion = "2.1.0"
-        mockitoKotlinVersion = "0.7.0"
+        mockitoVersion = "2.18.3"
+        mockitoKotlinVersion = "1.6.0"
 
         // logs
         slf4jVersion = "1.7.25"
@@ -237,6 +237,7 @@ project(":rest-api") {
         compile project(":cassandra-service")
 
         testCompile 'org.springframework.boot:spring-boot-starter-test'
+        testCompile 'com.nhaarman:mockito-kotlin'
     }
 }
 
