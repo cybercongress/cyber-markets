@@ -14,3 +14,12 @@ fun <T> Flux<T>.asServerResponse() = this.collectList().flatMap { obj ->
         else -> Mono.empty<ServerResponse>()
     }
 }.switchIfEmpty(ServerResponse.notFound().build())
+
+fun <T> Mono<T>.asServerResponseAllowEmpty() = this.flatMap { obj -> ServerResponse.ok().body(BodyInserters.fromObject(obj)) }
+
+fun <T> Flux<T>.asServerResponseAllowEmpty() = this.collectList().flatMap { obj ->
+    when {
+        obj.isNotEmpty() -> ServerResponse.ok().body(BodyInserters.fromObject(obj))
+        else -> Mono.empty<ServerResponse>()
+    }
+}
