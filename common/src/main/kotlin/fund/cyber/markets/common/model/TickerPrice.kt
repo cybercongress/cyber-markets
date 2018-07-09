@@ -29,4 +29,12 @@ data class TickerPrice(
         return this
     }
 
+    fun update(price: TickerPrice): TickerPrice {
+        update(price.min)
+        update(price.max)
+        update(price.close)
+
+        return this
+    }
+
 }

@@ -2,12 +2,12 @@ package fund.cyber.markets.ticker.configuration
 
 import fund.cyber.markets.common.ALLOW_NOT_CLOSED_WINDOWS
 import fund.cyber.markets.common.ALLOW_NOT_CLOSED_WINDOWS_DEFAULT
-import fund.cyber.markets.common.Durations
+import fund.cyber.markets.common.Intervals
 import fund.cyber.markets.common.SECONDS_TO_MILLIS
-import fund.cyber.markets.common.WINDOW_DURATIONS_MIN
-import fund.cyber.markets.common.WINDOW_DURATIONS_MIN_DEFAULT
 import fund.cyber.markets.common.WINDOW_HOP_SEC
 import fund.cyber.markets.common.WINDOW_HOP_SEC_DEFAULT
+import fund.cyber.markets.common.WINDOW_INTERVALS_MIN
+import fund.cyber.markets.common.WINDOW_INTERVALS_MIN_DEFAULT
 import fund.cyber.markets.common.convert
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -23,7 +23,7 @@ class TickersConfiguration(
         @Value("\${$ALLOW_NOT_CLOSED_WINDOWS:$ALLOW_NOT_CLOSED_WINDOWS_DEFAULT}")
         val allowNotClosedWindows: Boolean,
 
-        @Value("\${$WINDOW_DURATIONS_MIN:$WINDOW_DURATIONS_MIN_DEFAULT}")
+        @Value("\${$WINDOW_INTERVALS_MIN:$WINDOW_INTERVALS_MIN_DEFAULT}")
         private val windowDurationsString: String
 ) {
 
@@ -36,8 +36,8 @@ class TickersConfiguration(
             .map { it -> TimeUnit.MINUTES.toMillis(it.toLong()) }
             .toMutableSet()
             .apply {
-                add(Durations.MINUTE)
-                add(Durations.HOUR)
-                add(Durations.DAY)
+                add(Intervals.MINUTE)
+                add(Intervals.HOUR)
+                add(Intervals.DAY)
             }
 }

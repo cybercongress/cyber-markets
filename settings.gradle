@@ -7,5 +7,7 @@ include("exchanges-connector")
 include("storer")
 
 include("tickers-batch")
+include("tickers")
+
 include("stream-api")
 include("rest-api")

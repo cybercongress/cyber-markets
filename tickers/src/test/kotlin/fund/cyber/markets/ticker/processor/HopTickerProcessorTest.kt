@@ -11,12 +11,12 @@ class HopTickerProcessorTest {
 
 */
 /*        @MockBean
-        private lateinit var tickerService: TickerServiceImpl*//*
+        private lateinit var tickerService: TickerService*//*
 
 
         @Bean
-        fun hopTickerProcessor(): HopTickerProcessorImpl {
-            return HopTickerProcessorImpl()
+        fun hopTickerProcessor(): HopTickerProcessor {
+            return HopTickerProcessor()
         }
 
         @Bean
@@ -32,10 +32,10 @@ class HopTickerProcessorTest {
     }
 
     @Autowired
-    private lateinit var hopTickerProcessor: HopTickerProcessorImpl
+    private lateinit var hopTickerProcessor: HopTickerProcessor
 
     @MockBean
-    private lateinit var tickerService: TickerServiceImpl
+    private lateinit var tickerService: TickerService
 
     @Before
     fun before() {

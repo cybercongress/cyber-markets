@@ -1,7 +1,7 @@
 package fund.cyber.markets.ticker.configuration
 
 import fund.cyber.markets.cassandra.model.CqlTokenTicker
-import fund.cyber.markets.common.Durations
+import fund.cyber.markets.common.Intervals
 import fund.cyber.markets.common.KAFKA_BROKERS
 import fund.cyber.markets.common.KAFKA_BROKERS_DEFAULT
 import fund.cyber.markets.common.kafka.JsonDeserializer
@@ -29,7 +29,7 @@ class KafkaConsumerConfiguration {
     fun tradesConsumerConfig(): Properties {
         return Properties().apply {
             put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers)
-            put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, Durations.MINUTE)
+            put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, Intervals.MINUTE)
             put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS_PROPERTY)
             put(ConsumerConfig.GROUP_ID_CONFIG, "TRADE_CONSUMER")
             put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, IsolationLevel.READ_COMMITTED.toString().toLowerCase())
