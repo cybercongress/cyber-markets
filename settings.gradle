@@ -6,8 +6,9 @@ include("cassandra-service")
 include("exchanges-connector")
 include("storer")
 
-include("tickers-batch")
-include("tickers")
+include("tickers:common")
+include("tickers:real-time")
+include("tickers:historical")
 
 include("stream-api")
 include("rest-api")

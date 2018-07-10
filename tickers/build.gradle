@@ -1,0 +1,43 @@
+project(":tickers:common") {
+
+}
+
+project(":tickers:real-time") {
+
+    apply plugin: "org.springframework.boot"
+
+    springBoot {
+        mainClassName = 'fund.cyber.markets.TickersApplication'
+    }
+
+    dependencies {
+        compile project(":common")
+        compile project(":common-kafka")
+        compile project(":cassandra-service")
+
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.springframework.kafka:spring-kafka'
+
+        testCompile 'org.springframework.boot:spring-boot-starter-test'
+    }
+}
+
+project(":tickers:historical") {
+
+    apply plugin: "org.springframework.boot"
+
+    springBoot {
+        mainClassName = 'fund.cyber.markets.TickersApplication'
+    }
+
+    dependencies {
+        compile project(":common")
+        compile project(":common-kafka")
+        compile project(":cassandra-service")
+
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.ehcache:ehcache'
+
+        testCompile 'org.springframework.boot:spring-boot-starter-test'
+    }
+}
