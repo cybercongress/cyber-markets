@@ -5,6 +5,7 @@ import fund.cyber.markets.common.closestSmallerMultiplyFromTs
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.ticker.common.addHop
 import fund.cyber.markets.ticker.common.minusHop
+import fund.cyber.markets.ticker.common.updatePrices
 import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
@@ -50,10 +51,6 @@ class TickerProcessor(
         }
 
         cleanupOldData()
-
-        //todo: use price processors from tickers-batch
-        calculateWeightedPrice()
-
         saveAndProduceToKafka()
         updateTimestamps()
     }
@@ -70,6 +67,8 @@ class TickerProcessor(
                 }
                 if (window.isEmpty()) {
                     tickersForDelete.add(ticker)
+                } else {
+                    ticker updatePrices window
                 }
             }
         }
@@ -77,10 +76,6 @@ class TickerProcessor(
         tickersForDelete.forEach { ticker ->
             tickers[ticker.symbol]!!.remove(ticker.interval)
         }
-    }
-
-    private fun calculateWeightedPrice() {
-        //todo
     }
 
     fun saveAndProduceToKafka() {
