@@ -3,6 +3,7 @@ package fund.cyber.markets.connector.api.handler
 import fund.cyber.markets.common.model.StringWrapper
 import fund.cyber.markets.common.model.Token
 import fund.cyber.markets.common.rest.asServerResponse
+import fund.cyber.markets.common.rest.asServerResponseAllowEmpty
 import fund.cyber.markets.connector.ConnectorRunner
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -33,7 +34,7 @@ class ConnectorInfoHandler(
 
         val pairs = connectorRunner.exchangesConnectors()[exchange]?.getTokensPairs() ?: setOf()
 
-        return pairs.toFlux().asServerResponse()
+        return pairs.toFlux().asServerResponseAllowEmpty()
     }
 
     fun getPairsCountByExchange(request: ServerRequest): Mono<ServerResponse> {
@@ -62,7 +63,7 @@ class ConnectorInfoHandler(
 
     fun getTokens(request: ServerRequest): Mono<ServerResponse> {
 
-        return getTokensEntities().toFlux().asServerResponse()
+        return getTokensEntities().toFlux().asServerResponseAllowEmpty()
     }
 
     fun getTokensByExchange(request: ServerRequest): Mono<ServerResponse> {
@@ -74,7 +75,7 @@ class ConnectorInfoHandler(
 
         val tokensByExchange = connectorRunner.exchangesConnectors()[exchange]?.getTokens() ?: setOf()
 
-        return tokensByExchange.toFlux().asServerResponse()
+        return tokensByExchange.toFlux().asServerResponseAllowEmpty()
     }
 
     fun getTokensCountByExchange(request: ServerRequest): Mono<ServerResponse> {
