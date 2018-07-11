@@ -102,13 +102,14 @@ jobs:
   deploy_exchanges-connector_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build exchanges-connector docker image
           command: |
-            docker build -t cybernode/cm-exchanges-connector:$CIRCLE_TAG -f ./exchanges-connector/Dockerfile ./
+            docker build -t cybernode/cm-exchanges-connector:$CIRCLE_TAG -f ./exchanges-connector/Dockerfile ./exchanges-connector
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-exchanges-connector:$CIRCLE_TAG
             docker tag cybernode/cm-exchanges-connector:$CIRCLE_TAG cybernode/cm-exchanges-connector:latest
@@ -117,13 +118,14 @@ jobs:
   deploy_tickers-historical_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build tickers-historical docker image
           command: |
-            docker build -t cybernode/cm-tickers-historical:$CIRCLE_TAG -f ./tickers/historical/Dockerfile ./
+            docker build -t cybernode/cm-tickers-historical:$CIRCLE_TAG -f ./tickers/historical/Dockerfile ./tickers/historical
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-tickers-historical:$CIRCLE_TAG
             docker tag cybernode/cm-tickers-historical:$CIRCLE_TAG cybernode/cm-tickers-historical:latest
@@ -132,13 +134,14 @@ jobs:
   deploy_tickers-real-time_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build tickers-real-time docker image
           command: |
-            docker build -t cybernode/cm-tickers-real-time:$CIRCLE_TAG -f ./tickers/real-time/Dockerfile ./
+            docker build -t cybernode/cm-tickers-real-time:$CIRCLE_TAG -f ./tickers/real-time/Dockerfile ./tickers/real-time
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-tickers-real-time:$CIRCLE_TAG
             docker tag cybernode/cm-tickers-real-time:$CIRCLE_TAG cybernode/cm-tickers-real-time:latest
@@ -147,13 +150,14 @@ jobs:
   deploy_stream-api_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build stream-api docker image
           command: |
-            docker build -t cybernode/cm-stream-api:$CIRCLE_TAG -f ./stream-api/Dockerfile ./
+            docker build -t cybernode/cm-stream-api:$CIRCLE_TAG -f ./stream-api/Dockerfile ./stream-api
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-stream-api:$CIRCLE_TAG
             docker tag cybernode/cm-stream-api:$CIRCLE_TAG cybernode/cm-stream-api:latest
@@ -162,13 +166,14 @@ jobs:
   deploy_rest-api_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build rest-api docker image
           command: |
-            docker build -t cybernode/cm-rest-api:$CIRCLE_TAG -f ./rest-api/Dockerfile ./
+            docker build -t cybernode/cm-rest-api:$CIRCLE_TAG -f ./rest-api/Dockerfile ./rest-api
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-rest-api:$CIRCLE_TAG
             docker tag cybernode/cm-rest-api:$CIRCLE_TAG cybernode/cm-rest-api:latest
@@ -177,13 +182,14 @@ jobs:
   deploy_storer_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build storer docker image
           command: |
-            docker build -t cybernode/cm-storer:$CIRCLE_TAG -f ./storer/Dockerfile ./
+            docker build -t cybernode/cm-storer:$CIRCLE_TAG -f ./storer/Dockerfile ./storer
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-storer:$CIRCLE_TAG
             docker tag cybernode/cm-storer:$CIRCLE_TAG cybernode/cm-storer:latest
