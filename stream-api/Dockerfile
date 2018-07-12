@@ -1,7 +1,14 @@
-# Container with application
-FROM openjdk:8-jre-slim
-COPY /build/libs /cyberapp/bin
+# Build Stage
+FROM openjdk:8u131-jdk AS build
+COPY ./ /cm
+WORKDIR /cm
+RUN ./gradlew clean :stream-api:installDist
 
-ENTRYPOINT exec java $JAVA_OPTS -jar /cyberapp/bin/stream-api.jar
+# Container with application
+FROM openjdk:8u131-jre-alpine
+VOLUME /cyberdata
+COPY --from=build /cm/stream-api/build/install/stream-api /cyberapp
+ENTRYPOINT ["/cyberapp/bin/stream-api"]
+
 
 

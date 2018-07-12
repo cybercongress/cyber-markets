@@ -1,5 +1,11 @@
-# Container with application
-FROM openjdk:8-jre-slim
-COPY /build/libs /cyberapp/bin
+# Build Stage
+FROM openjdk:8u131-jdk AS build
+COPY ./ /build
+WORKDIR /build
+RUN ./gradlew clean :tickers-batch:assemble
 
-ENTRYPOINT exec java $JAVA_OPTS -jar /cyberapp/bin/historical.jar
+# Container with application
+FROM openjdk:8u131-jre-alpine
+COPY --from=build /build/tickers-batch/build/libs /cyberapp/bin
+
+ENTRYPOINT exec java $JAVA_OPTS -jar /cyberapp/bin/tickers-batch.jar
