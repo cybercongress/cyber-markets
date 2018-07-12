@@ -224,7 +224,7 @@ project(":stream-api") {
     dependencies {
         compile project(":common")
         compile project(":common-kafka")
-        compile("io.undertow:undertow-core")
+        compile 'io.undertow:undertow-core'
     }
 }
 
