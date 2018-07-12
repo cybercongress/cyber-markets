@@ -216,15 +216,16 @@ project(":common-rest-api") {
 }
 
 project(":stream-api") {
+
     apply plugin: "application"
+
+    mainClassName = "fund.cyber.markets.StreamApiApplication"
 
     dependencies {
         compile project(":common")
         compile project(":common-kafka")
         compile("io.undertow:undertow-core")
     }
-
-    mainClassName = "fund.cyber.markets.StreamApiApplication"
 }
 
 project(":rest-api") {
