@@ -173,7 +173,7 @@ jobs:
       - run:
           name: Build rest-api docker image
           command: |
-            docker build -t cybernode/cm-rest-api:$CIRCLE_TAG -f ./rest-api/Dockerfile ./rest-api
+            docker build -t cybernode/cm-rest-api:$CIRCLE_TAG -f ./rest-api/Dockerfile ~/build/rest-api
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-rest-api:$CIRCLE_TAG
             docker tag cybernode/cm-rest-api:$CIRCLE_TAG cybernode/cm-rest-api:latest
