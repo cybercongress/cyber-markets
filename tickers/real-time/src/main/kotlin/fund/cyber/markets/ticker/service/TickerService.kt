@@ -57,7 +57,7 @@ class TickerService(
 
         Schedulers.single().scheduleDirect {
             try {
-                tickerRepository.saveAll(snapshots)
+                tickerRepository.saveAll(snapshots).collectList().block()
                 isCassandraAlive = true
             } catch (e: Exception) {
                 log.error("Save tickers snapshots failed", e)
@@ -79,7 +79,7 @@ class TickerService(
             val tickers = tickerKafkaService.pollBackupedTickers(pollTimeout)
 
             try {
-                tickerRepository.saveAll(tickers)
+                tickerRepository.saveAll(tickers).collectList().block()
             } catch (e: Exception) {
                 log.error("Tickers restore failed")
             }
