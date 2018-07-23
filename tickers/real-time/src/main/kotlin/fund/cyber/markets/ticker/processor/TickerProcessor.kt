@@ -6,9 +6,9 @@ import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.ticker.common.addHop
 import fund.cyber.markets.ticker.common.minusHop
 import fund.cyber.markets.ticker.common.updatePrices
-import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -21,7 +21,9 @@ import java.util.concurrent.TimeUnit
 class TickerProcessor(
     private val hopTickerProcessor: HopTickerProcessor,
     private val tickerService: TickerService,
-    private val configuration: TickersConfiguration
+    private val windowHop: Long,
+    @Qualifier("windowIntervals")
+    private val windowIntervals: MutableSet<Long>
 ) {
 
     private val log = LoggerFactory.getLogger(TickerProcessor::class.java)!!
@@ -31,7 +33,7 @@ class TickerProcessor(
 
     fun process() {
         while (true) {
-            sleep(configuration.windowHop)
+            sleep(windowHop)
 
             hopTickerProcessor.update()
             update(hopTickerProcessor.hopTickers)
@@ -40,7 +42,7 @@ class TickerProcessor(
 
     fun update(hopTickers: MutableMap<String, TokenTicker>) {
         hopTickers.forEach { tokenSymbol, hopTicker ->
-            configuration.windowDurations.forEach { duration ->
+            windowIntervals.forEach { duration ->
 
                 val ticker = getTicker(tokenSymbol, duration)
                 val window = getWindow(tokenSymbol, duration)
@@ -88,7 +90,7 @@ class TickerProcessor(
         tickers.forEach { _, windowDurationMap ->
             windowDurationMap.forEach { _, ticker ->
                 if (ticker.timestampTo <= currentHopFromMillis) {
-                    val difference = currentHopFromMillis - ticker.timestampTo + configuration.windowHop
+                    val difference = currentHopFromMillis - ticker.timestampTo + windowHop
                     ticker.timestampFrom += difference
                     ticker.timestampTo += difference
                 }

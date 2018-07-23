@@ -10,6 +10,7 @@ import fund.cyber.markets.common.WINDOW_INTERVALS_MIN
 import fund.cyber.markets.common.WINDOW_INTERVALS_MIN_DEFAULT
 import fund.cyber.markets.common.convert
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
@@ -21,17 +22,20 @@ class TickersConfiguration(
         private val windowHopSec: Long,
 
         @Value("\${$ALLOW_NOT_CLOSED_WINDOWS:$ALLOW_NOT_CLOSED_WINDOWS_DEFAULT}")
-        val allowNotClosedWindows: Boolean,
+        private val allowNotClosedWindows: Boolean,
 
         @Value("\${$WINDOW_INTERVALS_MIN:$WINDOW_INTERVALS_MIN_DEFAULT}")
-        private val windowDurationsString: String
+        private val windowIntervalsString: String
 ) {
 
-    val windowHop: Long by lazy { windowHopSec convert SECONDS_TO_MILLIS }
+    @Bean
+    fun windowHop(): Long = windowHopSec convert SECONDS_TO_MILLIS
 
-    val pollTimeout: Long by lazy { (windowHop * POLL_TIMEOUT_COEFFICIENT).toLong() }
+    @Bean
+    fun pollTimeout(): Long = (windowHop() * POLL_TIMEOUT_COEFFICIENT).toLong()
 
-    val windowDurations: MutableSet<Long> = windowDurationsString
+    @Bean
+    fun windowIntervals(): MutableSet<Long> = windowIntervalsString
             .split(",")
             .map { it -> TimeUnit.MINUTES.toMillis(it.toLong()) }
             .toMutableSet()
@@ -40,4 +44,7 @@ class TickersConfiguration(
                 add(Intervals.HOUR)
                 add(Intervals.DAY)
             }
+
+    @Bean
+    fun allowNotClosedWindows() = allowNotClosedWindows
 }

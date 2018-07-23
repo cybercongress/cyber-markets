@@ -7,25 +7,22 @@ import fund.cyber.markets.common.model.TickerPrice
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.Trade
 import fund.cyber.markets.ticker.common.CrossConversion
-import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
 /**
- * @param hopTickers - map of fromToken -> TokenTicker
+ * @param hopTickers - map of token symbol -> TokenTicker
  */
 @Component
 class HopTickerProcessor(
-    private val configuration: TickersConfiguration,
     private val tickerService: TickerService,
-    private val crossConversion: CrossConversion
+    private val crossConversion: CrossConversion,
+    private val windowHop: Long
 ) {
-
     private val log = LoggerFactory.getLogger(HopTickerProcessor::class.java)!!
 
-    private val windowHop: Long by lazy { configuration.windowHop }
     val hopTickers: MutableMap<String, TokenTicker> = mutableMapOf()
     var currentHopFromMillis: Long = 0L
 

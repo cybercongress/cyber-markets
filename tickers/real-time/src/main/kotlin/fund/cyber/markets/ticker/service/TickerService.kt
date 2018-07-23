@@ -4,7 +4,6 @@ import fund.cyber.markets.cassandra.model.CqlTokenTicker
 import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.Trade
-import fund.cyber.markets.ticker.configuration.TickersConfiguration
 import io.reactivex.schedulers.Schedulers
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.slf4j.LoggerFactory
@@ -14,7 +13,8 @@ import org.springframework.stereotype.Service
 class TickerService(
     private val tickerRepository: TickerRepository,
     private val tickerKafkaService: TickerKafkaService,
-    private val configuration: TickersConfiguration
+    private val allowNotClosedWindows: Boolean,
+    private val pollTimeout: Long
 ) {
 
     private val log = LoggerFactory.getLogger(TickerService::class.java)!!
@@ -23,7 +23,7 @@ class TickerService(
     private var restoreNeeded = false
 
     fun poll(): ConsumerRecords<String, Trade> {
-        return tickerKafkaService.pollTrades(configuration.pollTimeout)
+        return tickerKafkaService.pollTrades(pollTimeout)
     }
 
     fun persist(tickers: MutableMap<String, MutableMap<Long, TokenTicker>>, currentHopFromMillis: Long) {
@@ -35,7 +35,7 @@ class TickerService(
                 val isClosedWindow = ticker.timestampTo <= currentHopFromMillis
                 val isSnapshot = ticker.timestampTo % windowDuration == 0L
 
-                if (isClosedWindow || configuration.allowNotClosedWindows) {
+                if (isClosedWindow || allowNotClosedWindows) {
                     tickerClosed.add(CqlTokenTicker(ticker))
                 }
                 if (isClosedWindow && isSnapshot) {
@@ -76,7 +76,7 @@ class TickerService(
         log.info("Restoring tickers from kafka")
 
         Schedulers.single().scheduleDirect {
-            val tickers = tickerKafkaService.pollBackupedTickers(configuration.pollTimeout)
+            val tickers = tickerKafkaService.pollBackupedTickers(pollTimeout)
 
             try {
                 tickerRepository.saveAll(tickers)
