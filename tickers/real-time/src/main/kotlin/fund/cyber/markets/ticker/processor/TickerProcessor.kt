@@ -23,9 +23,8 @@ class TickerProcessor(
     private val tickerService: TickerService,
     private val windowHop: Long,
     @Qualifier("windowIntervals")
-    private val windowIntervals: MutableSet<Long>
+    private val windowIntervals: Set<Long>
 ) {
-
     private val log = LoggerFactory.getLogger(TickerProcessor::class.java)!!
 
     val tickers: MutableMap<String, MutableMap<Long, TokenTicker>> = mutableMapOf()
@@ -81,11 +80,11 @@ class TickerProcessor(
     }
 
     fun saveAndProduceToKafka() {
-        tickerService.persist(tickers, hopTickerProcessor.currentHopFromMillis)
+        tickerService.persist(tickers, hopTickerProcessor.currentHopToMillis)
     }
 
     fun updateTimestamps() {
-        val currentHopFromMillis = hopTickerProcessor.currentHopFromMillis
+        val currentHopFromMillis = hopTickerProcessor.currentHopToMillis
 
         tickers.forEach { _, windowDurationMap ->
             windowDurationMap.forEach { _, ticker ->

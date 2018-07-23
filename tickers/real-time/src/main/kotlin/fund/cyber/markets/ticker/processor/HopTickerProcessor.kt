@@ -24,13 +24,13 @@ class HopTickerProcessor(
     private val log = LoggerFactory.getLogger(HopTickerProcessor::class.java)!!
 
     val hopTickers: MutableMap<String, TokenTicker> = mutableMapOf()
-    var currentHopFromMillis: Long = 0L
+    var currentHopToMillis: Long = 0L
 
     fun update() {
         hopTickers.clear()
 
-        currentHopFromMillis = closestSmallerMultiplyFromTs(windowHop)
-        val currentMillisHopFrom = currentHopFromMillis - windowHop
+        currentHopToMillis = closestSmallerMultiplyFromTs(windowHop)
+        val currentHopFromMillis = currentHopToMillis - windowHop
 
         val tradeRecords = tickerService.poll()
         val tradesCount = tradeRecords.count()
@@ -38,8 +38,8 @@ class HopTickerProcessor(
 
         //todo: magic filter
         val trades = tradeRecords
-            .filter { it.timestamp() + windowHop >= currentMillisHopFrom }
-            .map { it.value() }
+            .map { tradeRecord -> tradeRecord.value() }
+            .filter { trade -> trade.timestamp - windowHop >= currentHopFromMillis }
 
         log.debug("Dropped trades count: {}", tradesCount - trades.size)
 
@@ -53,11 +53,11 @@ class HopTickerProcessor(
 
             val tickerBase = hopTickers
                 .getOrPut(base) {
-                    TokenTicker(base, currentMillisHopFrom, currentHopFromMillis, windowHop)
+                    TokenTicker(base, currentHopFromMillis, currentHopToMillis, windowHop)
                 }
             val tickerQuote = hopTickers
                 .getOrPut(quote) {
-                    TokenTicker(quote, currentMillisHopFrom, currentHopFromMillis, windowHop)
+                    TokenTicker(quote, currentHopFromMillis, currentHopToMillis, windowHop)
                 }
 
             val volumeBase = tickerBase.volume
