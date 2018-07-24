@@ -1,79 +1,98 @@
 package fund.cyber.markets.ticker.common
 
-import fund.cyber.markets.common.model.BaseTokens
+import fund.cyber.markets.common.model.Exchanges
 import fund.cyber.markets.common.model.TickerPrice
 import fund.cyber.markets.common.model.TokenTicker
+import fund.cyber.markets.common.model.Trade
 import java.math.BigDecimal
-import java.util.*
 
-infix fun TokenTicker.addHop(hopTicker: TokenTicker) {
+fun updateVolumes(tickers: MutableMap<String, TokenTicker>, trade: Trade, timestampFrom: Long, interval: Long) {
+    val base = trade.pair.base
+    val quote = trade.pair.quote
+    val exchange = trade.exchange
 
-    //update volumes
-    hopTicker.volume.forEach { ctSymbol, exchangeVolumeMap ->
-        exchangeVolumeMap.forEach { exchange, hopVolume ->
-            val tickerVolume = volume
-                .getOrPut(ctSymbol) { mutableMapOf() }
-                .getOrPut(exchange) { BigDecimal.ZERO }
+    val tickerBase = getTicker(tickers, base, timestampFrom, interval)
+    val tickerQuote = getTicker(tickers, quote, timestampFrom, interval)
 
-            volume[ctSymbol]!![exchange] = tickerVolume.plus(hopVolume)
-        }
-    }
+    val volumeBase = tickerBase.volume
+        .getOrPut(quote) { mutableMapOf() }
+        .getOrPut(exchange) { BigDecimal.ZERO }
+        .plus(trade.baseAmount)
+    tickerBase.volume[quote]!![exchange] = volumeBase
 
-    BaseTokens.values()
-        .map { it.name }
-        .forEach { baseTokenSymbol ->
+    val volumeBaseAll = tickerBase.volume
+        .getOrPut(quote) { mutableMapOf() }
+        .getOrPut(Exchanges.ALL) { BigDecimal.ZERO }
+        .plus(trade.baseAmount)
+    tickerBase.volume[quote]!![Exchanges.ALL] = volumeBaseAll
 
-            //update prices
-            updatePricesMap(this, hopTicker)
+    val volumeQuote = tickerQuote.volume
+        .getOrPut(base) { mutableMapOf() }
+        .getOrPut(exchange) { BigDecimal.ZERO }
+        .plus(trade.quoteAmount)
+    tickerQuote.volume[base]!![exchange] = volumeQuote
 
-            //update baseVolumes
-            hopTicker.baseVolume[baseTokenSymbol]?.forEach { exchange, hopTotalVolume ->
-                val tickerBaseVolume = baseVolume
-                    .getOrPut(baseTokenSymbol) { mutableMapOf() }
-                    .getOrPut(exchange) { BigDecimal.ZERO }
-
-                baseVolume[baseTokenSymbol]!![exchange] = tickerBaseVolume.plus(hopTotalVolume)
-            }
-        }
+    val volumeQuoteAll = tickerQuote.volume
+        .getOrPut(base) { mutableMapOf() }
+        .getOrPut(Exchanges.ALL) { BigDecimal.ZERO }
+        .plus(trade.quoteAmount)
+    tickerQuote.volume[base]!![Exchanges.ALL] = volumeQuoteAll
 }
 
-infix fun TokenTicker.minusHop(hopTicker: TokenTicker) {
+fun updateBaseVolumesWithPrices(tickers: MutableMap<String, TokenTicker>, crossConversion: CrossConversion,
+                                        baseTokenSymbol: String, trade: Trade, timestampFrom: Long, interval: Long) {
+    val base = trade.pair.base
+    val quote = trade.pair.quote
+    val exchange = trade.exchange
 
-    //update volumes
-    hopTicker.volume.forEach { ctSymbol, exchangeVolumeMap ->
-        exchangeVolumeMap.forEach { exchange, hopVolume ->
-            val tickerVolume = volume[ctSymbol]!![exchange]!!
-            volume[ctSymbol]!![exchange] = tickerVolume.minus(hopVolume)
-        }
+    val tickerBase = getTicker(tickers, base, timestampFrom, interval)
+    val tickerQuote = getTicker(tickers, quote, timestampFrom, interval)
+
+    val priceForBase = crossConversion.calculate(base, baseTokenSymbol, exchange) ?: BigDecimal.ZERO
+    val priceForQuote = crossConversion.calculate(quote, baseTokenSymbol, exchange) ?: BigDecimal.ZERO
+
+    if (priceForBase > BigDecimal.ZERO) {
+        val basePrice = tickerBase.price
+            .getOrPut(baseTokenSymbol) { mutableMapOf() }
+            .getOrPut(exchange) { TickerPrice(priceForBase) }
+        tickerBase.price[baseTokenSymbol]!![exchange] = basePrice.update(priceForBase)
+
+        val volumeBaseBCT = tickerBase.baseVolume
+            .getOrPut(baseTokenSymbol) { mutableMapOf() }
+            .getOrPut(exchange) { BigDecimal.ZERO }
+            .plus(priceForBase.multiply(trade.baseAmount))
+        tickerBase.baseVolume[baseTokenSymbol]!![exchange] = volumeBaseBCT
+
+        val volumeBaseBCTall = tickerBase.baseVolume
+            .getOrPut(baseTokenSymbol) { mutableMapOf() }
+            .getOrPut(Exchanges.ALL) { BigDecimal.ZERO }
+            .plus(priceForBase.multiply(trade.baseAmount))
+        tickerBase.baseVolume[baseTokenSymbol]!![Exchanges.ALL] = volumeBaseBCTall
     }
 
-    //update baseVolumes
-    BaseTokens.values()
-        .map { it.name }
-        .forEach { baseTokenSymbol ->
-            hopTicker.baseVolume[baseTokenSymbol]?.forEach { exchange, hopTotalVolume ->
-                val tickerBaseVolume = baseVolume[baseTokenSymbol]!![exchange]!!
-                baseVolume[baseTokenSymbol]!![exchange] = tickerBaseVolume.minus(hopTotalVolume)
-            }
-        }
+    if (priceForQuote > BigDecimal.ZERO) {
+        val quotePrice = tickerQuote.price
+            .getOrPut(baseTokenSymbol) { mutableMapOf() }
+            .getOrPut(exchange) { TickerPrice(priceForQuote) }
+        tickerQuote.price[baseTokenSymbol]!![exchange] = quotePrice.update(priceForQuote)
+
+        val volumeQuoteBCT = tickerQuote.baseVolume
+            .getOrPut(baseTokenSymbol) { mutableMapOf() }
+            .getOrPut(exchange) { BigDecimal.ZERO }
+            .plus(priceForQuote.multiply(trade.quoteAmount))
+        tickerQuote.baseVolume[baseTokenSymbol]!![exchange] = volumeQuoteBCT
+
+        val volumeQuoteBCTall = tickerQuote.baseVolume
+            .getOrPut(baseTokenSymbol) { mutableMapOf() }
+            .getOrPut(Exchanges.ALL) { BigDecimal.ZERO }
+            .plus(priceForQuote.multiply(trade.quoteAmount))
+        tickerQuote.baseVolume[baseTokenSymbol]!![Exchanges.ALL] = volumeQuoteBCTall
+    }
 }
 
-infix fun TokenTicker.updatePrices(window: Queue<TokenTicker>) {
-    this.price.clear()
-
-    window.forEach { hopTicker ->
-        updatePricesMap(this, hopTicker)
-    }
-}
-
-private fun updatePricesMap(ticker: TokenTicker, hopTicker: TokenTicker) {
-    hopTicker.price.forEach { baseTokenSymbol, exchangeMap ->
-        exchangeMap.forEach { exchange, hopTickerPrice ->
-            val tickerPrice = ticker.price
-                .getOrPut(baseTokenSymbol) { mutableMapOf() }
-                .getOrPut(exchange) { TickerPrice(hopTickerPrice.open) }
-
-            ticker.price[baseTokenSymbol]!![exchange] = tickerPrice.update(hopTickerPrice)
+private fun getTicker(tickers: MutableMap<String, TokenTicker>, tokenSymbol: String, timestampFrom: Long, interval: Long): TokenTicker {
+    return tickers
+        .getOrPut(tokenSymbol) {
+            TokenTicker(tokenSymbol, timestampFrom, timestampFrom + interval, interval)
         }
-    }
 }

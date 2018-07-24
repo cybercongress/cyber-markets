@@ -27,19 +27,19 @@ class TickerProcessor(
 ) {
     private val log = LoggerFactory.getLogger(TickerProcessor::class.java)!!
 
-    val tickers: MutableMap<String, MutableMap<Long, TokenTicker>> = mutableMapOf()
-    val windows: MutableMap<String, MutableMap<Long, Queue<TokenTicker>>> = mutableMapOf()
+    private val tickers: MutableMap<String, MutableMap<Long, TokenTicker>> = mutableMapOf()
+    private val windows: MutableMap<String, MutableMap<Long, Queue<TokenTicker>>> = mutableMapOf()
 
     fun process() {
         while (true) {
             sleep(windowHop)
 
-            hopTickerProcessor.update()
-            update(hopTickerProcessor.hopTickers)
+            val hopTickers = hopTickerProcessor.getHopTickers()
+            merge(hopTickers)
         }
     }
 
-    fun update(hopTickers: MutableMap<String, TokenTicker>) {
+    fun merge(hopTickers: MutableMap<String, TokenTicker>) {
         hopTickers.forEach { tokenSymbol, hopTicker ->
             windowIntervals.forEach { duration ->
 
@@ -80,11 +80,11 @@ class TickerProcessor(
     }
 
     fun saveAndProduceToKafka() {
-        tickerService.persist(tickers, hopTickerProcessor.currentHopToMillis)
+        tickerService.persist(tickers, hopTickerProcessor.currentHopTo)
     }
 
     fun updateTimestamps() {
-        val currentHopFromMillis = hopTickerProcessor.currentHopToMillis
+        val currentHopFromMillis = hopTickerProcessor.currentHopTo
 
         tickers.forEach { _, windowDurationMap ->
             windowDurationMap.forEach { _, ticker ->
