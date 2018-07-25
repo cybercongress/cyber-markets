@@ -9,7 +9,6 @@ import fund.cyber.markets.ticker.common.updateVolumes
 import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.util.*
 
 /**
  * @param hopTickers - map of token symbol -> TokenTicker
@@ -30,17 +29,12 @@ class HopTickerProcessor(
         currentHopTo = closestSmallerMultiplyFromTs(windowHop)
         val currentHopFrom = currentHopTo - windowHop
 
-        val tradeRecords = tickerService.poll()
-        val tradesCount = tradeRecords.count()
+        val trades = tickerService.pollTrades()
+        val tradesCount = trades.count()
         log.debug("Trades count: {}", tradesCount)
 
-        tradeRecords.forEach {
-            log.debug("trade: ${Date(it.value().timestamp)} ; current: ${Date(currentHopFrom)} ")
-        }
-
         //todo: magic filter
-        val trades = tradeRecords
-            .map { tradeRecord -> tradeRecord.value() }
+        trades
             .filter { trade -> trade.timestamp + windowHop >= currentHopFrom }
 
         log.debug("Dropped trades count: {}", tradesCount - trades.size)

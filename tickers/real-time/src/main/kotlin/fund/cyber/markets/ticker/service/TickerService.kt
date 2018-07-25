@@ -5,7 +5,6 @@ import fund.cyber.markets.cassandra.repository.TickerRepository
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.Trade
 import io.reactivex.schedulers.Schedulers
-import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -22,8 +21,10 @@ class TickerService(
     private var isCassandraAlive = true
     private var restoreNeeded = false
 
-    fun poll(): ConsumerRecords<String, Trade> {
-        return tickerKafkaService.pollTrades(pollTimeout)
+    fun pollTrades(): List<Trade> {
+        return tickerKafkaService
+            .pollTrades(pollTimeout)
+            .map { record -> record.value() }
     }
 
     fun persist(tickers: MutableMap<String, MutableMap<Long, TokenTicker>>, currentHopFromMillis: Long) {

@@ -3,6 +3,8 @@ project(":tickers:common") {
     dependencies {
         compile project(":common")
         compile project(":common-kafka")
+
+        testCompile 'org.springframework.boot:spring-boot-starter-test'
     }
 }
 

@@ -22,8 +22,8 @@ class CrossConversion(
     fun updateMapOfPrices(trades: List<Trade>) {
         trades.forEach { trade ->
             prices
-                .getOrPut(trade.pair.base, { mutableMapOf() })
-                .getOrPut(trade.pair.quote, { mutableMapOf() })
+                .getOrPut(trade.pair.base) { mutableMapOf() }
+                .getOrPut(trade.pair.quote) { mutableMapOf() }
                 .put(trade.exchange, trade.price)
         }
     }
