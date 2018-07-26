@@ -1,5 +1,8 @@
 project(":tickers:common") {
 
+    apply plugin: "io.spring.dependency-management"
+    jar.archiveName = "common-tickers"
+
     dependencies {
         compile project(":common")
         compile project(":common-kafka")
@@ -32,7 +35,7 @@ project(":tickers:historical") {
     apply plugin: "org.springframework.boot"
 
     springBoot {
-        mainClassName = 'fund.cyber.markets.TickersApplication'
+        mainClassName = 'fund.cyber.markets.TickersHistoricalApplication'
     }
 
     dependencies {
