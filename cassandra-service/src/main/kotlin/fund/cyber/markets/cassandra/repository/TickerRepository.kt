@@ -34,5 +34,5 @@ interface TickerRepository : ReactiveCassandraRepository<CqlTokenTicker, MapId> 
              @Param("epochDay") epochDay: Long,
              @Param("timestampFrom") timestampFrom: Date,
              @Param("interval") interval: Long,
-             @Param("limitValue") limit: Long): Flux<CqlTokenTicker>
+             @Param("limitValue") limit: Int): Flux<CqlTokenTicker>
 }

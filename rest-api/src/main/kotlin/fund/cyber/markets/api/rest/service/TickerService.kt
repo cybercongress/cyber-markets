@@ -22,7 +22,7 @@ class TickerService(
 
         while (limitVar > 0) {
 
-            val epochDay = tsVar convert MILLIS_TO_DAYS
+            val epochDay: Long = tsVar convert MILLIS_TO_DAYS
             var iterationLimit = (((epochDay + 1) convert DAYS_TO_MILLIS) - tsVar) / interval
 
             if (iterationLimit > limitVar) {
@@ -32,7 +32,7 @@ class TickerService(
             if (iterationLimit > 0) {
                 tickers = tickers
                     .concatWith(
-                        tickerRepository.find(symbol, epochDay, Date(ts), interval, iterationLimit)
+                        tickerRepository.find(symbol, epochDay, Date(ts), interval, iterationLimit.toInt())
                     )
             } else {
                 tsVar = (epochDay + 1) convert DAYS_TO_MILLIS
