@@ -1,7 +1,7 @@
 /* Gradle plugins part */
 buildscript {
     ext {
-        kotlinVersion = "1.2.50"
+        kotlinVersion = "1.2.51"
         kotlinCoroutinesVersion = "0.19.3"
 
         jacksonVersion = "2.9.2"
@@ -216,15 +216,16 @@ project(":common-rest-api") {
 }
 
 project(":stream-api") {
+
     apply plugin: "application"
+
+    mainClassName = "fund.cyber.markets.StreamApiApplication"
 
     dependencies {
         compile project(":common")
         compile project(":common-kafka")
-        compile("io.undertow:undertow-core")
+        compile 'io.undertow:undertow-core'
     }
-
-    mainClassName = "fund.cyber.markets.StreamApiApplication"
 }
 
 project(":rest-api") {
@@ -272,27 +273,6 @@ project(":exchanges-connector") {
 
         testCompile 'org.springframework:spring-test'
         testCompile 'org.springframework.kafka:spring-kafka-test'
-
-    }
-}
-
-project(":tickers-batch") {
-
-    apply plugin: "org.springframework.boot"
-
-    springBoot {
-        mainClassName = 'fund.cyber.markets.TickersApplication'
-    }
-
-    dependencies {
-        compile project(":common")
-        compile project(":common-kafka")
-        compile project(":cassandra-service")
-
-        compile 'org.springframework.boot:spring-boot-starter'
-        compile 'org.ehcache:ehcache'
-
-        testCompile("org.springframework.boot:spring-boot-starter-test")
     }
 }
 
@@ -321,5 +301,4 @@ project(":storer") {
         compile project(":common-rest-api")
         compile project(":cassandra-service")
     }
-
 }

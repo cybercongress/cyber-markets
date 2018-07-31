@@ -1,5 +1,8 @@
 version: 2
 
+# This config file uses YAML aliases
+# http://blog.daemonl.com/2016/02/yaml.html
+# https://github.com/cyklo/Bukkit-OtherBlocks/wiki/Aliases-(advanced-YAML-usage)
 aliases:
 
   # Common configuration for all jobs
@@ -31,67 +34,130 @@ jobs:
       - run:
           name: Build and test the cyber-markets project
           command: ./gradlew clean build
+      # Circle CI doesn't allow persisting of root of workspace,
+      # so we will persist individual folders used in jobs
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./exchanges-connector
+            - ./rest-api
+            - ./storer
+            - ./stream-api
+            - ./tickers
+            - ./docs
       - save_cache:
           key: project-dependencies-{{ checksum "build.gradle" }}
           paths:
             - ~/.gradle/caches/
             - ~/.gradle/wrapper/
 
+  update_changelog:
+    <<: *defaults
+    steps:
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - checkout
+      - run:
+          name: Update cyber-markets changelog
+          command: |
+            cid=$(docker run -d -it ferrarimarco/github-changelog-generator cybercongress/cyber-markets --exclude-tags-regex .*[.].*[.].*[.].* --token $CHANGELOG_GITHUB_TOKEN )
+            docker attach $cid
+            docker cp $cid:/usr/local/src/your-app/CHANGELOG.md ./CHANGELOG.md
+            diff=$(git diff CHANGELOG.md)
+            if [[  -n  "$diff" ]]; then
+              git config --global user.email "cybercongress42@gmail.com"
+              git config --global user.name "Cyber Admin"
+              git add CHANGELOG.md
+              git commit -m "Circle CI: Update Changelog"
+              git push --set-upstream origin master
+            fi
+
+  update_docs:
+    <<: *defaults
+    steps:
+    - checkout
+    - run:
+        name: Clone congress repo
+        working_directory: ~/workdir
+        command: |
+          git clone -q --depth 1 https://${DOCS_GITHUB_TOKEN}@github.com/cybercongress/congress.git
+    - deploy:
+        name: Update docs from cyber search repo
+        working_directory: ~/workdir/congress
+        command: |
+          # We need to remove current files in folder to avoid duplicating renamed files
+          rm -rf ./knowledge/docs/cyber-markets/*
+          cp -r ~/build/docs/. ./knowledge/docs/cyber-markets/
+          git add -N knowledge/docs/cyber-markets
+          diff=$(git diff knowledge/docs/cyber-markets/)
+          if [[  -n  "$diff" ]]; then
+            git config user.email "cybercongress42@gmail.com"
+            git config user.name "Cyber Admin"
+            git add knowledge/docs/cyber-markets/
+            git commit -m "Circle CI: Update Docs"
+            # Push quietly to prevent showing the token in log
+            git push -q https://${DOCS_GITHUB_TOKEN}@github.com/cybercongress/congress.git master
+          fi
+
   deploy_exchanges-connector_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build exchanges-connector docker image
           command: |
-            docker build -t cybernode/cm-exchanges-connector:$CIRCLE_TAG -f ./exchanges-connector/Dockerfile ./
+            docker build -t cybernode/cm-exchanges-connector:$CIRCLE_TAG -f ./exchanges-connector/Dockerfile ./exchanges-connector
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-exchanges-connector:$CIRCLE_TAG
             docker tag cybernode/cm-exchanges-connector:$CIRCLE_TAG cybernode/cm-exchanges-connector:latest
             docker push cybernode/cm-exchanges-connector:latest
 
-#  deploy_tickers_image:
-#    <<: *defaults
-#    steps:
-#      - checkout
-#      - setup_remote_docker:
-#          version: 17.11.0-ce
-#      - run:
-#          name: Build tickers docker image
-#          command: |
-#            docker build -t cybernode/cm-tickers:$CIRCLE_TAG -f ./tickers/Dockerfile ./
-#            docker login -u $DOCKER_USER -p $DOCKER_PASS
-#            docker push cybernode/cm-tickers:$CIRCLE_TAG
-#            docker tag cybernode/cm-tickers:$CIRCLE_TAG cybernode/cm-tickers:latest
-#            docker push cybernode/cm-tickers:latest
-
-  deploy_tickers-batch_image:
+  deploy_tickers-historical_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
-          name: Build tickers-batch docker image
+          name: Build tickers-historical docker image
           command: |
-            docker build -t cybernode/cm-tickers-batch:$CIRCLE_TAG -f ./tickers-batch/Dockerfile ./
+            docker build -t cybernode/cm-tickers-historical:$CIRCLE_TAG -f ./tickers/historical/Dockerfile ./tickers/historical
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push cybernode/cm-tickers-batch:$CIRCLE_TAG
-            docker tag cybernode/cm-tickers-batch:$CIRCLE_TAG cybernode/cm-tickers-batch:latest
-            docker push cybernode/cm-tickers-batch:latest
+            docker push cybernode/cm-tickers-historical:$CIRCLE_TAG
+            docker tag cybernode/cm-tickers-historical:$CIRCLE_TAG cybernode/cm-tickers-historical:latest
+            docker push cybernode/cm-tickers-historical:latest
+
+  deploy_tickers-real-time_image:
+    <<: *defaults
+    steps:
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
+      - run:
+          name: Build tickers-real-time docker image
+          command: |
+            docker build -t cybernode/cm-tickers-real-time:$CIRCLE_TAG -f ./tickers/real-time/Dockerfile ./tickers/real-time
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push cybernode/cm-tickers-real-time:$CIRCLE_TAG
+            docker tag cybernode/cm-tickers-real-time:$CIRCLE_TAG cybernode/cm-tickers-real-time:latest
+            docker push cybernode/cm-tickers-real-time:latest
 
   deploy_stream-api_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build stream-api docker image
           command: |
-            docker build -t cybernode/cm-stream-api:$CIRCLE_TAG -f ./stream-api/Dockerfile ./
+            docker build -t cybernode/cm-stream-api:$CIRCLE_TAG -f ./stream-api/Dockerfile ./stream-api
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-stream-api:$CIRCLE_TAG
             docker tag cybernode/cm-stream-api:$CIRCLE_TAG cybernode/cm-stream-api:latest
@@ -100,28 +166,31 @@ jobs:
   deploy_rest-api_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build rest-api docker image
           command: |
-            docker build -t cybernode/cm-rest-api:$CIRCLE_TAG -f ./rest-api/Dockerfile ./
+            docker build -t build/cm-rest-api -f ./rest-api/Dockerfile ./rest-api
             docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker tag build/cm-rest-api cybernode/cm-rest-api:$CIRCLE_TAG
             docker push cybernode/cm-rest-api:$CIRCLE_TAG
-            docker tag cybernode/cm-rest-api:$CIRCLE_TAG cybernode/cm-rest-api:latest
+            docker tag build/cm-rest-api cybernode/cm-rest-api:latest
             docker push cybernode/cm-rest-api:latest
 
   deploy_storer_image:
     <<: *defaults
     steps:
-      - checkout
       - setup_remote_docker:
           version: 17.11.0-ce
+      - attach_workspace:
+          at: ~/build
       - run:
           name: Build storer docker image
           command: |
-            docker build -t cybernode/cm-storer:$CIRCLE_TAG -f ./storer/Dockerfile ./
+            docker build -t cybernode/cm-storer:$CIRCLE_TAG -f ./storer/Dockerfile ./storer
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push cybernode/cm-storer:$CIRCLE_TAG
             docker tag cybernode/cm-storer:$CIRCLE_TAG cybernode/cm-storer:latest
@@ -136,15 +205,27 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - update_changelog:
+          requires:
+            - build_project
+          filters:
+            branches:
+              only: master
+      - update_docs:
+          requires:
+            - build_project
+          filters:
+            branches:
+              only: master
       - deploy_exchanges-connector_image:
           <<: *release_filter
           requires:
             - build_project
-#      - deploy_tickers_image:
-#          <<: *release_filter
-#          requires:
-#            - build_project
-      - deploy_tickers-batch_image:
+      - deploy_tickers-historical_image:
+          <<: *release_filter
+          requires:
+            - build_project
+      - deploy_tickers-real-time_image:
           <<: *release_filter
           requires:
             - build_project

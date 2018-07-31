@@ -1,0 +1,50 @@
+project(":tickers:common") {
+
+    apply plugin: "io.spring.dependency-management"
+    jar.archiveName = "common-tickers"
+
+    dependencies {
+        compile project(":common")
+        compile project(":common-kafka")
+
+        testCompile 'org.springframework.boot:spring-boot-starter-test'
+    }
+}
+
+project(":tickers:real-time") {
+
+    apply plugin: "org.springframework.boot"
+
+    springBoot {
+        mainClassName = 'fund.cyber.markets.TickersRealTimeApplication'
+    }
+
+    dependencies {
+        compile project(":tickers:common")
+        compile project(":cassandra-service")
+
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.springframework.kafka:spring-kafka'
+
+        testCompile 'org.springframework.boot:spring-boot-starter-test'
+    }
+}
+
+project(":tickers:historical") {
+
+    apply plugin: "org.springframework.boot"
+
+    springBoot {
+        mainClassName = 'fund.cyber.markets.TickersHistoricalApplication'
+    }
+
+    dependencies {
+        compile project(":tickers:common")
+        compile project(":cassandra-service")
+
+        compile 'org.springframework.boot:spring-boot-starter'
+        compile 'org.ehcache:ehcache'
+
+        testCompile 'org.springframework.boot:spring-boot-starter-test'
+    }
+}
