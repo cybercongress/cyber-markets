@@ -23,7 +23,7 @@ class TickerServiceTest {
         val repository: TickerRepository = mock {
             //1m tickers
             on {
-                find("BTC", 0, Date(0), Intervals.MINUTE, Intervals.DAY / Intervals.MINUTE)
+                find("BTC", 0, Date(0), Intervals.MINUTE, (Intervals.DAY / Intervals.MINUTE).toInt())
             }.doReturn(Flux.fromIterable(
                 generateTestData(0L, Intervals.MINUTE, Intervals.DAY / Intervals.MINUTE)
             ))
