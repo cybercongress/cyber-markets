@@ -39,7 +39,7 @@ class ApiRouter(
 
         GET("/price", priceHandler::getPrices)
 
-        GET("/pricemulti", priceHandler::gettMultiPrices)
+        GET("/pricemulti", priceHandler::getMultiPrices)
 
     }
 

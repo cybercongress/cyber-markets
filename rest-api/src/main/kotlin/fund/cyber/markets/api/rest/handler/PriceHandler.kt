@@ -37,7 +37,7 @@ class PriceHandler(
         return priceService.getPrices(base, quotes, exchange).asServerResponseAllowEmpty()
     }
 
-    fun gettMultiPrices(serverRequest: ServerRequest): Mono<ServerResponse> {
+    fun getMultiPrices(serverRequest: ServerRequest): Mono<ServerResponse> {
 
         val base: List<String>
         val quotes: List<String>
