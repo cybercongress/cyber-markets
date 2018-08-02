@@ -37,4 +37,29 @@ class PriceHandler(
         return priceService.getPrices(base, quotes, exchange).asServerResponseAllowEmpty()
     }
 
+    fun gettMultiPrices(serverRequest: ServerRequest): Mono<ServerResponse> {
+
+        val base: List<String>
+        val quotes: List<String>
+        val exchange: String
+
+        try {
+            base = serverRequest
+                .queryParam("base")
+                .get()
+                .toUpperCase()
+                .split(",")
+            quotes = serverRequest
+                .queryParam("quote")
+                .get()
+                .toUpperCase()
+                .split(",")
+            exchange = serverRequest.queryParam("exchange").orElse(Exchanges.ALL).toUpperCase()
+        } catch (e: NoSuchElementException) {
+            return ServerResponse.status(HttpStatus.BAD_REQUEST).build()
+        }
+
+        return priceService.getPrices(base, quotes, exchange).asServerResponseAllowEmpty()
+    }
+
 }

@@ -9,6 +9,7 @@ import fund.cyber.markets.common.convert
 import fund.cyber.markets.ticker.common.CrossConversion
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toFlux
 import reactor.core.publisher.toMono
 import java.math.BigDecimal
 import java.util.*
@@ -54,6 +55,20 @@ class PriceService(
 
                 prices.toMono()
             }
+    }
+
+    fun getPrices(bases: List<String>, quoutes: List<String>, exchange: String): Mono<Map<String, Map<String, BigDecimal>>> {
+
+        return bases
+            .toFlux()
+            .flatMap { base ->
+                Mono
+                    .defer { base.toMono() }
+                    .zipWith(getPrices(base, quoutes, exchange))
+                    .map { result -> result.t1 to result.t2 }
+            }
+            .collectList()
+            .map { list -> list.toMap() }
     }
 
 }
