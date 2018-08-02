@@ -1,6 +1,7 @@
 package fund.cyber.markets.api.rest
 
 import fund.cyber.markets.api.rest.handler.ExchangesInfoHandler
+import fund.cyber.markets.api.rest.handler.PriceHandler
 import fund.cyber.markets.api.rest.handler.RawDataHandler
 import fund.cyber.markets.api.rest.handler.TickerHandler
 import org.springframework.context.annotation.Bean
@@ -11,7 +12,8 @@ import org.springframework.web.reactive.function.server.router
 class ApiRouter(
     private val exchangesInfoHandler: ExchangesInfoHandler,
     private val rawDataHandler: RawDataHandler,
-    private val tickerHandler: TickerHandler
+    private val tickerHandler: TickerHandler,
+    private val priceHandler: PriceHandler
 ) {
 
     @Bean
@@ -34,6 +36,10 @@ class ApiRouter(
         GET("/trade", rawDataHandler::getTrades)
 
         GET("/ticker", tickerHandler::getTickers)
+
+        GET("/price", priceHandler::getPrices)
+
+        GET("/pricemulti", priceHandler::getPrices)
 
     }
 

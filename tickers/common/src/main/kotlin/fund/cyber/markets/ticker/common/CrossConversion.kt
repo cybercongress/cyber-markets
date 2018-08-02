@@ -1,6 +1,7 @@
 package fund.cyber.markets.ticker.common
 
 import fund.cyber.markets.common.model.BaseTokens
+import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.common.model.Trade
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -20,12 +21,25 @@ class CrossConversion(
     private val conversionSymbols = BaseTokens.values().map { it.name }
 
     fun updateMapOfPrices(trades: List<Trade>) {
+        invalidatePrices()
         trades.forEach { trade ->
             prices
                 .getOrPut(trade.pair.base) { mutableMapOf() }
                 .getOrPut(trade.pair.quote) { mutableMapOf() }
                 .put(trade.exchange, trade.price)
         }
+    }
+
+    fun updateMapOfPrices(ticker: TokenTicker) {
+        ticker.price.forEach { baseTokenSymbol, exchangeMap ->
+            exchangeMap.forEach { exchange, tickerPrice ->
+                prices
+                    .getOrPut(ticker.symbol) { mutableMapOf() }
+                    .getOrPut(baseTokenSymbol) { mutableMapOf() }
+                    .put(exchange, tickerPrice.close)
+            }
+        }
+
     }
 
     /**

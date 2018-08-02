@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS markets.token_price (
 
   values blob,
 
-  PRIMARY KEY ((tokenSymbol, epochHourTo), timestampTo)
+  PRIMARY KEY ((tokenSymbol, epochHourTo), method, timestampTo)
 );
 
 CREATE TABLE IF NOT EXISTS markets.trade (

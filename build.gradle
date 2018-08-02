@@ -236,6 +236,7 @@ project(":rest-api") {
         compile project(":common")
         compile project(":common-rest-api")
         compile project(":cassandra-service")
+        compile project(":tickers:common")
 
         testCompile 'org.springframework.boot:spring-boot-starter-test'
         testCompile 'com.nhaarman:mockito-kotlin'
