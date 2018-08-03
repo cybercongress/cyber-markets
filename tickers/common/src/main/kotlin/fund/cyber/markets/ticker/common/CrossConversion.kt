@@ -20,7 +20,13 @@ class CrossConversion(
 
     private val conversionSymbols = BaseTokens.values().map { it.name }
 
-    fun updateMapOfPrices(trades: List<Trade>) {
+    constructor(tickers: List<TokenTicker>) : this() {
+        tickers.forEach { ticker ->
+            updatePrices(ticker)
+        }
+    }
+
+    fun updatePrices(trades: List<Trade>) {
         invalidatePrices()
         trades.forEach { trade ->
             prices
@@ -30,7 +36,7 @@ class CrossConversion(
         }
     }
 
-    fun updateMapOfPrices(ticker: TokenTicker) {
+    fun updatePrices(ticker: TokenTicker) {
         ticker.price.forEach { baseTokenSymbol, exchangeMap ->
             exchangeMap.forEach { exchange, tickerPrice ->
                 prices
@@ -39,7 +45,6 @@ class CrossConversion(
                     .put(exchange, tickerPrice.close)
             }
         }
-
     }
 
     /**
@@ -83,6 +88,14 @@ class CrossConversion(
         }
 
         return null
+    }
+
+    fun calculate(base: String, quotes: List<String>, exchange: String): Map<String, BigDecimal?> {
+        return quotes
+            .map { quote ->
+                quote to calculate(base, quote, exchange)
+            }
+            .toMap()
     }
 
     fun invalidatePrices() {

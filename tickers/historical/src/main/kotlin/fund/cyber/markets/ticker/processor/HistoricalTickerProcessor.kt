@@ -60,7 +60,7 @@ class HistoricalTickerProcessor(
                 if (trades.isNotEmpty()) {
                     log.debug("Start timestamp: $timestampFrom. Interval: $interval. Trades count: ${trades.size}")
 
-                    crossConversion.updateMapOfPrices(trades)
+                    crossConversion.updatePrices(trades)
 
                     for (trade in trades) {
                         updateVolumes(tickers, trade, timestampFrom, interval)

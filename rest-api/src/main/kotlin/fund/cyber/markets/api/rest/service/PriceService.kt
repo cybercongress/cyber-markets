@@ -10,7 +10,6 @@ import fund.cyber.markets.ticker.common.CrossConversion
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toFlux
-import reactor.core.publisher.toMono
 import java.math.BigDecimal
 import java.util.*
 
@@ -19,54 +18,34 @@ class PriceService(
     private val tickerRepository: TickerRepository
 ) {
 
-    fun getPrices(base: String, quoutes: List<String>, exchange: String): Mono<Map<String, BigDecimal>> {
+    fun getPrices(base: String, quotes: List<String>, exchange: String): Mono<Map<String, BigDecimal>> {
 
         val timestampFrom = Date(closestSmallerMultiplyFromTs(Intervals.MINUTE) - Intervals.MINUTE)
         val timestampTo = Date(closestSmallerMultiplyFromTs(Intervals.MINUTE))
         val epochDay = timestampFrom.time convert MILLIS_TO_DAYS
 
-        var tickersFlux = tickerRepository
+        return tickerRepository
             .find(base, epochDay, timestampFrom, timestampTo, Intervals.MINUTE)
-
-        quoutes.forEach { quote ->
-            tickersFlux = tickersFlux
-                .mergeWith(tickerRepository.find(quote, epochDay, timestampFrom, timestampTo, Intervals.MINUTE))
-        }
-
-        return tickersFlux
+            .mergeWith(
+                quotes.toFlux().flatMap { quote ->
+                    tickerRepository.find(quote, epochDay, timestampFrom, timestampTo, Intervals.MINUTE)
+                }
+            )
             .map { cqlTicker -> cqlTicker.toTokenTicker() }
             .collectList()
-            .flatMap { tickers ->
-
-                val crossConversion = CrossConversion()
-                tickers.forEach { ticker ->
-                    crossConversion.updateMapOfPrices(ticker)
+            .flatMap { tickersList ->
+                Mono.fromCallable {
+                    CrossConversion(tickersList).calculate(base, quotes, exchange)
+                        .filterValues { value -> value != null }
+                        .mapValues { entry -> entry.value!! }
                 }
-
-                val prices = mutableMapOf<String, BigDecimal>()
-
-                quoutes.forEach { quote ->
-                    val price = crossConversion.calculate(base, quote, exchange)
-
-                    if (price != null) {
-                        prices[quote] = price
-                    }
-                }
-
-                prices.toMono()
             }
     }
 
-    fun getPrices(bases: List<String>, quoutes: List<String>, exchange: String): Mono<Map<String, Map<String, BigDecimal>>> {
+    fun getPrices(bases: List<String>, quotes: List<String>, exchange: String): Mono<Map<String, Map<String, BigDecimal>>> {
 
-        return bases
-            .toFlux()
-            .flatMap { base ->
-                Mono
-                    .defer { base.toMono() }
-                    .zipWith(getPrices(base, quoutes, exchange))
-                    .map { result -> result.t1 to result.t2 }
-            }
+        return bases.toFlux()
+            .flatMap { base -> getPrices(base, quotes, exchange).map { price -> base to price } }
             .collectList()
             .map { list -> list.toMap() }
     }
