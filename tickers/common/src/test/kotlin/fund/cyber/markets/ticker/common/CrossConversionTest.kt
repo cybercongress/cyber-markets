@@ -32,7 +32,7 @@ class CrossConversionTest {
         )
 
         crossConversion = CrossConversion().apply {
-            updateMapOfPrices(trades)
+            updatePrices(trades)
         }
     }
 

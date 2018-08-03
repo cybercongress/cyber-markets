@@ -39,7 +39,7 @@ class HopTickerProcessor(
 
         log.debug("Dropped trades count: {}", tradesCount - trades.size)
 
-        crossConversion.updateMapOfPrices(trades)
+        crossConversion.updatePrices(trades)
 
         trades.forEach { trade ->
             updateVolumes(hopTickers, trade, currentHopFrom, windowHop)

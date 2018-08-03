@@ -2,6 +2,8 @@ package fund.cyber.markets.ticker.processor
 
 import fund.cyber.markets.common.closestSmallerMultiply
 import fund.cyber.markets.common.closestSmallerMultiplyFromTs
+import fund.cyber.markets.common.model.Exchanges
+import fund.cyber.markets.common.model.TickerPrice
 import fund.cyber.markets.common.model.TokenTicker
 import fund.cyber.markets.ticker.common.addHop
 import fund.cyber.markets.ticker.common.minusHop
@@ -10,6 +12,8 @@ import fund.cyber.markets.ticker.service.TickerService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -52,6 +56,7 @@ class TickerProcessor(
         }
 
         cleanupOldData()
+        calculateWeightedPrice()
         saveAndProduceToKafka()
         updateTimestamps()
     }
@@ -76,6 +81,39 @@ class TickerProcessor(
 
         tickersForDelete.forEach { ticker ->
             tickers[ticker.symbol]!!.remove(ticker.interval)
+        }
+    }
+
+    private fun calculateWeightedPrice() {
+
+        tickers.forEach { _, intervalMap ->
+            intervalMap.forEach { _, ticker ->
+                ticker.price.forEach { baseTokenSymbol, exchangeMap ->
+
+                    var priceValue = BigDecimal.ZERO
+                    exchangeMap.forEach { exchange, tickerPrice ->
+
+                        if (tickerPrice.close > BigDecimal.ZERO) {
+                            try {
+                                priceValue = priceValue.plus(
+                                    tickerPrice.close.multiply(
+                                        ticker.baseVolume[baseTokenSymbol]!![exchange]
+                                    ).divide(
+                                        ticker.baseVolume[baseTokenSymbol]!![Exchanges.ALL],
+                                        RoundingMode.HALF_EVEN
+                                    )
+                                )
+                            } catch (e: Exception) {
+                                log.warn("Cannot calculate weighted price")
+                            }
+                        }
+                    }
+
+                    ticker
+                        .price[baseTokenSymbol]!!
+                        .put(Exchanges.ALL, TickerPrice(priceValue))
+                }
+            }
         }
     }
 

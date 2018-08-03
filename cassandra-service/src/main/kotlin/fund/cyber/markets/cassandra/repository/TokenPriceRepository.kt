@@ -16,8 +16,12 @@ interface TokenPriceRepository : ReactiveCassandraRepository<CqlTokenPrice, MapI
     @Consistency(value = ConsistencyLevel.LOCAL_QUORUM)
     @Query("""
         SELECT * FROM markets.token_price
-        WHERE tokensymbol=:tokensymbol AND epochhour=:epochhour AND timestampto=:timestmapTo""")
+        WHERE tokensymbol=:tokensymbol
+            AND epochhour=:epochhour
+            AND method=:method
+            AND timestampto=:timestmapTo""")
     fun find(@Param("tokensymbol") symbol: String,
              @Param("epochhour") epochHour: Long,
+             @Param("method") method: String,
              @Param("timestmapTo") timestampTo: Long): Flux<CqlTokenPrice>
 }
