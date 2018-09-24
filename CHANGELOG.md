@@ -1,5 +1,59 @@
 # Change Log
 
+## [Unreleased](https://github.com/cybercongress/cyber-markets/tree/HEAD)
+
+[Full Changelog](https://github.com/cybercongress/cyber-markets/compare/0.5.0...HEAD)
+
+**Closed issues:**
+
+- Prices rest endpoint [\#228](https://github.com/cybercongress/cyber-markets/issues/228)
+- Cleanup repository [\#225](https://github.com/cybercongress/cyber-markets/issues/225)
+- Review docs dicrectory [\#219](https://github.com/cybercongress/cyber-markets/issues/219)
+- Tickers real-time module [\#215](https://github.com/cybercongress/cyber-markets/issues/215)
+- List of tokens api endpoint bug [\#214](https://github.com/cybercongress/cyber-markets/issues/214)
+- Service layer in REST api [\#212](https://github.com/cybercongress/cyber-markets/issues/212)
+- Tickers rest endpoint [\#206](https://github.com/cybercongress/cyber-markets/issues/206)
+- Cassandra migrations [\#199](https://github.com/cybercongress/cyber-markets/issues/199)
+
+**Merged pull requests:**
+
+- Prices endpoint [\#229](https://github.com/cybercongress/cyber-markets/pull/229) ([vstavetski](https://github.com/vstavetski))
+- Fix ticker REST api [\#227](https://github.com/cybercongress/cyber-markets/pull/227) ([vstavetski](https://github.com/vstavetski))
+- Remove rest-api-old directory [\#226](https://github.com/cybercongress/cyber-markets/pull/226) ([vstavetski](https://github.com/vstavetski))
+- Cassandra migrations [\#224](https://github.com/cybercongress/cyber-markets/pull/224) ([vstavetski](https://github.com/vstavetski))
+- Update docs [\#223](https://github.com/cybercongress/cyber-markets/pull/223) ([vstavetski](https://github.com/vstavetski))
+- Tickers real-time module [\#218](https://github.com/cybercongress/cyber-markets/pull/218) ([vstavetski](https://github.com/vstavetski))
+- Fix not found status [\#216](https://github.com/cybercongress/cyber-markets/pull/216) ([vstavetski](https://github.com/vstavetski))
+- add raw data service [\#213](https://github.com/cybercongress/cyber-markets/pull/213) ([vstavetski](https://github.com/vstavetski))
+
+## [0.5.0](https://github.com/cybercongress/cyber-markets/tree/0.5.0) (2018-07-06)
+[Full Changelog](https://github.com/cybercongress/cyber-markets/compare/0.4.1...0.5.0)
+
+**Closed issues:**
+
+- Draw logo and patern for cyber-markets [\#202](https://github.com/cybercongress/cyber-markets/issues/202)
+- Token VWAP Ticker Calculation [\#192](https://github.com/cybercongress/cyber-markets/issues/192)
+- Implement tokens API  [\#148](https://github.com/cybercongress/cyber-markets/issues/148)
+
+**Merged pull requests:**
+
+- Logo for cyber markets [\#210](https://github.com/cybercongress/cyber-markets/pull/210) ([Olga584](https://github.com/Olga584))
+- Tickers rest endpoint [\#208](https://github.com/cybercongress/cyber-markets/pull/208) ([vstavetski](https://github.com/vstavetski))
+
+## [0.4.1](https://github.com/cybercongress/cyber-markets/tree/0.4.1) (2018-06-15)
+[Full Changelog](https://github.com/cybercongress/cyber-markets/compare/0.4.0...0.4.1)
+
+**Closed issues:**
+
+- Token list in REST api [\#204](https://github.com/cybercongress/cyber-markets/issues/204)
+- Tickers-lambda module [\#201](https://github.com/cybercongress/cyber-markets/issues/201)
+
+**Merged pull requests:**
+
+- Changelog with generator [\#207](https://github.com/cybercongress/cyber-markets/pull/207) ([vstavetski](https://github.com/vstavetski))
+- List of supported tokens [\#205](https://github.com/cybercongress/cyber-markets/pull/205) ([vstavetski](https://github.com/vstavetski))
+- Tickers batch processing [\#203](https://github.com/cybercongress/cyber-markets/pull/203) ([vstavetski](https://github.com/vstavetski))
+
 ## [0.4.0](https://github.com/cybercongress/cyber-markets/tree/0.4.0) (2018-06-08)
 [Full Changelog](https://github.com/cybercongress/cyber-markets/compare/0.3.7...0.4.0)
 
