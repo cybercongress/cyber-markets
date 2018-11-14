@@ -17,6 +17,7 @@
 
 **Merged pull requests:**
 
+- UPD CI job docs update [\#232](https://github.com/cybercongress/cyber-markets/pull/232) ([SaveTheAles](https://github.com/SaveTheAles))
 - UPD config.yml knowledge -\> wiki [\#231](https://github.com/cybercongress/cyber-markets/pull/231) ([SaveTheAles](https://github.com/SaveTheAles))
 - Prices endpoint [\#229](https://github.com/cybercongress/cyber-markets/pull/229) ([vstavetski](https://github.com/vstavetski))
 - Fix ticker REST api [\#227](https://github.com/cybercongress/cyber-markets/pull/227) ([vstavetski](https://github.com/vstavetski))
